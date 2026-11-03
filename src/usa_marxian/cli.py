@@ -302,6 +302,29 @@ def cmd_industries(args: argparse.Namespace) -> int:
                 r=real["R_real_market"], cv=real["r_real_weighted_cv_market"]
             )
         )
+    comparison = report.get("benchmark_comparison", [])
+    market_rows = [
+        row for row in comparison if str(row.get("benchmark", "")).endswith("| market")
+    ]
+    if market_rows:
+        print("Benchmark comparison (market industries):")
+        for row in market_rows:
+            name = str(row["benchmark"]).replace(" | market", "")
+            print(
+                f"  {name:<52} MAE {row['mae_pct']:5.1f}%  "
+                f"corr {row['corr']:.3f}  slope {row['slope']:.3f}"
+            )
+    gravitation_rows = report.get("shaikh", {}).get("gravitation", [])
+    if gravitation_rows:
+        print("Gravitation comparison:")
+        for row in gravitation_rows:
+            print(
+                f"  {row['benchmark']:<52} gap {row['mean_abs_d']:.1%}; "
+                f"half-life {row['half_life_years']:.1f}y; "
+                f"GO beta {row['beta_go']:+.3f} (p={row['p_go']:.3f}); "
+                f"1y RMSE {row['forecast_pp_1y']:.3f} vs naive "
+                f"{row['forecast_naive_1y']:.3f}"
+            )
     long_run = report.get("gravitation", {}).get("long_run")
     if long_run:
         dev = long_run["deviation"]

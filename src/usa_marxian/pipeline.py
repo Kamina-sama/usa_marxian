@@ -12,6 +12,7 @@ from typing import Any
 import numpy as np
 import pandas as pd
 
+from .analysis.compare import run_shaikh_comparison
 from .analysis.descriptives import summary_table
 from .analysis.diagnostics import diagnostics_table
 from .analysis.gravitation import run_gravitation
@@ -297,6 +298,7 @@ def run_industries(
             stacklevel=2,
         )
 
+    use_matrices = None
     try:
         sector_config = load_sector_config()
         use_matrices = load_use_matrices(
@@ -422,6 +424,20 @@ def run_industries(
             stacklevel=2,
         )
 
+    shaikh = None
+    if use_matrices is not None and macro_accounts is not None:
+        try:
+            shaikh = run_shaikh_comparison(
+                enriched, use_matrices, macro_accounts, base_year=2017
+            )
+            report["shaikh"] = shaikh.summary
+            report["benchmark_comparison"] = shaikh.comparison.to_dict(orient="records")
+        except Exception as exc:
+            warnings.warn(
+                f"Shaikh comparison unavailable: {exc}",
+                stacklevel=2,
+            )
+
     gravitation = None
     gravitation_report = None
     if with_gravitation:
@@ -451,6 +467,20 @@ def run_industries(
             reconciliation.to_csv(tables / "industry_reconciliation.csv", index=False)
         if coverage is not None:
             coverage.to_csv(tables / "industry_capital_coverage.csv", index=False)
+        if shaikh is not None:
+            shaikh.shaikh.panel.to_csv(
+                processed / "industries_shaikh.csv", index=False
+            )
+            shaikh.comparison.to_csv(
+                tables / "benchmark_comparison.csv", index=False
+            )
+            shaikh.gravitation.to_csv(
+                tables / "benchmark_gravitation.csv", index=False
+            )
+            with (config.settings.output_dir / "shaikh.json").open(
+                "w", encoding="utf-8"
+            ) as handle:
+                json.dump(_json_safe(shaikh.summary), handle, indent=2)
         if gravitation is not None:
             deviation = gravitation["deviation"]
             pd.DataFrame(

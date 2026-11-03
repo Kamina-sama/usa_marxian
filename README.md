@@ -456,6 +456,45 @@ years per industry.
 
 The full derivation, tables and caveats are in `docs/gravitation.md`.
 
+## Moseley vs Shaikh
+
+The project also builds Shaikh's benchmarks from the same BEA Use table:
+
+- **direct prices / labour values**, `lambda = l (I - A)^-1`;
+- **prices of production**, `p = (1+r)(p A + w l)`, with a uniform profit rate
+  on flow capital.
+
+Moseley's benchmark uses the stock of advanced capital and `R = S/M`; Shaikh's
+uses the flow cost matrix and `r = S/K`. They are different capital concepts,
+not two estimates of one parameter.
+
+Fit on the same 65 market industries, 1998-2023:
+
+- **Moseley `PP`**: MAE **13.7%**, RMSE **22.9%**, corr **0.983**, slope
+  **1.043**, within 25% **88.8%**, mean gap **-7.2%**.
+- **Shaikh `PP_S`**: MAE **15.9%**, RMSE **20.1%**, corr **0.977**, slope
+  **0.954**, within 25% **80.7%**, mean gap **-1.0%**.
+- **Shaikh direct prices**: MAE **18.5%**, RMSE **24.2%**, corr **0.954**,
+  slope **0.939**, within 25% **69.1%**, mean gap **-0.1%**.
+
+Gravitation comparison:
+
+- **Moseley**: mean gap 12.4%, half-life 2.2y, output adjustment `-0.163`
+  (p=0.015), PP adjustment `+0.105` (p=0.035), 1y forecast RMSE 0.213.
+- **Shaikh `PP_S`**: mean gap 16.8%, half-life 3.2y, output adjustment
+  `-0.216` (p=0.005), PP adjustment `-0.019` (p=0.742), 1y forecast RMSE 0.255.
+- **Shaikh direct prices**: mean gap 19.7%, half-life 3.2y, output adjustment
+  `-0.173` (p=0.003), 1y forecast RMSE 0.298.
+- Naive forecast RMSE: **0.120**.
+
+There is no single winner. **Moseley fits typical industry errors and forecasts
+better.** **Shaikh has lower aggregate bias and cleaner one-way gravitation**:
+market output adjusts toward `PP_S`, while `PP_S` does not adjust toward market
+output. Both fail the random-walk forecast benchmark. Labour values alone fit
+worst.
+
+The full comparison is in `docs/shaikh.md`.
+
 ## Outputs
 
 After `analyze`:
@@ -471,20 +510,21 @@ After `analyze`:
 
 After `industries`:
 
-- `data/processed/industries.csv`, `industry_capital.csv`,
-  `industry_fixed_assets.csv`, `industry_government_housing.csv`,
-  `industry_inventories.csv`
+- `data/processed/industries.csv`, `industries_shaikh.csv`,
+  `industry_capital.csv`, `industry_fixed_assets.csv`,
+  `industry_government_housing.csv`, `industry_inventories.csv`
 - `output/industries.json`
 - `output/tables/industry_summary.csv`, `industry_latest.csv`,
   `industry_proxy_sensitivity.csv`, `industry_reconciliation.csv`,
-  `industry_capital_coverage.csv`
+  `industry_capital_coverage.csv`, `benchmark_comparison.csv`,
+  `benchmark_gravitation.csv`
 - `output/tables/gravitation_summary.csv`, `gravitation_by_year.csv`,
   `gravitation_ecm.csv`, `gravitation_forecast_metrics.csv`,
   `gravitation_forecast_comparisons.csv`
 - `output/tables/gravitation_long_run_summary.csv`,
   `gravitation_long_run_ecm.csv`, `gravitation_long_run_forecast_metrics.csv`,
   `gravitation_long_run_forecast_comparisons.csv`
-- `output/gravitation.json`
+- `output/gravitation.json`, `output/shaikh.json`
 - `output/figures/industry_dispersion.png`, `pp_vs_go.png`,
   `gravitation_deviation.png`, `gravitation_forecast.png`
 
@@ -495,13 +535,13 @@ config/            settings.yaml, series.yaml, sectors.yaml, industry_capital.ya
 src/usa_marxian/
   config.py        typed config + series catalog
   data/            FRED, BLS, BEA, BEA IO, sector deflators, cache, quality
-  model/           MELT, equalities, robustness, industries
-  analysis/        LTV, diagnostics, property check, gravitation, descriptives
+  model/           MELT, equalities, robustness, industries, Shaikh
+  analysis/        LTV, diagnostics, property check, gravitation, comparison
   viz/             plots
   pipeline.py      macro and industry pipelines
   cli.py           `usa-marxian` command
 tests/             offline unit tests
-docs/              model derivation, data sources, industry notes
+docs/              model derivation, data sources, industry notes, Shaikh comparison
 notebooks/         exploratory notebooks
 data/raw           cached downloads (gitignored)
 data/processed     panels, accounts, quality reports (gitignored)
