@@ -26,6 +26,18 @@ roles:
       total value-price P when constant capital is measured as depreciation
       only (P = CFC + NDP).
 
+  gnp:
+    label: Gross national product, current prices
+    provider: fred
+    series_id: GNPA
+    units: billions_usd
+    frequency: annual
+    agg: mean
+    scale: 1.0
+    notes: >
+      BEA NIPA Table 1.1.5. Used only in the alternative NNP specification:
+      N = GNP - CFC.
+
   cfc:
     label: Consumption of fixed capital
     provider: fred
@@ -76,6 +88,63 @@ roles:
       includes taxes on production and imports, so this series is smaller
       than S.
 
+  taxes_on_production:
+    label: Taxes on production and imports
+    provider: fred
+    series_id: GDITAXES
+    units: billions_usd
+    frequency: quarterly
+    agg: mean
+    scale: 1.0
+    notes: >
+      BEA gross domestic income component. Part of total surplus-value that is
+      distributed to the state rather than appropriated as profit.
+
+  corporate_profits:
+    label: Corporate profits before taxes
+    provider: fred
+    series_id: A053RC1A027NBEA
+    units: billions_usd
+    frequency: annual
+    agg: mean
+    scale: 1.0
+    notes: >
+      Independent profit measure, used to check S = N - V against property
+      income.
+
+  proprietors_income:
+    label: Proprietors' income with IVA and CCAdj
+    provider: fred
+    series_id: A041RC1A027NBEA
+    units: billions_usd
+    frequency: annual
+    agg: mean
+    scale: 1.0
+    notes: >
+      Mixed income of unincorporated enterprises. It contains both labour and
+      property income, so it is an upper-bound component of the independent
+      profit measure.
+
+  net_interest:
+    label: Net interest and miscellaneous payments on assets
+    provider: fred
+    series_id: W255RC1A027NBEA
+    units: billions_usd
+    frequency: annual
+    agg: mean
+    scale: 1.0
+    notes: Independent property-income component.
+
+  rental_income:
+    label: Rental income of persons with CCAdj
+    provider: fred
+    series_id: A048RC1A027NBEA
+    units: billions_usd
+    frequency: annual
+    agg: mean
+    scale: 1.0
+    notes: Independent property-income component.
+
   capital_stock:
     label: Current-cost net stock of private nonresidential fixed assets
     provider: fred
@@ -87,6 +156,31 @@ roles:
     notes: >
       BEA fixed-assets accounts. Converted to billions. This is the fixed
       component of the advanced capital stock M.
+
+  capital_stock_private:
+    label: Current-cost net stock of private fixed assets
+    provider: fred
+    series_id: K1PTOTL1ES000
+    units: millions_usd
+    frequency: annual
+    agg: last
+    scale: 0.001
+    notes: >
+      Total private fixed assets, including residential. Used as an
+      alternative and broader measure of M.
+
+  net_national_factor_income:
+    label: Net national factor income
+    provider: fred
+    series_id: X032RC1A027NBEA
+    units: billions_usd
+    frequency: annual
+    agg: mean
+    scale: 1.0
+    optional: true
+    notes: >
+      Net national product at factor cost. Used in the nnp_factor
+      specification of new value.
 
   inventories:
     label: Net stock of private inventories

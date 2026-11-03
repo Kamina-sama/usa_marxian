@@ -31,7 +31,15 @@ CSV endpoint on failure.
 | `gdp_deflator` | `GDPDEF` | GDP implicit price deflator | index 2017=100 |
 | `compensation` | `A033RC1A027NBEA` | Compensation of employees, paid | bn USD |
 | `net_operating_surplus` | `GDINOSA` | Net operating surplus | bn USD |
+| `gnp` | `GNPA` | Gross national product | bn USD |
+| `taxes_on_production` | `GDITAXES` | Taxes on production and imports | bn USD |
+| `corporate_profits` | `A053RC1A027NBEA` | Corporate profits before taxes | bn USD |
+| `proprietors_income` | `A041RC1A027NBEA` | Proprietors' income with IVA and CCAdj | bn USD |
+| `net_interest` | `W255RC1A027NBEA` | Net interest and miscellaneous payments | bn USD |
+| `rental_income` | `A048RC1A027NBEA` | Rental income of persons with CCAdj | bn USD |
 | `capital_stock` | `K1NTOTL1ES000` | Net stock of private nonresidential fixed assets | mn USD |
+| `capital_stock_private` | `K1PTOTL1ES000` | Net stock of total private fixed assets | mn USD |
+| `net_national_factor_income` | `X032RC1A027NBEA` | Net national factor income | bn USD |
 | `inventories` | `K100071A027NBEA` | Net stock of private inventories | bn USD |
 | `employment` | `CEU0500000001` | All employees, total private | thousands |
 | `weekly_hours` | `AWHAETP` | Average weekly hours, total private | hours/week |
@@ -79,7 +87,31 @@ Format: `%SeriesCode,Period,Value`, with BEA series codes such as `A001RC`
 (GDP). Parsed in `src/usa_marxian/data/bea.py`.
 
 Optional API key: <https://apps.bea.gov/API/signup/>. Needed for quarterly
-tables, input-output tables, and arbitrary NIPA tables.
+tables and arbitrary NIPA tables.
+
+## BEA input-output (industry layer)
+
+Keyless archive:
+
+```
+https://apps.bea.gov/industry/iTables%20Static%20Files/AllTablesIO.zip
+```
+
+The project extracts and parses
+`IOUse_After_Redefinitions_PRO_1997-2023_Summary.xlsx`, which contains 27 annual
+sheets and 71 summary industries each. The archive is about 16 MB and is cached
+under `data/raw/bea/` with a JSON provenance sidecar.
+
+Useful members in the same archive if you want to extend the module:
+
+- `IOMake_After_Redefinitions_PRO_1997-2023_Summary.xlsx`
+- `CxI_DR_1997-2023_Summary.xlsx`
+- detail-level Use and Make tables for 2017.
+
+The summary Use table provides intermediate consumption, compensation, taxes,
+gross operating surplus, value added and gross output. It does **not** provide
+industry capital stocks or consumption of fixed capital; those require the BEA
+fixed-assets accounts by industry, which are the next roadmap item.
 
 ## World Bank (not used by default)
 

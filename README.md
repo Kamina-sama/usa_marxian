@@ -1,12 +1,13 @@
 # usa_marxian
 
-An empirical skeleton for testing Fred Moseley's **macro-monetary interpretation**
-of Marx's theory (*Money and Totality*, Brill 2016, ch. 2) on US macroeconomic
-data.
+An empirical framework for testing Fred Moseley's **macro-monetary
+interpretation** of Marx's theory (*Money and Totality*, Brill 2016, ch. 2) on
+US macroeconomic data.
 
 The project downloads public US data without requiring an API key, constructs
-the Marxian aggregates, and runs a small set of transparent tests. It is a
-starting point, not a finished econometric study.
+the Marxian aggregates at the macro and industry levels, checks the accounting
+identities, and runs robustness and time-series diagnostics. It is a research
+skeleton, not a finished econometric study.
 
 ## The model in one page
 
@@ -39,23 +40,23 @@ used at both levels of abstraction.
 
 ## What can and cannot be tested
 
-A blunt but important point: **the core equations are accounting identities**.
-Given `m := N/L`, `N = mL` is true by definition. A "test" that total profit
-equals total surplus-value is only informative if profit and surplus-value are
-measured independently. The project therefore separates three kinds of work:
+The core equations are accounting identities. Given `m := N/L`, `N = mL` is
+true by definition. A "test" that total profit equals total surplus-value is
+only informative if profit and surplus-value are measured independently. The
+project therefore separates four kinds of work:
 
 1. **Construction** — build `C, V, S, N, L, M, m, R` consistently from NIPA and
-   fixed-asset data. This is accounting, and the code checks the identities.
-2. **Descriptive dynamics** — how do `m`, `S/V`, `M/V` and `R` evolve? Is `m`
-   stable? Does `N` grow proportionally to `L`? These are real empirical
-   questions with falsifiable answers.
-3. **Independent tests** — industry-level prices of production vs. value
-   prices, profit-rate equalisation across industries, and the two equalities
-   with independently measured profits. These require BEA input-output tables
-   and are stubbed on the roadmap.
+   fixed-asset data. The code checks the identities.
+2. **Descriptive dynamics** — how do `m`, `S/V`, `M/V` and `R` evolve?
+3. **Independent checks** — property income vs. `S`, industry profit-rate
+   dispersion, and prices of production vs. observed gross output.
+4. **Robustness** — do the conclusions survive alternative value-added,
+   capital-stock, hours and MELT definitions? Do they survive unit-root,
+   break and specification diagnostics?
 
-The default pipeline implements (1) and (2). Treat its output as measurement,
-not as proof of the theory.
+The project implements all four. It still does not identify individual labour
+values, and the industry capital-stock proxy is crude. Treat the output as
+measurement and evidence, not proof.
 
 ## Quickstart
 
@@ -72,21 +73,22 @@ python3 -m venv .venv
 .venv/bin/pip install -e ".[dev]"
 ```
 
-Run the pipeline:
+Run:
 
 ```bash
-.venv/bin/usa-marxian info       # show identities and the series map
-.venv/bin/usa-marxian fetch      # download raw series (cached under data/raw)
-.venv/bin/usa-marxian analyze    # build accounts, run tests, write artifacts
-.venv/bin/pytest                 # offline unit tests
+.venv/bin/usa-marxian info          # model, layers and series map
+.venv/bin/usa-marxian fetch         # download raw series (cached)
+.venv/bin/usa-marxian analyze       # macro accounts + robustness + diagnostics
+.venv/bin/usa-marxian industries    # BEA IO industry accounts
+.venv/bin/usa-marxian all           # both
+.venv/bin/pytest                    # offline tests
 ```
 
 Or with `make`:
 
 ```bash
 make install
-make data
-make analysis
+make all          # data + analysis + industries
 make test
 ```
 
@@ -94,21 +96,25 @@ make test
 
 No key is needed by default:
 
-- **FRED** keyless CSV endpoint (`fredgraph.csv?id=...`) for NIPA aggregates,
-  the fixed-asset stock, and BLS employment/hours series.
-- **BEA** annual NIPA flat file for alternative NIPA series.
+- **FRED** keyless CSV endpoint for NIPA aggregates, property income, fixed
+  assets, inventories, deflators and hours.
+- **BEA** annual NIPA flat file as a fallback.
+- **BEA input-output** archive (16 MB zip) for the 71-industry Use tables,
+  1997-2023.
 - **BLS** public API v1 for direct BLS series (v2 with a free key).
 
 Optional free keys unlock the official APIs and higher quotas. Copy
-`.env.example` to `.env` and fill in what you have:
+`.env.example` to `.env`:
 
 ```bash
 cp .env.example .env
 ```
 
-See `docs/data_sources.md` for the full mapping and the caveats.
+Every download is cached under `data/raw/<provider>/` with a JSON sidecar
+recording source URL, download time, row count and date range. Set
+`cache_max_age_days` in `config/settings.yaml` or pass `--refresh`.
 
-## Empirical mapping (net value-added layer)
+## Macro mapping (net value-added layer)
 
 | Variable | Series | Concept |
 |---|---|---|
@@ -118,19 +124,153 @@ See `docs/data_sources.md` for the full mapping and the caveats.
 | `V` | `A033RC1A027NBEA` | variable capital (compensation of employees) |
 | `S` | `N - V` | surplus-value |
 | `M` | `K1NTOTL1ES000` + inventories | advanced capital stock |
-| `L` | `HOANBS` index x NIPA 2017 benchmark | total labour hours |
+| `L` | `HOANBS` x NIPA 2017 benchmark | total labour hours |
+| `m` | `N / L` | MELT, USD of new value per hour |
+| `R` | `S / M` | general rate of profit |
 
 Because constant capital appears in both `P` and `K`, it cancels from `S`
 (Moseley's "dual significance of constant capital"). A gross-output layer would
-raise `C` and `P` together and leave `S` unchanged; that is why the net
-value-added layer is enough for the distribution results, though not for
-industry-level value magnitudes.
+raise `C` and `P` together and leave `S` unchanged.
 
 The default hours method is `indexed`: the nonfarm-business hours index
 (`HOANBS`, 1947-present) scaled so that 2017 equals NIPA total hours worked.
-The alternatives in `config/settings.yaml` are `nipa` (better coverage, ends
-2022) and `ces` (private employment times weekly hours, but FRED's weekly-hours
-series only starts in 2006).
+Alternatives are `nipa` (total economy, ends 2022) and `ces` (private
+employment x weekly hours, but the FRED weekly-hours series only starts in
+2006).
+
+## Alternative specifications
+
+`analyze` rebuilds the accounts under eight specifications:
+
+- baseline: NDP, nonresidential capital, inventories included, indexed hours
+- no inventories
+- total private fixed assets instead of nonresidential
+- NNP instead of NDP
+- net national factor income instead of NDP
+- NIPA hours instead of indexed hours
+- CES hours instead of indexed hours
+- GDP as the MELT numerator
+
+Results on the November 2026 vintage:
+
+- LTV slope on real new value: **1.54 to 2.25** across specifications; baseline
+  **2.24** (95% CI 2.08-2.40). The unit-slope restriction is rejected in every
+  specification.
+- Last-year profit rate: **12.9% to 26.6%**, depending mainly on whether
+  capital is measured as nonresidential or total private fixed assets.
+- Property-income ratio to `S`: **0.99 to 1.32**; the baseline is **1.01**.
+
+The widest uncertainty is the capital-stock denominator, not the labour-value
+relation.
+
+## Diagnostics
+
+The `analyze` command also writes `output/tables/diagnostics.csv`:
+
+- ADF/KPSS/Zivot-Andrews for real MELT, the profit rate and `S/V`;
+- first-difference and trend-augmented LTV regressions;
+- a pairs bootstrap for the LTV slope;
+- Chow tests at 1973 and 2008 and a scan for the most likely break.
+
+Baseline results:
+
+- Real MELT behaves like a unit-root series (ADF p=0.998, KPSS p=0.010,
+  Zivot-Andrews p=0.890). Its level is not stationary.
+- The profit rate: ADF and Zivot-Andrews reject a unit root (p=0.0013 and
+  p=0.021); KPSS is borderline (p=0.039). The evidence leans mean-reverting,
+  but it is not unanimous.
+- First-difference LTV slope: **0.80** (p=0.0045 against one).
+- Trend-augmented LTV slope: **0.94** (p=0.60 against one).
+- Bootstrap 95% CI for the level slope: **2.17 to 2.31**.
+- Chow break at 1973 p=0.007; at 2008 p<0.0001; the scan selects **2008**.
+
+The level relation is steep, but once a trend is included the slope is close to
+one and statistically indistinguishable from it. This is the central
+specification sensitivity in the aggregate data.
+
+## Property-income check
+
+`S = N - V` is a residual. The independent check uses NIPA property income:
+
+```
+property income = corporate profits + proprietors' income
+                  + net interest + rental income
+property income + taxes on production  vs  S
+```
+
+Baseline mean ratio: **1.011**; mean gap **+56.8 bn** (**+2.5% of S**). The
+correlation between the two series is high. Proprietors' income is mixed
+income, so the property measure is an upper bound, but the agreement is close
+enough to make the exercise informative.
+
+## Industry layer
+
+The BEA summary Use table gives, for 71 industries:
+
+```
+C_i    intermediate consumption
+V_i    compensation of employees
+T_i    taxes on production, less subsidies
+GOS_i  gross operating surplus
+N_i    value added
+GO_i   gross output
+```
+
+The project builds:
+
+```
+S_i = T_i + GOS_i
+K_i = C_i + V_i
+r_i = S_i / K_i
+R_cost = sum(S_i) / sum(K_i)
+PP_K_i = K_i (1 + R_cost)
+PP_V_i = V_i (1 + sum(S)/sum(V))
+```
+
+`R_cost` is a **mark-up on cost**, not the macro stock-based profit rate. It is
+used to construct the equalised-profit price benchmark `PP_K`. Because the Use
+table is an accounting identity, `C_i + N_i = GO_i` exactly; a value-price test
+at this level would be vacuous. The informative tests are:
+
+- dispersion of `r_i` across industries;
+- distance between `PP_K` and observed gross output;
+- comparison with the labour-only benchmark `PP_V`.
+
+Results, 1997-2023:
+
+- Latest cost-price mark-up: **38.7%**.
+- Full-sample weighted CV of `r_i`: **2.14**; p90/p10 in 2023: **8.72**.
+  Housing and government units dominate this dispersion.
+- Market industries only (excluding housing and government): CV **0.675**.
+- MAE of `PP_K` vs gross output: **15.3%**; market-only **14.1%**.
+- MAE of `PP_V` vs gross output: **45.8%**.
+- Correlation of `PP_K` with gross output: **0.89**.
+- Share of industries within 25% of `PP_K`: **84.5%** overall, **87.2%**
+  market-only.
+
+So the equalised-profit benchmark tracks gross output far better than a
+labour-only markup, but profit rates are not equalised in any strict sense. The
+industry capital proxy (`M_i = K_i`) is the main limitation.
+
+## Outputs
+
+After `analyze`:
+
+- `data/processed/raw_panel.csv`, `accounts.csv`, `data_quality.csv/json`
+- `output/report.json`
+- `output/tables/summary.csv`, `ltv_test.csv`, `ltv_test_nominal.csv`,
+  `melt_summary.csv`, `melt_summary_real.csv`, `profit_rate_summary.csv`,
+  `profit_rate_decomposition.csv`, `property_income_check.csv`,
+  `robustness.csv`, `robustness_ranges.csv`, `diagnostics.csv`
+- `output/figures/melt.png`, `melt_real.png`, `distribution.png`,
+  `rate_of_profit.png`, `composition.png`, `robustness.png`
+
+After `industries`:
+
+- `data/processed/industries.csv`
+- `output/industries.json`
+- `output/tables/industry_summary.csv`, `industry_latest.csv`
+- `output/figures/industry_dispersion.png`, `pp_vs_go.png`
 
 ## Project layout
 
@@ -138,64 +278,34 @@ series only starts in 2006).
 config/            settings.yaml, series.yaml
 src/usa_marxian/
   config.py        typed config + series catalog
-  data/            FRED, BLS, BEA readers + cache + account builder
-  model/           MELT, aggregate equalities, profit-rate decomposition
-  analysis/        LTV regression, descriptive tables
+  data/            FRED, BLS, BEA, BEA IO readers, cache, quality, accounts
+  model/           MELT, equalities, robustness, industries
+  analysis/        LTV, diagnostics, property check, descriptives
   viz/             plots
-  pipeline.py      fetch -> accounts -> analysis -> artifacts
+  pipeline.py      macro and industry pipelines
   cli.py           `usa-marxian` command
-tests/             offline unit tests (network-free except the marked test)
-docs/              model derivation and data notes
+tests/             offline unit tests
+docs/              model derivation, data sources, industry notes
 notebooks/         exploratory notebooks
 data/raw           cached downloads (gitignored)
-data/processed     raw panel and accounts (gitignored)
-output/            tables, figures, report.json (gitignored)
+data/processed     panels, accounts, quality reports (gitignored)
+output/            tables, figures, JSON reports (gitignored)
 ```
-
-## Outputs
-
-After `analyze`:
-
-- `data/processed/raw_panel.csv` — annual raw series
-- `data/processed/accounts.csv` — derived Marxian accounts
-- `output/report.json` — headline estimates
-- `output/tables/summary.csv`, `ltv_test.csv`, `ltv_test_nominal.csv`,
-  `melt_summary.csv`, `melt_summary_real.csv`, `profit_rate_summary.csv`,
-  `profit_rate_decomposition.csv`
-- `output/figures/melt.png`, `melt_real.png`, `distribution.png`,
-  `rate_of_profit.png`, `composition.png`
-
-## First run (data vintage of November 2026)
-
-Sample 1948-2024 (the fixed-asset stock lags NIPA flows by one year):
-
-- nominal MELT: mean 28.5 USD/hour, trend +5.1%/year
-- real MELT (2017 USD): 18.9 USD/hour in 1948, 74.3 in 2024
-- rate of surplus-value: 0.69 in 1948, 0.63 in 2024
-- general rate of profit: 33.9% in 1948, 24.0% in 2024 (mean 23.2%)
-- LTV regression on real new value: slope 2.24 (95% CI 2.08-2.40), so the
-  unit-slope restriction is rejected — real new value per hour grew over the
-  sample, which is exactly what a rising MELT or labour productivity implies.
-
-These numbers are descriptive. They are not a test that "proves" the theory;
-see the section above on what is and is not identified.
 
 ## Roadmap
 
-1. **Gross-output layer.** Add BEA input-output tables to measure `C` as
-   intermediate consumption plus CFC and to compute sectoral value prices.
-2. **Industry prices of production.** Use the BEA IO use table to build
-   `K_i`, `M_i`, and test `PP_i = K_i + R M_i` and profit-rate equalisation.
-3. **Independent profit measures.** Compare `S = N - V` with property income
-   (corporate profits + net interest + rent + proprietors' income) to make the
-   profit = surplus-value equality informative rather than definitional.
-4. **Alternative MELT measures.** Moseley's own estimates use different
-   numerators (NNP, NDP, net national income); the module already supports
-   swapping the numerator.
-5. **Deflation and real magnitudes.** Add a proper value-added deflator and
-   compute real MELT and productivity series.
-6. **Econometrics.** Accumulation regressions, profit-rate trends with
-   structural breaks, and panel tests across industries.
+1. **Industry fixed assets and CFC.** Replace `M_i = K_i` with BEA fixed-asset
+   stocks by industry and subtract CFC to get net surplus-value.
+2. **Unit prices and quantities.** Use the Make and Use tables to construct
+   unit value prices and compare them with unit prices of production.
+3. **Input-output value magnitudes.** Compute direct and total labour
+   requirements with the Leontief inverse.
+4. **Structural-break econometrics.** Bai-Perron multiple breaks, rolling
+   regressions, and regime-dependent profit-rate trends.
+5. **Alternative MELT measures.** Moseley's own estimates use NNP, NDP and net
+   national income; the infrastructure now supports swapping the numerator.
+6. **Cross-country comparison.** The World Bank endpoint is already documented;
+   the same accounting can be applied to other economies.
 
 ## Reference
 

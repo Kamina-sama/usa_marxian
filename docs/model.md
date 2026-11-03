@@ -195,3 +195,87 @@ quantities, derives values, and then transforms them. The empirical difference
 is that the standard reading needs an IO matrix and simultaneous price
 determination, while Moseley's reading needs only the aggregate money accounts
 for the distribution results.
+
+## 6. Robustness specifications
+
+`build_accounts` exposes four switches. The robustness module varies one at a
+time:
+
+- `value_added`: `ndp` (default), `nnp` (`GNP - CFC`), or `nnp_factor`
+  (net national factor income).
+- `capital_stock`: `nonresidential` (default) or `private_total`.
+- `include_inventories`: whether inventory stock enters `M`.
+- `melt_numerator`: `ndp`, `nnp`, `nnp_factor`, or `gdp`.
+
+The identities hold under every combination; only the measured magnitudes
+change. This matters most for the profit-rate denominator: private total fixed
+assets are roughly twice nonresidential assets, so the last-year profit rate
+ranges from about 12.9% to 26.6% across specifications. The LTV slope is much
+more stable, at 1.54-2.25.
+
+`nnp_factor` is a factor-cost measure: it excludes taxes on production. That is
+why its property-income ratio is about 1.32 rather than 1.01. It is a
+legitimate alternative new-value concept, not an error.
+
+## 7. Property-income check
+
+`S = N - V` is an accounting residual, so a "profit = surplus-value" test needs
+an independent profit measure. NIPA property income provides one:
+
+```
+property_income = corporate_profits + proprietors_income
+                  + net_interest + rental_income
+```
+
+Adding taxes on production gives a total that should approximate `S`:
+
+```
+property_income + taxes_on_production  ~  S
+```
+
+On the baseline sample the mean ratio is 1.011 and the mean gap is +56.8 bn
+(+2.5% of `S`). Proprietors' income is mixed income, so the property measure is
+an upper bound. The exercise is still informative because the gap is small and
+stable.
+
+## 8. Industry layer
+
+The BEA summary Use table (producer prices, after redefinitions) gives 71
+industries for 1997-2023. For industry `i`:
+
+```
+C_i    total intermediate consumption
+V_i    compensation of employees
+T_i    taxes on production and imports, less subsidies
+GOS_i  gross operating surplus
+N_i    total value added
+GO_i   total industry output
+```
+
+The Marxian objects are:
+
+```
+S_i = T_i + GOS_i
+K_i = C_i + V_i
+r_i = S_i / K_i
+R_cost = sum(S_i) / sum(K_i)
+PP_K_i = K_i (1 + R_cost)
+PP_V_i = V_i (1 + sum(S) / sum(V))
+```
+
+`R_cost` is a mark-up on **cost**, not the macro stock-based rate of profit.
+`PP_K` assumes `M_i = K_i`; that is the main proxy limitation. `PP_V` is a
+labour-only markup benchmark.
+
+Because the Use table is an accounting identity, `C_i + N_i = GO_i` exactly.
+A "value price vs. observed price" test at this level would therefore be
+vacuous. The informative tests are:
+
+- dispersion of `r_i` (weighted CV, p90/p10);
+- mean absolute percentage error of `PP_K` and `PP_V` against `GO_i`;
+- correlation and log-log slope of `GO_i` on each benchmark.
+
+Housing (`HS`) is mostly imputed rent with almost no measured intermediate
+cost, and government units are not capitalist enterprises. They remain in the
+full sample but are excluded from a market-industry robustness subset, because
+otherwise the dispersion statistic is dominated by one structural outlier.

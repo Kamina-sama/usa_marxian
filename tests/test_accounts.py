@@ -65,6 +65,31 @@ def test_hours_indexed_benchmark():
     assert hours.loc[2018] == pytest.approx(275.0)
 
 
+def test_nnp_specification(raw_panel, settings):
+    accounts = build_accounts(raw_panel, settings, value_added="nnp")
+    expected_n = raw_panel["gnp"] - raw_panel["cfc"]
+    assert np.allclose(accounts["N"], expected_n.loc[accounts.index])
+    assert np.allclose(accounts["P"], accounts["C"] + accounts["N"])
+
+
+def test_capital_stock_switch(raw_panel, settings):
+    nonres = build_accounts(raw_panel, settings, capital_stock="nonresidential")
+    private = build_accounts(raw_panel, settings, capital_stock="private_total")
+    assert (private["M"] > nonres["M"]).all()
+    assert (private["rate_profit"] < nonres["rate_profit"]).all()
+
+
+def test_property_income_check_is_consistent(raw_panel, settings):
+    accounts = build_accounts(raw_panel, settings)
+    assert np.allclose(accounts["profit_check_ratio"].dropna(), 1.0, atol=1e-9)
+
+
+def test_melt_numerator_switch(raw_panel, settings):
+    accounts = build_accounts(raw_panel, settings, melt_numerator="gdp")
+    expected = raw_panel["gdp"].loc[accounts.index] / accounts["L"]
+    assert np.allclose(accounts["melt"], expected)
+
+
 def test_validate_accounts_detects_break(raw_panel, settings):
     accounts = build_accounts(raw_panel, settings)
     accounts.loc[2000, "S"] = accounts.loc[2000, "S"] + 1.0

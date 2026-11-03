@@ -28,6 +28,7 @@ def raw_panel() -> pd.DataFrame:
     trend = np.linspace(0, 1, n)
 
     gdp = pd.Series(6000 + 14000 * trend, index=years)
+    gnp = gdp + 80
     cfc = pd.Series(600 + 2600 * trend, index=years)
     compensation = pd.Series(3400 + 7600 * trend, index=years)
     nos = pd.Series(1200 + 2400 * trend, index=years)
@@ -37,17 +38,30 @@ def raw_panel() -> pd.DataFrame:
     employment = pd.Series(110_000 + 30_000 * trend, index=years)
     weekly_hours = pd.Series(34.5 - 0.5 * trend, index=years)
 
+    new_value = gdp - cfc
+    surplus = new_value - compensation
+    taxes = 0.10 * surplus
     return pd.DataFrame(
         {
             "gdp": gdp,
+            "gnp": gnp,
             "cfc": cfc,
             "gdp_deflator": deflator,
             "compensation": compensation,
             "net_operating_surplus": nos,
+            "taxes_on_production": taxes,
+            "corporate_profits": 0.45 * surplus,
+            "proprietors_income": 0.25 * surplus,
+            "net_interest": 0.12 * surplus,
+            "rental_income": 0.08 * surplus,
             "capital_stock": capital_stock,
+            "capital_stock_private": 1.6 * capital_stock,
             "inventories": inventories,
             "employment": employment,
             "weekly_hours": weekly_hours,
+            "hours_index": 100 + 10 * trend,
+            "hours_nipa": employment * weekly_hours * 52.0 / 1e6 * (1 + 0.02 * trend),
+            "net_national_factor_income": (gnp - cfc) - taxes,
         }
     )
 
