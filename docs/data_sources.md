@@ -184,18 +184,30 @@ https://apps.bea.gov/national/Release/XLS/Survey/Section5All_xls.xlsx
 
 Table 5.8.5B, "Private Inventories and Domestic Final Sales by Industry",
 provides quarterly private inventory stocks in current dollars. The project
-uses Q4 values as year-end stocks and allocates the nine broad categories to IO
-industries:
+uses Q4 values as year-end stocks.
 
-- Farm, wholesale and the four retail categories map directly;
-- mining/utilities/construction and manufacturing are allocated within the
-  group by gross output;
+Manufacturing and retail inventories come from BEA **Table 1BUC**, available
+through the keyless NIPA underlying-detail API:
+
+```
+POST https://apps.bea.gov/iTable/core/data/app/GetStep
+```
+
+Table 1BUC gives current-dollar manufacturing and trade inventories, end of
+period, at detailed NAICS level, 1997 forward. Its manufacturing and retail
+rows map to 23 IO industries and reconcile exactly to Table 5.8.5B.
+
+The remaining groups — farm, mining/utilities/construction, wholesale and
+"other industries" — come from Table 5.8.5B:
+
+- Farm and wholesale map directly;
+- mining/utilities/construction are allocated within the group by gross output;
 - "Other industries" is allocated across the remaining market industries by
   gross output.
 
-The broad totals are official BEA data. The within-group allocation is a proxy.
-On the current vintage the allocated total is 3,805 bn in 2023 against the macro
-inventory stock of 3,805 bn (0.0%).
+On the current vintage total inventories are 3,805 bn in 2023, matching the
+macro inventory stock. Detailed manufacturing/retail data cover 54.5% of the
+total; the remaining 45.5% is broad-group allocation.
 
 ## World Bank (not used by default)
 

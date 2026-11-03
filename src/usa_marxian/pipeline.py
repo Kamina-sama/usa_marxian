@@ -19,7 +19,7 @@ from .analysis.ltv import LTVResult, estimate_ltv
 from .analysis.profit_check import property_income_check, property_income_summary
 from .config import ProjectConfig
 from .data.bea_assets import attach_capital_stock, capital_coverage, load_industry_capital
-from .data.bea_inventories import load_industry_inventories
+from .data.bea_inventory_detail import load_industry_inventories_detail
 from .data.bea_io import build_industry_panel
 from .data.build import build_accounts, build_raw_panel, validate_accounts
 from .data.quality import write_quality
@@ -273,7 +273,7 @@ def run_industries(
         max_age_days=max(365, config.settings.cache_max_age_days),
         force=refresh,
     )
-    inventories = load_industry_inventories(
+    inventories = load_industry_inventories_detail(
         config.settings.raw_dir,
         panel,
         max_age_days=max(365, config.settings.cache_max_age_days),
@@ -292,6 +292,7 @@ def run_industries(
             "M",
             "capital_source",
             "inventory_category",
+            "inventory_source",
         ],
     ].copy()
 
@@ -330,6 +331,15 @@ def run_industries(
             "gap_fixed_pct": float(latest_coverage["gap_fixed_pct"]),
             "gap_inv_pct": float(latest_coverage["gap_inv_pct"]),
             "gap_total_pct": float(latest_coverage["gap_total_pct"]),
+            "inventory_detail_share": float(
+                panel.loc[panel["inventory_source"] == "BEA 1BUC detail", "M_inv"].sum()
+                / panel["M_inv"].sum()
+            ),
+            "inventory_detail_codes": int(
+                panel.loc[
+                    panel["inventory_source"] == "BEA 1BUC detail", "industry_code"
+                ].nunique()
+            ),
         }
         report["capital_coverage"] = coverage.to_dict(orient="records")
     except Exception as exc:  # reconciliation is a check, not a prerequisite

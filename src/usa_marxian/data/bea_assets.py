@@ -224,16 +224,20 @@ def attach_capital_stock(
         how="left",
     )
     if inventories is not None:
+        inventory_columns = ["year", "industry_code", "M_inv", "inventory_category"]
+        if "inventory_source" in inventories.columns:
+            inventory_columns.append("inventory_source")
         out = out.merge(
-            inventories.loc[
-                :, ["year", "industry_code", "M_inv", "inventory_category"]
-            ],
+            inventories.loc[:, inventory_columns],
             on=["year", "industry_code"],
             how="left",
         )
+        if "inventory_source" not in out.columns:
+            out["inventory_source"] = "broad"
     else:
         out["M_inv"] = 0.0
         out["inventory_category"] = None
+        out["inventory_source"] = None
 
     out["M_inv"] = out["M_inv"].fillna(0.0)
     out["M_assets"] = out["M_assets"].where(out["M_assets"] > 0)

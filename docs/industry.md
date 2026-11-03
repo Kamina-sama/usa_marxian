@@ -25,6 +25,9 @@ Additional sources:
 - BEA NIPA Section 5 workbook (keyless):
   `https://apps.bea.gov/national/Release/XLS/Survey/Section5All_xls.xlsx`
   Table 5.8.5B gives private inventory stocks by broad industry.
+- BEA NIPA underlying detail (keyless iTable core API):
+  `https://apps.bea.gov/iTable/core/data/app/GetStep`
+  Table 1BUC gives detailed manufacturing and retail inventories.
 - FRED broad-sector chain-type price indexes from the GDP-by-Industry release:
   `VAPI*` for value added and `GOPI*` for gross output, 2017=100.
 
@@ -84,16 +87,19 @@ PP_i = K_i + R M_i,        R = sum(S_i) / sum(M_i)
 
 - current-cost net stock of private nonresidential **fixed assets**, mapped from
   74 detailed industries to 65 of the 71 IO industries;
-- year-end private **inventory stocks** from NIPA Table 5.8.5B, allocated from
-  broad sectors to IO industries in proportion to gross output.
+- year-end private **inventory stocks**: manufacturing and retail from BEA
+  Table 1BUC at detailed NAICS level (23 IO industries, 54.5% of inventory
+  value); farm, mining/utilities/construction, wholesale and “other” from NIPA
+  Table 5.8.5B, allocated within the broad group by gross output.
 
 Government units and housing have no private nonresidential stock and fall back
 to `K_i`, flagged as `cost_proxy`.
 
 Coverage in 2023: 65 of 71 industries actual. Fixed assets 34,948 bn vs macro
 34,771 bn (+0.51%); inventories 3,805 bn vs macro 3,805 bn (0.0%); combined
-38,753 bn vs 38,576 bn (+0.46%). The inventory totals are official; the
-within-sector allocation is a proxy.
+38,753 bn vs 38,576 bn (+0.46%). The inventory totals are official.
+Manufacturing and retail are detailed; only the remaining broad groups use a
+within-sector allocation.
 
 Older proxies remain available for sensitivity:
 
@@ -139,12 +145,12 @@ market-industry subset, which is the headline sample.
 - Market weighted CV of `r_i`: 0.609 in 2023 (sample mean 0.703); p90/p10 6.10.
 - Full-sample CV: 2.109 in 2023 (sample mean 2.296), dominated by housing and
   government.
-- MAE of `PP` vs gross output: 16.3% full, 13.5% market-only.
+- MAE of `PP` vs gross output: 16.5% full, 13.7% market-only.
 - MAE of `PP_V` vs gross output: 53.1%.
 - Correlation of `PP` with gross output: 0.888 full, 0.983 market-only.
-- Share within 25% of `PP`: 83.7% full, 89.5% market-only.
-- Proxy sensitivity, full-sample MAE: fixed assets + inventories 16.3%, cost
-  13.3%, output 11.0%, value-added 9.0%. Market-only MAE: 13.5%, 10.5%, 8.7%,
+- Share within 25% of `PP`: 83.2% full, 88.8% market-only.
+- Proxy sensitivity, full-sample MAE: fixed assets + inventories 16.5%, cost
+  13.3%, output 11.0%, value-added 9.0%. Market-only MAE: 13.7%, 10.5%, 8.7%,
   7.1%.
 - Sector-deflated real growth, 2005-2023: value added 1.80%/yr, gross output
   1.67%/yr.
@@ -167,15 +173,15 @@ centers of gravitation for market gross output. That analysis has its own
 document: `docs/gravitation.md`.
 
 Short version: on the 65 market industries, deviations have a mean absolute
-value of 12.8% and a half-life of about 2.2 years. The error-correction evidence
-supports slow, two-way gravitation: market output adjusts toward PP (β=-0.157,
-p=0.018) and PP also adjusts toward market output (β=+0.110, p=0.019). PP still
+value of 12.9% and a half-life of about 2.3 years. The error-correction evidence
+supports slow, two-way gravitation: market output adjusts toward PP (β=-0.166,
+p=0.012) and PP also adjusts toward market output (β=+0.097, p=0.046). PP still
 does not beat a random walk in out-of-sample forecasts.
 
 ## Next steps
 
-- Replace the gross-output allocation of broad-sector inventories with
-  industry-level inventory data.
+- Replace the broad allocation for mining/utilities/construction and “other”
+  industries with detailed inventory data.
 - Build a sector intermediate-input deflator for real cost prices and profit
   rates.
 - Use Make and Use tables to compute labour values via the Leontief inverse.

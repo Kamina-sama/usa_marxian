@@ -110,6 +110,8 @@ No key is needed by default:
   nonresidential fixed assets by industry.
 - **BEA NIPA Section 5** workbook for private inventory stocks by broad
   industry (Table 5.8.5B).
+- **BEA NIPA underlying detail** (keyless iTable API) for detailed
+  manufacturing and retail inventories (Table 1BUC).
 - **FRED GDP-by-Industry price indexes** for broad-sector value-added and
   gross-output deflators.
 - **BLS** public API v1 for direct BLS series (v2 with a free key).
@@ -257,8 +259,11 @@ PP_i = K_i + R M_i,        R = sum(S_i) / sum(M_i)
 - **fixed assets** — current-cost net stock of private nonresidential fixed
   assets from the detailed fixed-asset tables, mapped from 74 detailed
   industries to 65 of the 71 IO industries;
-- **inventories** — year-end private inventory stocks from NIPA Table 5.8.5B,
-  allocated from broad sectors to IO industries.
+- **inventories** — year-end private inventory stocks. Manufacturing and retail
+  come from BEA Table 1BUC at detailed NAICS level (23 IO industries, **54.5%**
+  of inventory value); farm, mining/utilities/construction, wholesale and
+  “other” industries come from Table 5.8.5B and are allocated within the broad
+  group.
 
 Government units and housing have no private nonresidential stock; they fall
 back to `K_i` and are flagged as `cost_proxy` in `capital_source`.
@@ -266,8 +271,9 @@ back to `K_i` and are flagged as `cost_proxy` in `capital_source`.
 Coverage in 2023: **65 of 71 industries actual**. Fixed assets total
 **34,948 bn** vs the macro aggregate **34,771 bn** (+0.51%); inventories total
 **3,805 bn** vs macro **3,805 bn** (0.0%); combined **38,753 bn** vs **38,576
-bn** (**+0.46%**). The inventory totals are official BEA data; the allocation
-within broad sectors is proportional to gross output.
+bn** (**+0.46%**). The inventory totals are official BEA data. Manufacturing and
+retail are detailed; the remaining broad groups are allocated in proportion to
+gross output.
 
 The older proxies remain available for sensitivity: `cost` (`M_i = K_i`),
 `output` (`M_i = GO_i`), and `value_added` (`M_i = N_i`). The earlier
@@ -291,15 +297,15 @@ Results, 1998-2023, net basis:
   p90/p10 **6.10**.
 - Full-sample CV: **2.109** in 2023 (sample mean 2.296), dominated by housing
   and government units.
-- MAE of `PP` vs gross output (sample means): **16.3%** full, **13.5%**
+- MAE of `PP` vs gross output (sample means): **16.5%** full, **13.7%**
   market-only.
 - MAE of the labour-only benchmark `PP_V`: **53.1%**.
 - Correlation of `PP` with gross output: **0.888** full, **0.983** market-only.
-- Share of industries within 25% of `PP` (sample means): **83.7%** full,
-  **89.5%** market-only.
-- Proxy sensitivity, full-sample MAE: fixed assets + inventories **16.3%**,
+- Share of industries within 25% of `PP` (sample means): **83.2%** full,
+  **88.8%** market-only.
+- Proxy sensitivity, full-sample MAE: fixed assets + inventories **16.5%**,
   cost **13.3%**, output **11.0%**, value-added **9.0%**. Market-only MAE:
-  **13.5%**, **10.5%**, **8.7%**, **7.1%**.
+  **13.7%**, **10.5%**, **8.7%**, **7.1%**.
 
 The actual capital measure still fits **worse on average error** than the cost
 proxy, though its market cross-sectional correlation is very high (**0.983**).
@@ -369,17 +375,17 @@ time. The project tests three separate claims on the 65 market industries:
 3. `PP` predicts future market output better than a naive forecast.
 
 **Deviations are persistent but not permanent.** Mean absolute deviation is
-**12.8%** (gross-output weighted 11.6%; median 8.9%); 89.3% of observations are
+**12.9%** (gross-output weighted 11.6%; median 9.1%); 88.9% of observations are
 within ±25%. Lag-1 autocorrelation is **0.973**, and the estimated half-life of
-a deviation is **2.2 years**. Panel ADF rejects a unit root in the Fisher sense
+a deviation is **2.3 years**. Panel ADF rejects a unit root in the Fisher sense
 (p<0.001), but only 12% of industries reject individually.
 
 **The adjustment is now two-way, and market output does move toward PP.**
 Panel error-correction with industry and year effects gives:
 
-- market output adjustment: `β = -0.157` (p=0.018), the sign gravitation
-  predicts; half-life of the output response is about 4.0 years;
-- price-of-production adjustment: `β = +0.110` (p=0.019).
+- market output adjustment: `β = -0.166` (p=0.012), the sign gravitation
+  predicts; half-life of the output response is about 3.8 years;
+- price-of-production adjustment: `β = +0.097` (p=0.046).
 
 So the gap closes through both channels: market output moves down toward `PP`
 when it is above it, and `PP` also rises toward market output. With actual
@@ -389,9 +395,9 @@ capital stocks, the first channel is statistically significant, which the old
 **PP still does not forecast better than a random walk.** Pooled out-of-sample
 log RMSE, 2008-2023:
 
-- 1 year: naive 0.120, AR(1) 0.120, ECM 0.120, PP **0.217**
-- 3 years: naive 0.202, AR(1) 0.174, ECM 0.172, PP **0.255**
-- 5 years: naive 0.258, AR(1) 0.199, ECM 0.198, PP **0.302**
+- 1 year: naive 0.120, AR(1) 0.120, ECM 0.120, PP **0.218**
+- 3 years: naive 0.202, AR(1) 0.174, ECM 0.172, PP **0.256**
+- 5 years: naive 0.258, AR(1) 0.199, ECM 0.198, PP **0.303**
 
 The PP forecast is worse than naive at every horizon; the bootstrap confidence
 interval for the RMSE difference excludes zero. The ECM is marginally better
@@ -404,8 +410,9 @@ also adjusts toward market output. But the predictive claim fails: `PP` is much
 worse than a random walk at every horizon. The defensible summary is "weak and
 slow gravitation, no forecast power", not "prices of production are irrelevant"
 and not "the theory is confirmed." The remaining limitations are the
-value-based output measure, the within-sector inventory allocation, annual
-data, and only 26 years per industry.
+value-based output measure, the remaining broad inventory allocation for
+mining/utilities/construction and "other" industries, annual data, and only 26
+years per industry.
 
 The full derivation, tables and caveats are in `docs/gravitation.md`.
 
