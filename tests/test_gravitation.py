@@ -12,6 +12,7 @@ from usa_marxian.analysis.gravitation import (
     error_correction,
     forecast_evaluation,
     panel_unit_root,
+    prepare_gravitation_panel,
 )
 
 
@@ -81,6 +82,25 @@ def test_unit_root_and_cointegration_run(gravitation_frame):
     cointegration = cointegration_test(gravitation_frame, min_obs=10)
     assert cointegration["n_industries"] == 12
     assert 0 <= cointegration["fisher_p_value"] <= 1
+
+
+def test_prepare_builds_long_run_columns():
+    rows = []
+    base = {
+        "A": dict(C=100.0, V=40.0, T=5.0, GOS=55.0, N=100.0, GO=200.0),
+        "B": dict(C=50.0, V=30.0, T=5.0, GOS=15.0, N=50.0, GO=100.0),
+        "C": dict(C=200.0, V=20.0, T=10.0, GOS=20.0, N=50.0, GO=250.0),
+    }
+    for year in (2019, 2020):
+        for code, values in base.items():
+            row = {"year": year, "industry_code": code, "industry_name": f"Industry {code}"}
+            row.update(values)
+            rows.append(row)
+    frame = prepare_gravitation_panel(pd.DataFrame(rows), capital_proxy="cost")
+    assert {"PP_long", "d_long", "d_long_lag", "delta_log_PP_long"}.issubset(
+        frame.columns
+    )
+    assert frame["d_long"].notna().any()
 
 
 def test_forecast_evaluation_returns_metrics(gravitation_frame):

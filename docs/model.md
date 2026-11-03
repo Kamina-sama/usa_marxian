@@ -363,6 +363,14 @@ should be temporary, and market gross output should adjust toward `PP` when
 
 and with expanding-window out-of-sample forecasts of `GO` at 1, 3 and 5 years.
 The results are in `docs/gravitation.md`. With actual capital stocks the gap
-closes through both channels: `β_GO = -0.154` (p=0.015) and `β_PP = +0.108`
-(p=0.012). `PP` still does not beat a naive random-walk forecast, so the
-evidence is best described as slow, weak gravitation without predictive power.
+closes through both channels: `β_GO = -0.166` (p=0.012) and `β_PP = +0.097`
+(p=0.046). A slow-moving long-run centre is also tested:
+
+```
+PP*_it = K_trend_it + R_long_t * M_trend_it
+```
+
+using five-year trailing averages. It shows stronger mean reversion
+(`β_GO = -0.135`, p=0.001) and a 1.8-year half-life. Neither benchmark beats a
+naive random-walk forecast, so the evidence is best described as slow gravitation
+without predictive power.

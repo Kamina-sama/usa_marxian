@@ -63,7 +63,7 @@ Engle-Granger cointegration between `log GO` and `log PP` gives the same
 pattern: Fisher p<0.001, but only 17% of industries reject individually.
 
 **Reading:** deviations are persistent but not permanent. The half-life is about
-2.2 years, so a shock is mostly gone in five years. That is consistent with slow
+2.3 years, so a shock is mostly gone in five years. That is consistent with slow
 gravitation, but the evidence is not strong at the individual-industry level.
 
 ## Test 2: which variable does the adjusting?
@@ -90,6 +90,32 @@ the old `M_i = K_i` proxy did not deliver. PP also moves toward market output,
 partly because it is built from current costs and the current general profit
 rate. The evidence is consistent with slow gravitation, not with a strong
 instantaneous pull.
+
+## Long-run centre of gravitation
+
+The current-period benchmark uses current cost and the current profit rate, so
+it is mechanically close to current market output. A better test of gravitation
+is a slow-moving centre:
+
+```
+PP*_it = K_trend_it + R_long_t * M_trend_it
+```
+
+`K_trend` and `M_trend` are five-year trailing averages by industry; `R_long` is
+the five-year trailing average general rate of profit. Results:
+
+- Mean absolute deviation: **15.4%** (weighted 16.4%); 81.7% within ±25%.
+- Autocorrelation: **0.905**; half-life **1.8 years**.
+- 54% of industries reject a unit root individually; Fisher p<0.001.
+- Output adjustment: `β = -0.135` (p=0.001).
+- PP adjustment: `β = +0.179` (p<0.001).
+- Forecast log RMSE, 1/3/5 years: PP **0.240 / 0.288 / 0.347** vs naive
+  **0.120 / 0.202 / 0.258**.
+
+**Reading:** the long-run centre is farther away, so deviations are larger, but
+they are less persistent and market output adjusts toward it more strongly. This
+is the clearest gravitation evidence in the project. PP still fails the
+out-of-sample test, so the result is slow adjustment without forecast power.
 
 ## Test 3: does PP forecast future market output?
 
@@ -126,12 +152,15 @@ In this 65-industry, 1998-2023 annual panel, with actual fixed-asset stocks:
 
 - prices of production are a **moderate contemporaneous benchmark**, not a tight
   fit;
-- deviations are persistent, with a half-life of about 2.2 years;
+- deviations are persistent, with a half-life of about 2.3 years;
 - the error-correction evidence supports **slow, two-way gravitation**: market
   output adjusts toward PP, and PP also adjusts toward market output;
-- PP **does not beat a random walk** in out-of-sample forecasts.
+- the **long-run centre** shows stronger mean reversion (`β_GO = -0.135`,
+  p=0.001) and a shorter half-life of 1.8 years;
+- PP **does not beat a random walk** in out-of-sample forecasts, for either the
+  current or long-run benchmark.
 
-The defensible summary is **"weak and slow gravitation, no forecast power"**. The
+The defensible summary is **"slow gravitation, no forecast power"**. The
 data do not support a strong claim that prices of production are the immediate
 centers of gravitation of market gross output. They also do not refute the
 theory: the test is limited by the value-based output measure, the remaining

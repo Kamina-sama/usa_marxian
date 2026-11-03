@@ -174,6 +174,28 @@ def add_industry_ratios(
         [np.inf, -np.inf], np.nan
     )
 
+    # Long-run centre of gravitation: trailing five-year averages of cost and
+    # capital, and a trailing five-year average general profit rate. This is a
+    # deliberately slow-moving benchmark, not a current-year accounting price.
+    out = out.sort_values(["industry_code", "year"]).copy()
+    aggregate_rate = out.groupby("year")["R_benchmark"].first().sort_index()
+    out["R_long"] = out["year"].map(
+        aggregate_rate.rolling(window=5, min_periods=1).mean()
+    )
+    grouped_industry = out.groupby("industry_code", group_keys=False)
+    out["K_trend"] = grouped_industry[cost_column].transform(
+        lambda s: s.rolling(window=5, min_periods=1).mean()
+    )
+    out["M_trend"] = grouped_industry["M_proxy"].transform(
+        lambda s: s.rolling(window=5, min_periods=1).mean()
+    )
+    out["PP_long"] = out["K_trend"] + out["R_long"] * out["M_trend"]
+    out["gap_PP_long"] = out["GO"] - out["PP_long"]
+    out["abs_gap_pct_PP_long"] = (out["gap_PP_long"].abs() / out["GO"]).replace(
+        [np.inf, -np.inf], np.nan
+    )
+    out = out.sort_values(["year", "industry_code"]).reset_index(drop=True)
+
     # Real accounts use sector-specific price indexes when available.
     #
     # Value added, compensation and gross output can each be deflated by their
@@ -286,6 +308,26 @@ def year_summary(
                 market_p90 / market_p10 if market_p10 else float("nan")
             ),
             "rate_weighted_cv_market": market_cv,
+            "mae_pct_PP_long": 100.0 * float(group["abs_gap_pct_PP_long"].mean()),
+            "corr_PP_long": float(group["GO"].corr(group["PP_long"])),
+            "share_within_25pct_PP_long": float(
+                (group["abs_gap_pct_PP_long"] <= 0.25).mean()
+            ),
+            "mae_pct_PP_long_market": (
+                100.0 * float(market["abs_gap_pct_PP_long"].mean())
+                if market_n >= 3
+                else float("nan")
+            ),
+            "corr_PP_long_market": (
+                float(market["GO"].corr(market["PP_long"]))
+                if market_n >= 3
+                else float("nan")
+            ),
+            "share_within_25pct_PP_long_market": (
+                float((market["abs_gap_pct_PP_long"] <= 0.25).mean())
+                if market_n >= 3
+                else float("nan")
+            ),
             "mae_pct_PP_market": market_mae,
             "corr_PP_market": market_corr,
             "slope_PP_market": market_slope,
@@ -356,12 +398,25 @@ def industry_report(
             "rate_weighted_cv": float(numeric["rate_weighted_cv"].mean()),
             "mae_pct_PP": float(numeric["mae_pct_PP"].mean()),
             "mae_pct_PP_V": float(numeric["mae_pct_PP_V"].mean()),
+            "mae_pct_PP_long": float(numeric["mae_pct_PP_long"].mean()),
             "corr_PP": float(numeric["corr_PP"].mean()),
+            "corr_PP_market": float(numeric["corr_PP_market"].mean()),
+            "corr_PP_long": float(numeric["corr_PP_long"].mean()),
+            "corr_PP_long_market": float(numeric["corr_PP_long_market"].mean()),
             "slope_PP": float(numeric["slope_PP"].mean()),
             "share_within_25pct_PP": float(numeric["share_within_25pct_PP"].mean()),
+            "share_within_25pct_PP_long": float(
+                numeric["share_within_25pct_PP_long"].mean()
+            ),
+            "share_within_25pct_PP_long_market": float(
+                numeric["share_within_25pct_PP_long_market"].mean()
+            ),
             "rate_weighted_cv_market": float(numeric["rate_weighted_cv_market"].mean()),
             "rate_p90_p10_market": float(numeric["rate_p90_p10_market"].mean()),
             "mae_pct_PP_market": float(numeric["mae_pct_PP_market"].mean()),
+            "mae_pct_PP_long_market": float(
+                numeric["mae_pct_PP_long_market"].mean()
+            ),
             "share_within_25pct_PP_market": float(
                 numeric["share_within_25pct_PP_market"].mean()
             ),
@@ -464,9 +519,11 @@ def latest_dispersion(
         "R_benchmark_market",
         "PP",
         "PP_market",
+        "PP_long",
         "PP_V",
         "abs_gap_pct_PP",
         "abs_gap_pct_PP_market",
+        "abs_gap_pct_PP_long",
         "is_market",
     ]
     if "N_real" in latest.columns:

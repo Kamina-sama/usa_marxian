@@ -98,6 +98,40 @@ def _print_report(report: dict) -> None:
                 f"{row['min']:.1%} to {row['max']:.1%}"
             )
 
+    gravitation = report.get("gravitation", {})
+    long_run = gravitation.get("long_run") if isinstance(gravitation, dict) else None
+    if long_run:
+        long_dev = long_run["deviation"]
+        long_ecm = long_run["error_correction"]
+        long_metrics = {
+            int(row["horizon"]): row
+            for row in long_run["forecast_metrics"]
+            if row["model"] == "pp"
+        }
+        print(
+            "Long-run PP: mean abs {mae:.1%}; half-life {hl:.1f}y; "
+            "ECM GO beta={b:.3f} (p={p:.3f})".format(
+                mae=long_dev["mean_abs_d"],
+                hl=long_dev["ar1_half_life_years"] or float("nan"),
+                b=long_ecm["delta_log_GO"]["beta"],
+                p=long_ecm["delta_log_GO"]["p_value"],
+            )
+        )
+        if 1 in long_metrics:
+            print(
+                "Long-run PP forecast, 1y log RMSE: PP {pp:.3f} vs naive {nv:.3f}".format(
+                    pp=long_metrics[1]["rmse_log"],
+                    nv=next(
+                        (
+                            row["rmse_log"]
+                            for row in long_run["forecast_metrics"]
+                            if row["horizon"] == 1 and row["model"] == "naive"
+                        ),
+                        float("nan"),
+                    ),
+                )
+            )
+
     diagnostics = report.get("diagnostics", [])
     if diagnostics:
         for row in diagnostics:
@@ -253,12 +287,39 @@ def cmd_industries(args: argparse.Namespace) -> int:
     )
     print(
         "Market sample means: p90/p10 = {p:.2f}; MAE(PP) = {mae:.1f}%; "
-        "share within 25% = {share:.1%}".format(
+        "MAE(PP_long) = {mael:.1f}%; share within 25% = {share:.1%}".format(
             p=means["rate_p90_p10_market"],
             mae=means["mae_pct_PP_market"],
+            mael=means["mae_pct_PP_long_market"],
             share=means["share_within_25pct_PP_market"],
         )
     )
+    long_run = report.get("gravitation", {}).get("long_run")
+    if long_run:
+        dev = long_run["deviation"]
+        ecm = long_run["error_correction"]
+        print(
+            "Long-run PP (5y trailing): mean abs {mae:.1%}; half-life {hl:.1f}y; "
+            "ECM GO beta={b:.3f} (p={p:.3f})".format(
+                mae=dev["mean_abs_d"],
+                hl=dev["ar1_half_life_years"] or float("nan"),
+                b=ecm["delta_log_GO"]["beta"],
+                p=ecm["delta_log_GO"]["p_value"],
+            )
+        )
+        metrics = {
+            (int(row["horizon"]), row["model"]): row["rmse_log"]
+            for row in long_run["forecast_metrics"]
+        }
+        if (1, "pp") in metrics:
+            print(
+                "Long-run PP forecast, 1y/3y/5y log RMSE: "
+                f"PP {metrics[(1, 'pp')]:.3f} / {metrics.get((3, 'pp'), float('nan')):.3f} / "
+                f"{metrics.get((5, 'pp'), float('nan')):.3f} vs naive "
+                f"{metrics.get((1, 'naive'), float('nan')):.3f} / "
+                f"{metrics.get((3, 'naive'), float('nan')):.3f} / "
+                f"{metrics.get((5, 'naive'), float('nan')):.3f}"
+            )
     if means.get("real_N_growth") is not None:
         print(
             "Sector-deflated real growth ({start}-{end}): N {n:+.2f}%/yr, "

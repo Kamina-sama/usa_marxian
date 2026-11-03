@@ -146,6 +146,7 @@ market-industry subset, which is the headline sample.
 - Full-sample CV: 2.109 in 2023 (sample mean 2.296), dominated by housing and
   government.
 - MAE of `PP` vs gross output: 16.5% full, 13.7% market-only.
+- MAE of the long-run `PP*`: 17.5% full, 16.2% market-only.
 - MAE of `PP_V` vs gross output: 53.1%.
 - Correlation of `PP` with gross output: 0.888 full, 0.983 market-only.
 - Share within 25% of `PP`: 83.2% full, 88.8% market-only.
@@ -175,8 +176,10 @@ document: `docs/gravitation.md`.
 Short version: on the 65 market industries, deviations have a mean absolute
 value of 12.9% and a half-life of about 2.3 years. The error-correction evidence
 supports slow, two-way gravitation: market output adjusts toward PP (β=-0.166,
-p=0.012) and PP also adjusts toward market output (β=+0.097, p=0.046). PP still
-does not beat a random walk in out-of-sample forecasts.
+p=0.012) and PP also adjusts toward market output (β=+0.097, p=0.046). A
+five-year trailing long-run centre shows stronger mean reversion (β=-0.135,
+p=0.001) and a 1.8-year half-life. Neither benchmark beats a random walk in
+out-of-sample forecasts.
 
 ## Next steps
 

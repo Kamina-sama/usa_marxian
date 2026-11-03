@@ -122,6 +122,15 @@ def test_pp_formula_uses_selected_capital_proxy(industry_panel):
         )
 
 
+def test_long_run_pp_formula(industry_panel):
+    enriched = add_industry_ratios(industry_panel)
+    assert {"K_trend", "M_trend", "R_long", "PP_long"}.issubset(enriched.columns)
+    assert np.allclose(
+        enriched["PP_long"],
+        enriched["K_trend"] + enriched["R_long"] * enriched["M_trend"],
+    )
+
+
 def test_fixed_assets_proxy_uses_supplied_stock(industry_panel):
     panel = industry_panel.copy()
     panel["M"] = (panel["C"] + panel["V"]) * 2.0

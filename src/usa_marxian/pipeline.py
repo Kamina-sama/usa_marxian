@@ -226,7 +226,7 @@ def _gravitation_report(gravitation: dict) -> dict[str, Any]:
         for key, value in gravitation["deviation"].items()
         if not isinstance(value, pd.DataFrame)
     }
-    return {
+    report = {
         "sample": gravitation["sample"],
         "deviation": deviation,
         "unit_root": gravitation["unit_root"],
@@ -236,6 +236,25 @@ def _gravitation_report(gravitation: dict) -> dict[str, Any]:
         "forecast_comparisons": gravitation["forecast_comparisons"].to_dict(orient="records"),
         "verdict": gravitation["verdict"],
     }
+    long_run = gravitation.get("long_run")
+    if long_run is not None:
+        long_deviation = {
+            key: value
+            for key, value in long_run["deviation"].items()
+            if not isinstance(value, pd.DataFrame)
+        }
+        report["long_run"] = {
+            "label": long_run.get("label"),
+            "deviation": long_deviation,
+            "unit_root": long_run["unit_root"],
+            "cointegration": long_run["cointegration"],
+            "error_correction": long_run["error_correction"],
+            "forecast_metrics": long_run["forecast_metrics"].to_dict(orient="records"),
+            "forecast_comparisons": long_run["forecast_comparisons"].to_dict(
+                orient="records"
+            ),
+        }
+    return report
 
 
 def run_industries(
@@ -398,6 +417,27 @@ def run_industries(
             gravitation["forecast_comparisons"].to_csv(
                 tables / "gravitation_forecast_comparisons.csv", index=False
             )
+            long_run = gravitation.get("long_run")
+            if long_run is not None:
+                pd.DataFrame(
+                    [
+                        {"metric": key, "value": value}
+                        for key, value in long_run["deviation"].items()
+                        if not isinstance(value, pd.DataFrame)
+                    ]
+                ).to_csv(tables / "gravitation_long_run_summary.csv", index=False)
+                pd.DataFrame(
+                    [
+                        {"model": name, **values}
+                        for name, values in long_run["error_correction"].items()
+                    ]
+                ).to_csv(tables / "gravitation_long_run_ecm.csv", index=False)
+                long_run["forecast_metrics"].to_csv(
+                    tables / "gravitation_long_run_forecast_metrics.csv", index=False
+                )
+                long_run["forecast_comparisons"].to_csv(
+                    tables / "gravitation_long_run_forecast_comparisons.csv", index=False
+                )
             with (config.settings.output_dir / "gravitation.json").open(
                 "w", encoding="utf-8"
             ) as handle:

@@ -99,6 +99,14 @@ def prepare_gravitation_panel(
     frame["delta_log_PP"] = grouped["log_PP"].diff()
     frame["delta_d"] = grouped["d"].diff()
 
+    if "PP_long" in frame.columns:
+        frame["log_PP_long"] = np.log(frame["PP_long"].where(frame["PP_long"] > 0))
+        frame["d_long"] = np.log(frame["GO"] / frame["PP_long"].where(frame["PP_long"] > 0))
+        grouped = frame.groupby("industry_code", group_keys=False)
+        frame["d_long_lag"] = grouped["d_long"].shift(1)
+        frame["delta_log_PP_long"] = grouped["log_PP_long"].diff()
+        frame["delta_d_long"] = grouped["d_long"].diff()
+
     for horizon in (1, 3, 5):
         frame[f"target_GO_{horizon}"] = grouped["GO"].shift(-horizon)
 
@@ -147,44 +155,49 @@ def _panel_fit(
     )
 
 
-def deviation_summary(frame: pd.DataFrame) -> dict:
+def deviation_summary(
+    frame: pd.DataFrame,
+    *,
+    d: str = "d",
+    d_lag: str = "d_lag",
+) -> dict:
     """Level, dispersion and persistence of the deviation series."""
-    data = frame.dropna(subset=["d"]).copy()
+    data = frame.dropna(subset=[d]).copy()
     by_year = (
         data.groupby("year")
         .agg(
-            n=("d", "size"),
-            mean_d=("d", "mean"),
-            mean_abs_d=("d", lambda s: float(s.abs().mean())),
-            share_within_10pct=("d", lambda s: float((s.abs() <= 0.10).mean())),
-            share_within_25pct=("d", lambda s: float((s.abs() <= 0.25).mean())),
+            n=(d, "size"),
+            mean_d=(d, "mean"),
+            mean_abs_d=(d, lambda s: float(s.abs().mean())),
+            share_within_10pct=(d, lambda s: float((s.abs() <= 0.10).mean())),
+            share_within_25pct=(d, lambda s: float((s.abs() <= 0.25).mean())),
         )
         .reset_index()
     )
 
     # Mean absolute deviation weighted by gross output.
     weights = data["GO"].to_numpy(dtype=float)
-    abs_d = data["d"].abs().to_numpy(dtype=float)
+    abs_d = data[d].abs().to_numpy(dtype=float)
     weighted_mean_abs = float(np.average(abs_d, weights=weights))
 
-    ar1 = _panel_fit(frame, "d", ["d_lag"])
+    ar1 = _panel_fit(frame, d, [d_lag])
     trend = sm.OLS(
         by_year["mean_abs_d"].to_numpy(),
         sm.add_constant(by_year["year"].to_numpy(dtype=float)),
     ).fit()
 
     return {
-        "n_obs": int(data["d"].size),
+        "n_obs": int(data[d].size),
         "n_industries": int(data["industry_code"].nunique()),
-        "mean_d": float(data["d"].mean()),
-        "std_d": float(data["d"].std(ddof=1)),
+        "mean_d": float(data[d].mean()),
+        "std_d": float(data[d].std(ddof=1)),
         "mean_abs_d": float(abs_d.mean()),
         "weighted_mean_abs_d": weighted_mean_abs,
         "median_abs_d": float(np.median(abs_d)),
         "p90_abs_d": float(np.percentile(abs_d, 90)),
         "share_within_10pct": float((abs_d <= 0.10).mean()),
         "share_within_25pct": float((abs_d <= 0.25).mean()),
-        "autocorrelation_lag1": float(data["d"].corr(data["d_lag"])),
+        "autocorrelation_lag1": float(data[d].corr(data[d_lag])),
         "ar1_beta": ar1.beta,
         "ar1_half_life_years": _persistence_half_life(ar1.beta),
         "trend_mean_abs_per_year": float(trend.params[1]),
@@ -193,13 +206,18 @@ def deviation_summary(frame: pd.DataFrame) -> dict:
     }
 
 
-def panel_unit_root(frame: pd.DataFrame, *, min_obs: int = 12) -> dict:
+def panel_unit_root(
+    frame: pd.DataFrame,
+    *,
+    column: str = "d",
+    min_obs: int = 12,
+) -> dict:
     """Fisher-type panel ADF test on the deviation series."""
     p_values = []
     rejected = 0
     used = 0
     for _, group in frame.groupby("industry_code"):
-        series = group["d"].dropna()
+        series = group[column].dropna()
         if len(series) < min_obs:
             continue
         used += 1
@@ -237,17 +255,22 @@ def panel_unit_root(frame: pd.DataFrame, *, min_obs: int = 12) -> dict:
     }
 
 
-def cointegration_test(frame: pd.DataFrame, *, min_obs: int = 15) -> dict:
-    """Per-industry Engle-Granger test between log GO and log PP."""
+def cointegration_test(
+    frame: pd.DataFrame,
+    *,
+    x: str = "log_PP",
+    min_obs: int = 15,
+) -> dict:
+    """Per-industry Engle-Granger test between log GO and a log price benchmark."""
     p_values = []
     for _, group in frame.groupby("industry_code"):
-        data = group[["log_GO", "log_PP"]].dropna()
+        data = group[["log_GO", x]].dropna()
         if len(data) < min_obs:
             continue
         try:
             _, p_value, _ = coint(
                 data["log_GO"].to_numpy(dtype=float),
-                data["log_PP"].to_numpy(dtype=float),
+                data[x].to_numpy(dtype=float),
                 trend="c",
                 maxlag=1,
             )
@@ -274,12 +297,19 @@ def cointegration_test(frame: pd.DataFrame, *, min_obs: int = 15) -> dict:
     }
 
 
-def error_correction(frame: pd.DataFrame) -> dict:
+def error_correction(
+    frame: pd.DataFrame,
+    *,
+    d_lag: str = "d_lag",
+    go: str = "delta_log_GO",
+    pp: str = "delta_log_PP",
+    dd: str = "delta_d",
+) -> dict:
     """Panel error-correction models in both directions."""
     models = {
-        "delta_log_GO": _panel_fit(frame, "delta_log_GO", ["d_lag"]),
-        "delta_log_PP": _panel_fit(frame, "delta_log_PP", ["d_lag"]),
-        "delta_d": _panel_fit(frame, "delta_d", ["d_lag"]),
+        "delta_log_GO": _panel_fit(frame, go, [d_lag]),
+        "delta_log_PP": _panel_fit(frame, pp, [d_lag]),
+        "delta_d": _panel_fit(frame, dd, [d_lag]),
     }
     return {name: result.to_dict() for name, result in models.items()}
 
@@ -362,6 +392,8 @@ def _bootstrap_rmse_difference(
 def forecast_evaluation(
     frame: pd.DataFrame,
     *,
+    pp: str = "PP",
+    d: str = "d",
     start_year: int = 2008,
     horizons: Iterable[int] = (1, 3, 5),
 ) -> tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame]:
@@ -371,7 +403,7 @@ def forecast_evaluation(
 
     for horizon in horizons:
         target = f"target_GO_{horizon}"
-        data = frame.dropna(subset=[target, "log_GO", "d"]).copy()
+        data = frame.dropna(subset=[target, "log_GO", d]).copy()
         years = sorted(data["year"].unique())
         if len(years) <= 2:
             continue
@@ -385,13 +417,13 @@ def forecast_evaluation(
             actual = test[target].to_numpy(dtype=float)
             predictions = {
                 "naive": test["GO"].to_numpy(dtype=float),
-                "pp": test["PP"].to_numpy(dtype=float),
+                "pp": test[pp].to_numpy(dtype=float),
             }
             predictions["ar1"] = _fit_forecast_model(
                 train, test, ["log_GO"], target
             )
             predictions["ecm"] = _fit_forecast_model(
-                train, test, ["log_GO", "d"], target
+                train, test, ["log_GO", d], target
             )
 
             block = pd.DataFrame(
@@ -453,19 +485,28 @@ def forecast_evaluation(
     return forecasts, metrics, comparisons
 
 
-def _verdict(summary: dict, unit_root: dict, adjustment: dict) -> str:
+def _verdict(
+    summary: dict,
+    unit_root: dict,
+    adjustment: dict,
+    *,
+    label: str | None = None,
+) -> str:
     go = adjustment["delta_log_GO"]
     pp = adjustment["delta_log_PP"]
     parts = []
 
+    prefix = f"{label}: " if label else ""
     if summary["autocorrelation_lag1"] > 0.9:
         parts.append(
-            "Deviations are highly persistent "
+            prefix
+            + "Deviations are highly persistent "
             f"(autocorrelation {summary['autocorrelation_lag1']:.2f})."
         )
     else:
         parts.append(
-            "Deviations show moderate persistence "
+            prefix
+            + "Deviations show moderate persistence "
             f"(autocorrelation {summary['autocorrelation_lag1']:.2f})."
         )
 
@@ -502,6 +543,42 @@ def _verdict(summary: dict, unit_root: dict, adjustment: dict) -> str:
     return " ".join(parts)
 
 
+def _run_benchmark(
+    frame: pd.DataFrame,
+    *,
+    pp: str,
+    d: str,
+    d_lag: str,
+    log_pp: str,
+    delta_log_pp: str,
+    delta_d: str,
+    start_year: int,
+    horizons: Iterable[int],
+) -> dict:
+    summary = deviation_summary(frame, d=d, d_lag=d_lag)
+    unit_root = panel_unit_root(frame, column=d)
+    cointegration = cointegration_test(frame, x=log_pp)
+    adjustment = error_correction(
+        frame, d_lag=d_lag, pp=delta_log_pp, dd=delta_d
+    )
+    forecasts, metrics, comparisons = forecast_evaluation(
+        frame,
+        pp=pp,
+        d=d,
+        start_year=start_year,
+        horizons=horizons,
+    )
+    return {
+        "deviation": summary,
+        "unit_root": unit_root,
+        "cointegration": cointegration,
+        "error_correction": adjustment,
+        "forecast_metrics": metrics,
+        "forecast_comparisons": comparisons,
+        "forecasts": forecasts,
+    }
+
+
 def run_gravitation(
     panel: pd.DataFrame,
     *,
@@ -510,17 +587,48 @@ def run_gravitation(
     start_year: int = 2008,
     horizons: Iterable[int] = (1, 3, 5),
 ) -> dict:
-    """Run the full gravitation battery and return tables plus a verdict."""
+    """Run the gravitation battery for current and long-run PP benchmarks."""
     frame = prepare_gravitation_panel(
         panel, capital_proxy=capital_proxy, market_only=market_only
     )
-    summary = deviation_summary(frame)
-    unit_root = panel_unit_root(frame)
-    cointegration = cointegration_test(frame)
-    adjustment = error_correction(frame)
-    forecasts, metrics, comparisons = forecast_evaluation(
-        frame, start_year=start_year, horizons=horizons
+
+    current = _run_benchmark(
+        frame,
+        pp="PP",
+        d="d",
+        d_lag="d_lag",
+        log_pp="log_PP",
+        delta_log_pp="delta_log_PP",
+        delta_d="delta_d",
+        start_year=start_year,
+        horizons=horizons,
     )
+
+    long_run = None
+    if "PP_long" in frame.columns:
+        long_run = _run_benchmark(
+            frame,
+            pp="PP_long",
+            d="d_long",
+            d_lag="d_long_lag",
+            log_pp="log_PP_long",
+            delta_log_pp="delta_log_PP_long",
+            delta_d="delta_d_long",
+            start_year=start_year,
+            horizons=horizons,
+        )
+        long_run["label"] = "Long-run PP (5-year trailing averages)"
+
+    verdict = _verdict(
+        current["deviation"], current["unit_root"], current["error_correction"]
+    )
+    if long_run is not None:
+        verdict += " " + _verdict(
+            long_run["deviation"],
+            long_run["unit_root"],
+            long_run["error_correction"],
+            label="Long-run PP",
+        )
 
     return {
         "sample": {
@@ -529,12 +637,13 @@ def run_gravitation(
             "n_industries": int(frame["industry_code"].nunique()),
             "n_obs": int(frame["d"].notna().sum()),
         },
-        "deviation": summary,
-        "unit_root": unit_root,
-        "cointegration": cointegration,
-        "error_correction": adjustment,
-        "forecast_metrics": metrics,
-        "forecast_comparisons": comparisons,
-        "forecasts": forecasts,
-        "verdict": _verdict(summary, unit_root, adjustment),
+        "deviation": current["deviation"],
+        "unit_root": current["unit_root"],
+        "cointegration": current["cointegration"],
+        "error_correction": current["error_correction"],
+        "forecast_metrics": current["forecast_metrics"],
+        "forecast_comparisons": current["forecast_comparisons"],
+        "long_run": long_run,
+        "forecasts": current["forecasts"],
+        "verdict": verdict,
     }

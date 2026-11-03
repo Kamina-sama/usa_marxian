@@ -299,6 +299,7 @@ Results, 1998-2023, net basis:
   and government units.
 - MAE of `PP` vs gross output (sample means): **16.5%** full, **13.7%**
   market-only.
+- MAE of the long-run `PP*`: **17.5%** full, **16.2%** market-only.
 - MAE of the labour-only benchmark `PP_V`: **53.1%**.
 - Correlation of `PP` with gross output: **0.888** full, **0.983** market-only.
 - Share of industries within 25% of `PP` (sample means): **83.2%** full,
@@ -404,6 +405,28 @@ interval for the RMSE difference excludes zero. The ECM is marginally better
 than AR(1) at three years (RMSE difference -0.0019, confidence interval excludes
 zero) but the gain is economically negligible.
 
+**The long-run centre tells a sharper story.** I also build a slow-moving
+benchmark with five-year trailing averages of cost and capital and a five-year
+average profit rate:
+
+```
+PP*_it = K_trend_it + R_long_t * M_trend_it
+```
+
+- Mean absolute deviation: **15.4%**; 81.7% within ±25%.
+- Autocorrelation: **0.905**; half-life **1.8 years**.
+- Output adjustment: `β = -0.135` (p=0.001); PP adjustment: `β = +0.179`
+  (p<0.001).
+- 54% of industries reject a unit root individually.
+- Forecast log RMSE, 1/3/5 years: PP **0.240 / 0.288 / 0.347** vs naive
+  **0.120 / 0.202 / 0.258**.
+
+The long-run benchmark is farther from market output, so deviations are larger,
+but they are **less persistent** and market output adjusts toward it more
+strongly. That is the clearest evidence of gravitation in the project. PP still
+fails the out-of-sample test, so the result is slow adjustment without
+forecast power.
+
 **Verdict:** with actual capital stocks, the error-correction evidence supports
 **slow, two-way gravitation**: market output does adjust toward `PP`, and `PP`
 also adjusts toward market output. But the predictive claim fails: `PP` is much
@@ -440,6 +463,9 @@ After `industries`:
 - `output/tables/gravitation_summary.csv`, `gravitation_by_year.csv`,
   `gravitation_ecm.csv`, `gravitation_forecast_metrics.csv`,
   `gravitation_forecast_comparisons.csv`
+- `output/tables/gravitation_long_run_summary.csv`,
+  `gravitation_long_run_ecm.csv`, `gravitation_long_run_forecast_metrics.csv`,
+  `gravitation_long_run_forecast_comparisons.csv`
 - `output/gravitation.json`
 - `output/figures/industry_dispersion.png`, `pp_vs_go.png`,
   `gravitation_deviation.png`, `gravitation_forecast.png`
