@@ -237,7 +237,7 @@ Adding taxes on production gives a total that should approximate `S`:
 property_income + taxes_on_production  ~  S
 ```
 
-On the baseline sample the mean ratio is 1.011 and the mean gap is +56.8 bn
+On the baseline sample the mean ratio is 1.011 and the mean gap is +58.2 bn
 (+2.5% of `S`). Proprietors' income is mixed income, so the property measure is
 an upper bound. The exercise is still informative because the gap is small and
 stable.

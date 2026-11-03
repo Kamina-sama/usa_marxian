@@ -190,14 +190,14 @@ The `analyze` command also writes `output/tables/diagnostics.csv`:
 Baseline results:
 
 - Real MELT behaves like a unit-root series (ADF p=0.998, KPSS p=0.010,
-  Zivot-Andrews p=0.890). Its level is not stationary.
-- The profit rate: ADF and Zivot-Andrews reject a unit root (p=0.0013 and
-  p=0.021); KPSS is borderline (p=0.039). The evidence leans mean-reverting,
-  but it is not unanimous.
-- First-difference LTV slope: **0.80** (p=0.0045 against one).
-- Trend-augmented LTV slope: **0.94** (p=0.60 against one).
-- Bootstrap 95% CI for the level slope: **2.17 to 2.31**.
-- Chow break at 1973 p=0.007; at 2008 p<0.0001; the scan selects **2008**.
+  Zivot-Andrews p=0.904). Its level is not stationary.
+- The profit rate also fails to reject a unit root (ADF p=0.163, KPSS p=0.100,
+  Zivot-Andrews p=0.373). The evidence for mean reversion is weaker than in
+  earlier versions of the sample.
+- First-difference LTV slope: **0.78** (p=0.0013 against one).
+- Trend-augmented LTV slope: **0.91** (p=0.417 against one).
+- Bootstrap 95% CI for the level slope: **2.15 to 2.28**.
+- Chow break at 1973 p=0.028; at 2008 p<0.0001; the scan selects **2008**.
 
 The level relation is steep, but once a trend is included the slope is close to
 one and statistically indistinguishable from it. This is the central
@@ -213,7 +213,7 @@ property income = corporate profits + proprietors' income
 property income + taxes on production  vs  S
 ```
 
-Baseline mean ratio: **1.011**; mean gap **+56.8 bn** (**+2.5% of S**). The
+Baseline mean ratio: **1.011**; mean gap **+58.2 bn** (**+2.5% of S**). The
 correlation between the two series is high. Proprietors' income is mixed
 income, so the property measure is an upper bound, but the agreement is close
 enough to make the exercise informative.
