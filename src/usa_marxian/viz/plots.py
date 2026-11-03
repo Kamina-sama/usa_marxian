@@ -94,15 +94,18 @@ def plot_industry_dispersion(summary: pd.DataFrame, path: Path) -> Path:
 
 
 def plot_pp_vs_go(latest: pd.DataFrame, path: Path) -> Path:
-    frame = latest.loc[(latest["GO"] > 0) & (latest["PP_K"] > 0)].copy()
+    frame = latest.loc[(latest["GO"] > 0) & (latest["PP"] > 0)].copy()
     fig, ax = plt.subplots(figsize=(6.5, 6))
-    ax.scatter(frame["PP_K"], frame["GO"], s=18, alpha=0.7, color="#1f4e79")
-    low = min(frame["PP_K"].min(), frame["GO"].min())
-    high = max(frame["PP_K"].max(), frame["GO"].max())
+    ax.scatter(frame["PP"], frame["GO"], s=18, alpha=0.7, color="#1f4e79")
+    low = min(frame["PP"].min(), frame["GO"].min())
+    high = max(frame["PP"].max(), frame["GO"].max())
     ax.plot([low, high], [low, high], color="#8b1a1a", linestyle="--", linewidth=1.2)
     ax.set_xscale("log")
     ax.set_yscale("log")
-    ax.set_title(f"Prices of production vs gross output, {int(frame['year'].iloc[0])}")
-    ax.set_xlabel("PP_i = K_i (1 + R), log scale")
+    ax.set_title(
+        "Prices of production vs gross output, "
+        f"{int(frame['year'].iloc[0])} (M_i = K_i proxy)"
+    )
+    ax.set_xlabel("PP_i = K_i + R M_i, log scale")
     ax.set_ylabel("Observed gross output, log scale")
     return _finish(fig, path)

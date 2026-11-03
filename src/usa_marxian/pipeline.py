@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import json
 import math
+import warnings
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any
@@ -19,11 +20,14 @@ from .config import ProjectConfig
 from .data.bea_io import build_industry_panel
 from .data.build import build_accounts, build_raw_panel, validate_accounts
 from .data.quality import write_quality
+from .data.sectors import attach_sector_data
 from .model.equalities import profit_rate_decomposition, profit_rate_summary
 from .model.industries import (
     add_industry_ratios,
+    industry_reconciliation,
     industry_report,
     latest_dispersion,
+    proxy_sensitivity,
     year_summary,
 )
 from .model.melt import MeltSummary, melt_summary
@@ -227,10 +231,40 @@ def run_industries(
         max_age_days=max(365, config.settings.cache_max_age_days),
         force=refresh,
     )
+    try:
+        panel = attach_sector_data(
+            panel,
+            raw_dir=config.settings.raw_dir,
+            max_age_days=config.settings.cache_max_age_days,
+            force=refresh,
+        )
+    except Exception as exc:  # keep the gross accounts usable if a proxy is absent
+        warnings.warn(
+            f"Sector deflators/CFC unavailable, using gross accounts: {exc}",
+            stacklevel=2,
+        )
+
     enriched = add_industry_ratios(panel)
     summary = year_summary(panel)
     latest = latest_dispersion(panel)
     report = industry_report(panel)
+    proxies = proxy_sensitivity(panel)
+    report["proxy_sensitivity"] = proxies.to_dict(orient="records")
+
+    reconciliation = None
+    accounts_path = config.settings.processed_dir / "accounts.csv"
+    try:
+        if accounts_path.exists():
+            macro_accounts = pd.read_csv(accounts_path, index_col="year")
+        else:
+            macro_accounts = build_accounts(build_raw_panel(config), config.settings)
+        reconciliation = industry_reconciliation(panel, macro_accounts)
+        report["reconciliation"] = reconciliation.to_dict(orient="records")
+    except Exception as exc:  # reconciliation is a check, not a prerequisite
+        warnings.warn(
+            f"Industry/macro reconciliation unavailable: {exc}",
+            stacklevel=2,
+        )
 
     if save:
         processed = config.settings.processed_dir
@@ -239,6 +273,9 @@ def run_industries(
         tables.mkdir(parents=True, exist_ok=True)
         summary.to_csv(tables / "industry_summary.csv", index=False)
         latest.to_csv(tables / "industry_latest.csv", index=False)
+        proxies.to_csv(tables / "industry_proxy_sensitivity.csv", index=False)
+        if reconciliation is not None:
+            reconciliation.to_csv(tables / "industry_reconciliation.csv", index=False)
         with (config.settings.output_dir / "industries.json").open("w", encoding="utf-8") as handle:
             json.dump(_json_safe(report), handle, indent=2)
 

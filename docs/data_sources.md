@@ -110,8 +110,38 @@ Useful members in the same archive if you want to extend the module:
 
 The summary Use table provides intermediate consumption, compensation, taxes,
 gross operating surplus, value added and gross output. It does **not** provide
-industry capital stocks or consumption of fixed capital; those require the BEA
-fixed-assets accounts by industry, which are the next roadmap item.
+industry capital stocks, consumption of fixed capital, or sector price indexes.
+
+## Industry CFC and price indexes
+
+Two additional keyless sources fill those gaps:
+
+**BEA NIPA Section 6** (capital consumption by industry):
+
+```
+https://apps.bea.gov/national/Release/XLS/Survey/Section6All_xls.xlsx
+```
+
+- Table 6.13D: noncorporate capital consumption allowances.
+- Table 6.22D: corporate capital consumption allowances.
+
+The workbook is cached under `data/raw/bea/`. CFC is allocated to IO industries
+by broad sector and then to government units using the residual against total
+`COFC`.
+
+**FRED GDP-by-Industry price indexes** (broad sectors, 2017=100):
+
+- `VAPIAFH`, `VAPIM`, `VAPIU`, `VAPIC`, `VAPIMA`, `VAPIW`, `VAPIR`, `VAPIT`,
+  `VAPII`, `VAPIFI`, `VAPIRL`, `VAPIPBS`, `VAPIES`, `VAPIHCSA`,
+  `VAPIAERAF`, `VAPIOSEG`, `VAPIG`, `VAPIAI`.
+- Corresponding `GOPI*` series for gross output.
+
+These are index levels. The similarly named `VAPIP*`/`GOPIP*` series are percent
+changes and are not used. The mapping from IO industry codes to sectors lives in
+`config/sectors.yaml`.
+
+The price series start in 2005, so real industry accounts cover 2005-2023 while
+the nominal and CFC-adjusted accounts cover 1998-2023.
 
 ## World Bank (not used by default)
 

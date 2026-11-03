@@ -1,0 +1,222 @@
+# Broad-sector mapping for industry deflators and capital consumption.
+#
+# Price indexes are FRED series from BEA's GDP-by-Industry release, index
+# 2017=100. `industries` are BEA summary Use-table industry codes.
+#
+# CFC groups are deliberately coarser than the IO industries because the BEA
+# NIPA capital-consumption tables publish corporate detail but only broad
+# noncorporate detail. CFC is allocated within each group in proportion to
+# gross operating surplus.
+
+deflators:
+  agriculture:
+    label: Agriculture, forestry, fishing, and hunting
+    va_price: VAPIAFH
+    go_price: GOPIAFH
+    industries: [111CA, 113FF]
+
+  mining:
+    label: Mining
+    va_price: VAPIM
+    go_price: GOPIM
+    industries: [211, 212, 213]
+
+  utilities:
+    label: Utilities
+    va_price: VAPIU
+    go_price: GOPIU
+    industries: [22]
+
+  construction:
+    label: Construction
+    va_price: VAPIC
+    go_price: GOPIC
+    industries: [23]
+
+  manufacturing:
+    label: Manufacturing
+    va_price: VAPIMA
+    go_price: GOPIMA
+    industries:
+      - "321"
+      - "327"
+      - "331"
+      - "332"
+      - "333"
+      - "334"
+      - "335"
+      - "3361MV"
+      - "3364OT"
+      - "337"
+      - "339"
+      - "311FT"
+      - "313TT"
+      - "315AL"
+      - "322"
+      - "323"
+      - "324"
+      - "325"
+      - "326"
+
+  wholesale:
+    label: Wholesale trade
+    va_price: VAPIW
+    go_price: GOPIW
+    industries: ["42"]
+
+  retail:
+    label: Retail trade
+    va_price: VAPIR
+    go_price: GOPIR
+    industries: ["441", "445", "452", "4A0"]
+
+  transportation:
+    label: Transportation and warehousing
+    va_price: VAPIT
+    go_price: GOPIT
+    industries: ["481", "482", "483", "484", "485", "486", "487OS", "493"]
+
+  information:
+    label: Information
+    va_price: VAPII
+    go_price: GOPII
+    industries: ["511", "512", "513", "514"]
+
+  finance:
+    label: Finance and insurance
+    va_price: VAPIFI
+    go_price: GOPIFI
+    industries: ["521CI", "523", "524", "525"]
+
+  real_estate:
+    label: Real estate and rental and leasing
+    va_price: VAPIRL
+    go_price: GOPIRL
+    industries: ["HS", "ORE", "532RL"]
+
+  professional_business:
+    label: Professional and business services
+    va_price: VAPIPBS
+    go_price: GOPIPBS
+    industries: ["5411", "5415", "5412OP", "55", "561", "562"]
+
+  education:
+    label: Educational services
+    va_price: VAPIES
+    go_price: GOPIES
+    industries: ["61"]
+
+  health:
+    label: Health care and social assistance
+    va_price: VAPIHCSA
+    go_price: GOPIHCSA
+    industries: ["621", "622", "623", "624"]
+
+  arts_accommodation_food:
+    label: Arts, entertainment, recreation, accommodation, and food services
+    va_price: VAPIAERAF
+    go_price: GOPIAERAF
+    industries: ["711AS", "713", "721", "722"]
+
+  other_services:
+    label: Other services, except government
+    va_price: VAPIOSEG
+    go_price: GOPIOSEG
+    industries: ["81"]
+
+  government:
+    label: Government
+    va_price: VAPIG
+    go_price: GOPIG
+    industries: ["GFGD", "GFGN", "GFE", "GSLG", "GSLE"]
+
+  other:
+    label: Used and noncomparable imports
+    va_price: VAPIAI
+    go_price: GOPIAI
+    industries: ["Used", "Other"]
+
+cfc_groups:
+  agriculture:
+    corporate: ["Agriculture, forestry, fishing, and hunting"]
+    noncorporate: ["Agriculture, forestry, fishing, and hunting"]
+    industries: [111CA, 113FF]
+
+  mining:
+    corporate: ["Mining"]
+    noncorporate: ["Mining"]
+    industries: [211, 212, 213]
+
+  utilities:
+    corporate: ["Utilities"]
+    noncorporate: ["Utilities"]
+    industries: [22]
+
+  construction:
+    corporate: ["Construction"]
+    noncorporate: ["Construction"]
+    industries: [23]
+
+  manufacturing:
+    corporate: ["Manufacturing"]
+    noncorporate: ["Manufacturing"]
+    industries:
+      - "321"
+      - "327"
+      - "331"
+      - "332"
+      - "333"
+      - "334"
+      - "335"
+      - "3361MV"
+      - "3364OT"
+      - "337"
+      - "339"
+      - "311FT"
+      - "313TT"
+      - "315AL"
+      - "322"
+      - "323"
+      - "324"
+      - "325"
+      - "326"
+
+  trade:
+    corporate: ["Wholesale trade", "Retail trade"]
+    noncorporate: ["Wholesale trade", "Retail trade"]
+    industries: ["42", "441", "445", "452", "4A0"]
+
+  transportation:
+    corporate: ["Transportation and warehousing"]
+    noncorporate: ["Transportation and warehousing"]
+    industries: ["481", "482", "483", "484", "485", "486", "487OS", "493"]
+
+  information:
+    corporate: ["Information"]
+    noncorporate: ["Information"]
+    industries: ["511", "512", "513", "514"]
+
+  finance_real_estate:
+    corporate: ["Finance and insurance", "Real estate and rental and leasing"]
+    noncorporate: ["Finance, insurance, real estate, rental, and leasing"]
+    industries: ["521CI", "523", "524", "525", "HS", "ORE", "532RL"]
+
+  professional_business:
+    corporate: ["Professional and business services"]
+    noncorporate: ["Professional and business services"]
+    industries: ["5411", "5415", "5412OP", "55", "561", "562"]
+
+  education_health:
+    corporate: ["Educational services", "Health care and social assistance"]
+    noncorporate: ["Educational services, health care, and social assistance"]
+    industries: ["61", "621", "622", "623", "624"]
+
+  arts_accommodation_food:
+    corporate: ["Arts, entertainment, recreation, accommodation, and food services"]
+    noncorporate: ["Arts, entertainment, recreation, accommodation, and food services"]
+    industries: ["711AS", "713", "721", "722"]
+
+  other_services:
+    corporate: ["Other services, except government"]
+    noncorporate: ["Other services, except government"]
+    industries: ["81"]

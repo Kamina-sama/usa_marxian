@@ -45,7 +45,7 @@ def _num(value) -> float:
     if isinstance(value, (int, float, np.integer, np.floating)):
         return float(value)
     text = str(value).strip().replace(",", "")
-    if text in {"", "...", "n/a", "N/A", "—", "-"}:
+    if text in {"", "...", ".....", "n/a", "N/A", "—", "-"}:
         return 0.0
     try:
         return float(text)

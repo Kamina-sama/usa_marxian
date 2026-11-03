@@ -121,7 +121,7 @@ def cmd_info(args: argparse.Namespace) -> int:
     print("Accounting layers")
     print("  macro:      NIPA net value added, property-income check")
     print("  robustness: NDP/NNP, nonresidential/total capital, hours methods")
-    print("  industry:   BEA summary Use table, 71 industries, 1997-2023")
+    print("  industry:   BEA summary Use table, 71 industries, 1998-2023")
     print()
     print("Series mapping")
     mapping = report_series_map(config)
@@ -175,40 +175,72 @@ def cmd_industries(args: argparse.Namespace) -> int:
     latest = report["latest"]
     means = report["sample_means"]
     print(
-        "Industries: {n} industries, {start}-{end}; latest {year}".format(
+        "Industries: {n} industries, {start}-{end}; latest {year}; "
+        "basis={basis}, M proxy={proxy}".format(
             n=report["n_industries"],
             start=report["sample_start"],
             end=report["sample_end"],
             year=report["latest_year"],
+            basis=report["surplus_basis"],
+            proxy=report["capital_proxy"],
         )
     )
     print(
-        "Latest: cost-price mark-up = {r:.1%}; CV of r_i = {cv:.3f}; "
-        "p90/p10 = {p:.2f}; MAE(PP_K vs GO) = {mae:.1f}%; corr = {corr:.3f}".format(
-            r=latest["R_cost"],
+        "Latest market industries: R = S/M = {r:.1%}; CV of r_i = {cv:.3f}; "
+        "p90/p10 = {p:.2f}; MAE(PP vs GO) = {mae:.1f}%; corr = {corr:.3f}".format(
+            r=latest["R_benchmark_market"],
+            cv=latest["rate_weighted_cv_market"],
+            p=latest["rate_p90_p10_market"],
+            mae=latest["mae_pct_PP_market"],
+            corr=latest["corr_PP"],
+        )
+    )
+    print(
+        "Full sample (incl. government and housing): R = {r:.1%}; "
+        "CV = {cv:.3f}; p90/p10 = {p:.2f}".format(
+            r=latest["R_benchmark"],
             cv=latest["rate_weighted_cv"],
             p=latest["rate_p90_p10"],
-            mae=latest["mae_pct_K"],
-            corr=latest["corr_K"],
         )
     )
     print(
-        "Sample means: CV = {cv:.3f}; MAE(PP_K) = {mae:.1f}%; "
+        "Full sample means: CV = {cv:.3f}; MAE(PP) = {mae:.1f}%; "
         "MAE(PP_V) = {maev:.1f}%; share within 25% = {share:.1%}".format(
             cv=means["rate_weighted_cv"],
-            mae=means["mae_pct_K"],
-            maev=means["mae_pct_V"],
-            share=means["share_within_25pct_K"],
+            mae=means["mae_pct_PP"],
+            maev=means["mae_pct_PP_V"],
+            share=means["share_within_25pct_PP"],
         )
     )
     print(
-        "Market industries only: CV = {cv:.3f}; MAE(PP_K) = {mae:.1f}%; "
+        "Market sample means: p90/p10 = {p:.2f}; MAE(PP) = {mae:.1f}%; "
         "share within 25% = {share:.1%}".format(
-            cv=means["rate_weighted_cv_market"],
-            mae=means["mae_pct_K_market"],
-            share=means["share_within_25pct_K_market"],
+            p=means["rate_p90_p10_market"],
+            mae=means["mae_pct_PP_market"],
+            share=means["share_within_25pct_PP_market"],
         )
     )
+    if means.get("real_N_growth") is not None:
+        print(
+            "Sector-deflated real growth ({start}-{end}): N {n:+.2f}%/yr, "
+            "GO {go:+.2f}%/yr".format(
+                start=means["real_start_year"],
+                end=means["real_end_year"],
+                n=100 * means["real_N_growth"],
+                go=100 * means["real_GO_growth"],
+            )
+        )
+    proxies = report.get("proxy_sensitivity", [])
+    if proxies:
+        print("Capital-proxy sensitivity (MAE of PP vs GO):")
+        for row in proxies:
+            print(
+                "  {proxy:<12} {mae:.1f}%  corr={corr:.3f}".format(
+                    proxy=row["capital_proxy"],
+                    mae=row["mae_pct_PP"],
+                    corr=row["corr_PP"],
+                )
+            )
     print(f"Panel:  {config.settings.processed_dir / 'industries.csv'}")
     print(f"Tables: {config.settings.output_dir / 'tables'}")
     return 0

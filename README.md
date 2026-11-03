@@ -101,6 +101,10 @@ No key is needed by default:
 - **BEA** annual NIPA flat file as a fallback.
 - **BEA input-output** archive (16 MB zip) for the 71-industry Use tables,
   1997-2023.
+- **BEA NIPA Section 6** workbook for corporate and noncorporate capital
+  consumption by industry.
+- **FRED GDP-by-Industry price indexes** for broad-sector value-added and
+  gross-output deflators.
 - **BLS** public API v1 for direct BLS series (v2 with a free key).
 
 Optional free keys unlock the official APIs and higher quotas. Copy
@@ -216,41 +220,114 @@ N_i    value added
 GO_i   gross output
 ```
 
-The project builds:
+Gross and net accounts are both constructed:
 
 ```
-S_i = T_i + GOS_i
-K_i = C_i + V_i
-r_i = S_i / K_i
-R_cost = sum(S_i) / sum(K_i)
-PP_K_i = K_i (1 + R_cost)
-PP_V_i = V_i (1 + sum(S)/sum(V))
+S_gross_i = T_i + GOS_i
+K_gross_i = C_i + V_i
+S_net_i   = T_i + GOS_i - CFC_i
+K_net_i   = C_i + CFC_i + V_i
 ```
 
-`R_cost` is a **mark-up on cost**, not the macro stock-based profit rate. It is
-used to construct the equalised-profit price benchmark `PP_K`. Because the Use
-table is an accounting identity, `C_i + N_i = GO_i` exactly; a value-price test
-at this level would be vacuous. The informative tests are:
+The Use table's `GOS` is gross of depreciation, so the gross split leaves CFC
+inside surplus-value. The net split moves it into constant capital. Both
+satisfy `K_i + S_i = GO_i`.
+
+Capital consumption comes from BEA NIPA tables 6.13D (noncorporate) and 6.22D
+(corporate), allocated within broad sectors in proportion to GOS. The residual
+between total-economy CFC (`COFC`) and private CFC is allocated to government
+units. On the current vintage the industry CFC total equals macro `COFC`
+exactly (**4,576.4 bn** in 2023).
+
+Prices of production follow Moseley's general formula:
+
+```
+PP_i = K_i + R M_i,        R = sum(S_i) / sum(M_i)
+```
+
+`M_i` is not in the Use table, so the proxy is explicit and switchable:
+
+- `cost`: `M_i = K_i` (default)
+- `output`: `M_i = GO_i`
+- `value_added`: `M_i = N_i`
+
+The earlier `K_i(1+R)` expression was only the `M_i = K_i` special case. The
+code now computes the general formula, and `industry_proxy_sensitivity.csv`
+reports how the price-fit changes with the proxy.
+
+Because the Use table is an accounting identity, `C_i + N_i = GO_i` exactly; a
+value-price test at this level would be vacuous. The informative tests are:
 
 - dispersion of `r_i` across industries;
-- distance between `PP_K` and observed gross output;
+- distance between `PP_i` and observed gross output;
 - comparison with the labour-only benchmark `PP_V`.
 
-Results, 1997-2023:
+Results, 1998-2023, net basis:
 
-- Latest cost-price mark-up: **38.7%**.
-- Full-sample weighted CV of `r_i`: **2.14**; p90/p10 in 2023: **8.72**.
-  Housing and government units dominate this dispersion.
-- Market industries only (excluding housing and government): CV **0.675**.
-- MAE of `PP_K` vs gross output: **15.3%**; market-only **14.1%**.
-- MAE of `PP_V` vs gross output: **45.8%**.
-- Correlation of `PP_K` with gross output: **0.89**.
-- Share of industries within 25% of `PP_K`: **84.5%** overall, **87.2%**
+- Market-industry rate of surplus-value on cost: **23.8%** in 2023; full sample
+  including government and housing **22.6%**.
+- Market weighted CV of `r_i`: **0.609** in 2023 (sample mean 0.703);
+  p90/p10 **6.10**.
+- Full-sample CV: **2.109** in 2023 (sample mean 2.296), dominated by housing
+  and government units.
+- MAE of `PP` vs gross output (sample means): **13.3%** full, **10.4%**
   market-only.
+- MAE of the labour-only benchmark `PP_V`: **53.1%**.
+- Correlation of `PP` with gross output: **0.894**.
+- Share of industries within 25% of `PP` (sample means): **90.2%** full,
+  **97.3%** market-only.
+- Proxy sensitivity (full-sample MAE): cost **13.3%**, output **11.0%**,
+  value-added **9.0%**.
 
-So the equalised-profit benchmark tracks gross output far better than a
-labour-only markup, but profit rates are not equalised in any strict sense. The
-industry capital proxy (`M_i = K_i`) is the main limitation.
+The equalised-profit benchmark tracks gross output far better than a labour-only
+markup, but industry surplus-value rates are not equalised in any strict sense.
+The capital proxy is still the main limitation.
+
+## Depreciation audit
+
+There are two layers, and they treat depreciation differently by design:
+
+- **Macro.** `C = CFC`, `K = C + V`, `S = N - V`, and `P = C + N`. Depreciation
+  appears in both `P` and `K`, so it cancels from `S`. No double counting.
+- **Industry.** `C_i` is intermediate consumption only. `GOS_i` is gross, so
+  `S_gross_i` contains CFC while `K_gross_i` does not. The net accounts move CFC
+  from `S` to `C`: `K_net_i = C_i + CFC_i + V_i` and `S_net_i = S_gross_i -
+  CFC_i`. Again `K_net_i + S_net_i = GO_i`.
+
+Two cautions:
+
+1. `C_i` and `CFC_i` are distinct. Intermediate consumption is not depreciation,
+   and the net accounts do not add one to the other twice.
+2. Summing `GO_i` or `K_i` across industries double counts intermediate
+   deliveries. Only value added sums to GDP. The code never uses the summed
+   gross output as a macro value aggregate.
+
+Reconciliation for 2023:
+
+- industry CFC minus macro `COFC`: **0.0 bn**
+- industry value added minus GDP: **-105.2 bn** (BEA IO/GDP statistical
+  discrepancy, 0.38%)
+- industry net value added minus NDP: **-105.2 bn** (the same discrepancy)
+- industry net surplus-value minus macro `S`: **-80.3 bn** (0.9%)
+
+## Sector deflation
+
+The macro `melt_real` uses the GDP deflator, which is an aggregate value-added
+deflator. For industry accounts the project uses broad-sector chain-type price
+indexes from BEA's GDP-by-Industry release (via FRED):
+
+- value-added deflators for `N_i`, `V_i` and `S_i`;
+- gross-output deflators for `GO_i`.
+
+This gives `N_real`, `V_real`, `S_real` and `GO_real` by industry. On
+2005-2023, real industry value added grew **1.80%/yr** and real gross output
+**1.67%/yr**.
+
+A real profit rate is deliberately not constructed: deflating `N` and `GO` by
+different indexes does not yield a valid real intermediate input residual, and
+the summary Use table has no intermediate-input deflator. The nominal
+prices-of-production comparison remains the correct one for the value-theory
+question.
 
 ## Outputs
 
@@ -269,16 +346,17 @@ After `industries`:
 
 - `data/processed/industries.csv`
 - `output/industries.json`
-- `output/tables/industry_summary.csv`, `industry_latest.csv`
+- `output/tables/industry_summary.csv`, `industry_latest.csv`,
+  `industry_proxy_sensitivity.csv`, `industry_reconciliation.csv`
 - `output/figures/industry_dispersion.png`, `pp_vs_go.png`
 
 ## Project layout
 
 ```
-config/            settings.yaml, series.yaml
+config/            settings.yaml, series.yaml, sectors.yaml
 src/usa_marxian/
   config.py        typed config + series catalog
-  data/            FRED, BLS, BEA, BEA IO readers, cache, quality, accounts
+  data/            FRED, BLS, BEA, BEA IO, sector deflators, cache, quality
   model/           MELT, equalities, robustness, industries
   analysis/        LTV, diagnostics, property check, descriptives
   viz/             plots
@@ -294,17 +372,20 @@ output/            tables, figures, JSON reports (gitignored)
 
 ## Roadmap
 
-1. **Industry fixed assets and CFC.** Replace `M_i = K_i` with BEA fixed-asset
-   stocks by industry and subtract CFC to get net surplus-value.
-2. **Unit prices and quantities.** Use the Make and Use tables to construct
+1. **Industry fixed assets.** Replace `M_i = K_i` with BEA fixed-asset stocks
+   by industry. CFC is now handled, but the capital-stock proxy remains crude.
+2. **Intermediate-input deflators.** Build a sector intermediate deflator so
+   real cost prices and real profit rates can be constructed without the
+   invalid `GO_real - N_real` residual.
+3. **Unit prices and quantities.** Use the Make and Use tables to construct
    unit value prices and compare them with unit prices of production.
-3. **Input-output value magnitudes.** Compute direct and total labour
+4. **Input-output value magnitudes.** Compute direct and total labour
    requirements with the Leontief inverse.
-4. **Structural-break econometrics.** Bai-Perron multiple breaks, rolling
+5. **Structural-break econometrics.** Bai-Perron multiple breaks, rolling
    regressions, and regime-dependent profit-rate trends.
-5. **Alternative MELT measures.** Moseley's own estimates use NNP, NDP and net
+6. **Alternative MELT measures.** Moseley's own estimates use NNP, NDP and net
    national income; the infrastructure now supports swapping the numerator.
-6. **Cross-country comparison.** The World Bank endpoint is already documented;
+7. **Cross-country comparison.** The World Bank endpoint is already documented;
    the same accounting can be applied to other economies.
 
 ## Reference

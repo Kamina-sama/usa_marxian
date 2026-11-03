@@ -241,7 +241,8 @@ stable.
 ## 8. Industry layer
 
 The BEA summary Use table (producer prices, after redefinitions) gives 71
-industries for 1997-2023. For industry `i`:
+industries for 1997-2023; the net CFC-adjusted sample starts in 1998. For
+industry `i`:
 
 ```
 C_i    total intermediate consumption
@@ -252,19 +253,36 @@ N_i    total value added
 GO_i   total industry output
 ```
 
-The Marxian objects are:
+Gross and net Marxian objects are:
 
 ```
-S_i = T_i + GOS_i
-K_i = C_i + V_i
-r_i = S_i / K_i
-R_cost = sum(S_i) / sum(K_i)
-PP_K_i = K_i (1 + R_cost)
+S_gross_i = T_i + GOS_i
+K_gross_i = C_i + V_i
+
+S_net_i = T_i + GOS_i - CFC_i
+K_net_i = C_i + CFC_i + V_i
+N_net_i = N_i - CFC_i
+```
+
+Both satisfy `K_i + S_i = GO_i`. The Use table's GOS is gross of depreciation,
+so the gross split leaves CFC in surplus-value. The net split is the correct
+Marxian treatment.
+
+CFC is parsed from BEA NIPA tables 6.13D and 6.22D, allocated within broad
+sectors in proportion to GOS, and the residual between total-economy `COFC` and
+private CFC is allocated to government units. On the current vintage the
+industry CFC total equals macro `COFC` exactly.
+
+Prices of production follow the general formula:
+
+```
+PP_i = K_i + R M_i,        R = sum(S_i) / sum(M_i)
 PP_V_i = V_i (1 + sum(S) / sum(V))
 ```
 
-`R_cost` is a mark-up on **cost**, not the macro stock-based rate of profit.
-`PP_K` assumes `M_i = K_i`; that is the main proxy limitation. `PP_V` is a
+`M_i` is not in the Use table. The proxy is explicit: `cost` (`M_i = K_i`,
+default), `output` (`M_i = GO_i`), or `value_added` (`M_i = N_i`). The old
+`K_i(1+R)` expression is only the cost-proxy special case. `PP_V` is a
 labour-only markup benchmark.
 
 Because the Use table is an accounting identity, `C_i + N_i = GO_i` exactly.
@@ -272,10 +290,45 @@ A "value price vs. observed price" test at this level would therefore be
 vacuous. The informative tests are:
 
 - dispersion of `r_i` (weighted CV, p90/p10);
-- mean absolute percentage error of `PP_K` and `PP_V` against `GO_i`;
-- correlation and log-log slope of `GO_i` on each benchmark.
+- mean absolute percentage error of `PP` and `PP_V` against `GO_i`;
+- correlation and log-log slope of `GO_i` on each benchmark;
+- sensitivity of the fit to the `M_i` proxy.
 
 Housing (`HS`) is mostly imputed rent with almost no measured intermediate
 cost, and government units are not capitalist enterprises. They remain in the
 full sample but are excluded from a market-industry robustness subset, because
-otherwise the dispersion statistic is dominated by one structural outlier.
+otherwise the dispersion statistic is dominated by structural outliers.
+
+Sector deflation uses broad-sector chain-type price indexes from the BEA
+GDP-by-Industry release (`VAPI*` for value added, `GOPI*` for gross output).
+Real intermediate consumption is not constructed as `GO_real - N_real`; with
+different deflators that residual is not a valid volume.
+
+## 9. Accounting audit
+
+The audit checks five places where costs could be counted twice:
+
+1. **Macro `P = C + N`.** `P = GDP`, `C = CFC`, `N = NDP`. Since
+   `GDP = CFC + NDP`, the identity is exact. `K = C + V` and `S = N - V`.
+   Depreciation is in both `P` and `K`, so it cancels from `S`.
+2. **`M` is a stock, not a flow.** `M` is net fixed assets plus inventories.
+   `C` is the annual CFC flow. They are different objects and are not summed
+   into the same total.
+3. **Industry `K_gross = C + V`.** `C` is intermediate consumption; `V` is
+   compensation. Neither contains the other. `T`, `GOS` and `N` are separate
+   value-added components.
+4. **Industry `K_net = C + CFC + V`.** CFC is added once. `S_net` subtracts
+   the same CFC once. `K_net + S_net = GO` still holds.
+5. **Cross-industry sums.** Summing `GO_i` or `K_i` double counts intermediate
+   deliveries. Only `sum(N_i)` is a value-added aggregate. The code uses
+   `sum(N_i)` only for reconciliation, never as GDP.
+
+Reconciliation for 2023:
+
+- industry CFC minus macro `COFC`: 0.0 bn;
+- industry value added minus GDP: -105.2 bn (0.38%, BEA IO/GDP discrepancy);
+- industry net value added minus NDP: the same -105.2 bn;
+- industry net surplus-value minus macro `S`: -80.3 bn (0.9%).
+
+What is still approximate: industry capital stocks (`M_i`), the within-sector
+CFC allocation, and the absence of an intermediate-input deflator.
