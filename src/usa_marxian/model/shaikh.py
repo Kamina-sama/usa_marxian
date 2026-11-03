@@ -133,6 +133,31 @@ def build_technical_matrices(
     return matrices
 
 
+def build_real_technical_matrices(
+    current_matrices: dict[int, pd.DataFrame],
+    panel: pd.DataFrame,
+) -> dict[int, pd.DataFrame]:
+    """Deflate current-price matrices to 2017-dollar coefficients.
+
+    ``A_real[c, j] = A_current[c, j] * p_j / p_c`` using the broad-sector
+    gross-output deflators in the panel.
+    """
+    prices = (
+        panel.loc[:, ["year", "industry_code", "go_price"]]
+        .assign(price=lambda frame: frame["go_price"] / 100.0)
+        .set_index(["year", "industry_code"])["price"]
+    )
+    real: dict[int, pd.DataFrame] = {}
+    for year, matrix in current_matrices.items():
+        price = prices.loc[int(year)].reindex(matrix.columns)
+        if price.isna().any() or (price <= 0).any():
+            continue
+        real[int(year)] = matrix.mul(price, axis=1).div(price, axis=0)
+    if not real:
+        raise ValueError("No real technical matrices could be built")
+    return real
+
+
 def _normalise(values: pd.Series, output: pd.Series) -> pd.Series:
     total = float((values * output).sum())
     if total <= 0 or not np.isfinite(total):
@@ -435,8 +460,11 @@ def build_shaikh_benchmarks(
     *,
     base_year: int = 2017,
 ) -> ShaikhResult:
-    """Build Shaikh's value-price and price-of-production benchmarks."""
-    matrices = build_technical_matrices(use_matrices, panel, base_year=base_year)
+    """Build Sraffa/Shaikh value-price and price-of-production benchmarks."""
+    matrices_current = build_technical_matrices(
+        use_matrices, panel, base_year=base_year
+    )
+    matrices = build_real_technical_matrices(matrices_current, panel)
     matrix = matrices.get(base_year, next(iter(matrices.values())))
     hours = accounts["L"].dropna()
 
@@ -450,8 +478,16 @@ def build_shaikh_benchmarks(
         group = group.set_index("industry_code").reindex(matrix.index)
         if group["GO"].isna().any() or (group["GO"] <= 0).any():
             continue
+        if (
+            "go_price" not in group.columns
+            or group["go_price"].isna().any()
+            or (group["go_price"] <= 0).any()
+        ):
+            continue
 
+        price = group["go_price"].astype(float) / 100.0
         output = group["GO"].astype(float)
+        output_real = output / price
         wage_bill = group["V"].astype(float)
         total_hours = float(hours.loc[year]) * 1e9
         if total_hours <= 0:
@@ -460,28 +496,34 @@ def build_shaikh_benchmarks(
         if wage_rate <= 0:
             continue
 
-        direct_labour = wage_bill / (output * wage_rate)
-        labour_cost = wage_bill / output
-        surplus = (group["T"] + group["GOS"]).astype(float).sum()
-        cost = (group["C"] + group["V"]).astype(float).sum()
+        labour_hours = wage_bill * 1e6 / wage_rate
+        direct_labour = labour_hours / (output_real * 1e6)
+        labour_cost = wage_bill / output_real
+
+        if {"S_real", "K_real"}.issubset(group.columns):
+            surplus = group["S_real"].astype(float).sum()
+            cost = group["K_real"].astype(float).sum()
+        else:
+            surplus = (group["T"] + group["GOS"]).astype(float).sum()
+            cost = (group["C"] + group["V"]).astype(float).sum()
         if cost <= 0:
             continue
         profit_rate = float(surplus / cost)
 
         try:
             values = labour_values(matrix, direct_labour)
-            value_price = _normalise(values, output)
+            value_price = _normalise(values, output_real)
             prices = sraffa_prices_of_production(matrix, labour_cost, profit_rate)
             fixed_iteration = iterative_prices(
                 matrix, labour_cost, profit_rate, initial=value_price
             )
             endogenous_iteration = iterative_prices_endogenous(
-                matrix, labour_cost, output, initial=value_price
+                matrix, labour_cost, output_real, initial=value_price
             )
             cross_dual = cross_dual_gravitation(
                 matrix,
                 labour_cost,
-                output,
+                output_real,
                 steps=400,
                 tol=1e-5,
                 initial=value_price,
@@ -504,17 +546,21 @@ def build_shaikh_benchmarks(
             else fixed_iteration.prices
         )
 
-        production_price = _normalise(prices, output)
-        iterated_price = _normalise(iterated_price, output)
+        production_price = _normalise(prices, output_real)
+        iterated_price = _normalise(iterated_price, output_real)
 
         for code in matrix.index:
             records.append(
                 {
                     "year": int(year),
                     "industry_code": code,
-                    "P_V": float(value_price.loc[code] * output.loc[code]),
-                    "PP_Sraffa": float(production_price.loc[code] * output.loc[code]),
-                    "PP_Shaikh": float(iterated_price.loc[code] * output.loc[code]),
+                    "P_V": float(value_price.loc[code] * output_real.loc[code] * price.loc[code]),
+                    "PP_Sraffa": float(
+                        production_price.loc[code] * output_real.loc[code] * price.loc[code]
+                    ),
+                    "PP_Shaikh": float(
+                        iterated_price.loc[code] * output_real.loc[code] * price.loc[code]
+                    ),
                     "r_observed": float(profit_rate),
                     "r_model": float(endogenous_iteration.profit_rate),
                     "iterations": int(endogenous_iteration.iterations),
@@ -562,8 +608,8 @@ def build_shaikh_benchmarks(
             "n_industries": int(matrix.shape[0]),
             "n_matrices": int(len(matrices)),
             "matrix_years": [min(matrices), max(matrices)],
-            "matrix_prices": "current-price Use tables, annual",
-            "profit_rate": "sum(S)/sum(K), current year",
+            "matrix_prices": "deflated 2017-dollar Use tables, annual",
+            "profit_rate": "sum(S_real)/sum(K_real), current year",
             "solver": "Sraffian direct solve + fixed-r iteration + endogenous-r iteration + cross-dual simulation",
             "iterations_mean": float(iteration_summary["iterations"].mean()),
             "iterations_max": int(iteration_summary["iterations"].max()),

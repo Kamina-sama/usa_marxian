@@ -26,7 +26,7 @@ from dataclasses import dataclass
 
 import pandas as pd
 
-from .shaikh import build_technical_matrices
+from .shaikh import build_real_technical_matrices, build_technical_matrices
 
 STATE_COLUMNS = [
     "year",
@@ -56,31 +56,6 @@ class StateSpaceResult:
     matrices_real: pd.DataFrame
     macro: pd.DataFrame
     summary: dict
-
-
-def build_real_technical_matrices(
-    current_matrices: dict[int, pd.DataFrame],
-    panel: pd.DataFrame,
-) -> dict[int, pd.DataFrame]:
-    """Deflate current-price input matrices to 2017-dollar coefficients.
-
-    ``A_real[c, j] = A_current[c, j] * p_j / p_c``. This uses the broad-sector
-    gross-output deflators already in the panel.
-    """
-    prices = (
-        panel.loc[:, ["year", "industry_code", "go_price"]]
-        .assign(price=lambda frame: frame["go_price"] / 100.0)
-        .set_index(["year", "industry_code"])["price"]
-    )
-    real: dict[int, pd.DataFrame] = {}
-    for year, matrix in current_matrices.items():
-        price = prices.loc[int(year)].reindex(matrix.columns)
-        if price.isna().any() or (price <= 0).any():
-            continue
-        real[int(year)] = matrix.mul(price, axis=1).div(price, axis=0)
-    if not real:
-        raise ValueError("No real technical matrices could be built")
-    return real
 
 
 def _matrix_long(matrices: dict[int, pd.DataFrame]) -> pd.DataFrame:

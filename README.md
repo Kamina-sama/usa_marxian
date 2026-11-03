@@ -469,41 +469,41 @@ The project builds three price benchmarks from the same BEA Use table:
 
 Moseley's benchmark uses the stock of advanced capital and `R = S/M`; Sraffa and
 Shaikh use the flow cost matrix and `r = S/K`. They are different capital
-concepts, not two estimates of one parameter. `A_t` is annual and in current
-prices; a constant-price matrix is the next refinement.
+concepts, not two estimates of one parameter. `A_t` is the **deflated** annual
+Use matrix (2017 dollars).
 
-Fit on the same 65 market industries, 1998-2023:
+Fit on the same 65 market industries, 2005-2023:
 
-- **Moseley `PP`**: MAE **13.7%**, RMSE **22.9%**, corr **0.983**, slope
-  **1.043**, within 25% **88.8%**, mean gap **-7.2%**.
-- **Sraffa `PP_Sraffa`**: MAE **15.7%**, RMSE **19.5%**, corr **0.975**, slope
-  **0.974**, within 25% **81.2%**, mean gap **-1.6%**.
-- **Shaikh iterated `PP_Shaikh`**: MAE **15.7%**, RMSE **19.6%**, corr
-  **0.976**, slope **0.975**, within 25% **82.0%**, mean gap **-1.7%**.
-- **Direct prices (labour values)**: MAE **17.8%**, RMSE **23.4%**, corr
-  **0.953**, slope **0.954**, within 25% **70.9%**, mean gap **-0.6%**.
+- **Moseley `PP`**: MAE **13.7%**, RMSE **23.0%**, corr **0.983**, slope
+  **1.046**, within 25% **88.5%**, mean gap **-7.4%**.
+- **Sraffa `PP_Sraffa`**: MAE **16.8%**, RMSE **20.5%**, corr **0.971**, slope
+  **0.982**, within 25% **77.2%**, mean gap **-2.4%**.
+- **Shaikh iterated `PP_Shaikh`**: MAE **17.2%**, RMSE **21.3%**, corr
+  **0.973**, slope **0.985**, within 25% **76.9%**, mean gap **-3.1%**.
+- **Direct prices (labour values)**: MAE **18.6%**, RMSE **23.6%**, corr
+  **0.954**, slope **0.963**, within 25% **69.2%**, mean gap **-1.3%**.
 
 Gravitation comparison:
 
-- **Moseley**: mean gap 12.4%, half-life 2.2y, output adjustment `-0.163`
-  (p=0.015), PP adjustment `+0.105` (p=0.035), 1y forecast RMSE 0.213.
-- **Sraffa `PP_Sraffa`**: mean gap 16.1%, half-life 2.6y, output adjustment
-  `+0.029` (p=0.235), PP adjustment `+0.264` (p<0.001), 1y forecast RMSE 0.249.
-- **Shaikh iterated `PP_Shaikh`**: mean gap 16.1%, half-life 2.6y, output
-  adjustment `+0.038` (p=0.101), PP adjustment `+0.274` (p<0.001), 1y forecast
-  RMSE 0.249.
-- **Direct prices**: mean gap 18.7%, half-life 2.7y, output adjustment `-0.043`
-  (p=0.199), 1y forecast RMSE 0.293.
+- **Moseley**: mean gap 12.4%, half-life 1.7y, output adjustment `-0.240`
+  (p=0.008), PP adjustment `+0.098` (p=0.164), 1y forecast RMSE 0.213.
+- **Sraffa `PP_Sraffa`**: mean gap 17.1%, half-life 2.2y, output adjustment
+  `+0.068` (p=0.195), PP adjustment `+0.341` (p<0.001), 1y forecast RMSE 0.253.
+- **Shaikh iterated `PP_Shaikh`**: mean gap 17.3%, half-life 2.4y, output
+  adjustment `+0.078` (p=0.083), PP adjustment `+0.333` (p<0.001), 1y forecast
+  RMSE 0.254.
+- **Direct prices**: mean gap 19.3%, half-life 2.2y, output adjustment `+0.013`
+  (p=0.815), 1y forecast RMSE 0.285.
 - Naive forecast RMSE: **0.120**.
 
 The Sraffian fixed point is a static center: it fits the aggregate level well
-(low RMSE, small bias, slope near one) but does not attract output with annual
-`A_t` — output does not adjust toward it, while it adjusts toward output. The
-Shaikh iteration starts from labour values, recomputes the profit rate each
-round, and converges in **27 rounds on average** (maximum 34) to essentially the
-Sraffian center; the model-implied rate averages **33.9%** against **30.3%**
-observed. So the iteration adds convergence diagnostics, not a different price
-benchmark. Direct labour values fit worst.
+(low RMSE, small bias, slope near one) but does not attract output — output does
+not adjust toward it, while it adjusts toward output. The Shaikh iteration
+starts from labour values, recomputes the profit rate each round, and converges
+in **29 rounds on average** (maximum 34) to essentially the Sraffian center; the
+model-implied real rate averages **35.9%** against **23.2%** observed. So the
+iteration adds convergence diagnostics, not a different price benchmark. Direct
+labour values fit worst.
 
 There is no single winner. **Moseley fits typical industry errors and forecasts
 better.** **Sraffa calibrates the aggregate level better.** **Shaikh's iteration

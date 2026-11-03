@@ -12,13 +12,13 @@ r_k = (p_k y - c_k y) / (c_k y)
 p_{k+1} = (1 + r_k) c_k
 ```
 
-starting from labour values. On the current data it converges in **27 rounds on
-average** (maximum 34, all years converged) with a residual below `1e-10`.
+starting from labour values and using the deflated annual `A_t`. It converges in
+**29 rounds on average** (maximum 34, all years converged) with a residual below
+`1e-10`.
 
-- Model-implied profit rate: **33.9%** average vs **30.3%** observed; 2023
-  **35.7%** vs **33.8%**.
+- Model-implied real profit rate: **35.9%** average vs **23.2%** observed real.
 - The iterated prices are almost identical to the Sraffian fixed point:
-  MAE **15.7%**, correlation **0.976**. Iteration adds convergence diagnostics
+  MAE **17.2%**, correlation **0.973**. Iteration adds convergence diagnostics
   and an implied rate, not a different price center.
 
 ## Cross-dual gravitation
@@ -30,8 +30,8 @@ p_i' = p_i exp(-alpha (r_i - r_bar))
 q_i' = q_i exp( beta  (r_i - r_bar))
 ```
 
-Starting from labour values, weighted profit-rate dispersion falls from **0.146**
-to approximately zero in about **199 steps**. This is a toy process; the full
+Starting from labour values, weighted profit-rate dispersion falls from **0.160**
+to approximately zero in about **207 steps**. This is a toy process; the full
 stock-flow version is in `docs/stock_flow.md`.
 
 ## Stock-flow model

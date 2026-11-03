@@ -77,8 +77,12 @@ def compare_benchmarks(panel: pd.DataFrame) -> pd.DataFrame:
     return pd.DataFrame(rows)
 
 
-def _benchmark_frame(panel: pd.DataFrame, column: str) -> pd.DataFrame:
+def _benchmark_frame(
+    panel: pd.DataFrame, column: str, years: list[int] | None = None
+) -> pd.DataFrame:
     frame = panel.loc[panel["is_market"], ["year", "industry_code", "GO", column]].copy()
+    if years is not None:
+        frame = frame.loc[frame["year"].isin(years)]
     frame = frame.rename(columns={column: "benchmark"})
     frame = frame.replace([np.inf, -np.inf], np.nan).dropna()
     frame = frame.loc[(frame["GO"] > 0) & (frame["benchmark"] > 0)]
@@ -96,8 +100,10 @@ def _benchmark_frame(panel: pd.DataFrame, column: str) -> pd.DataFrame:
     return frame
 
 
-def _benchmark_gravitation(panel: pd.DataFrame, column: str, label: str) -> dict:
-    frame = _benchmark_frame(panel, column)
+def _benchmark_gravitation(
+    panel: pd.DataFrame, column: str, label: str, years: list[int] | None = None
+) -> dict:
+    frame = _benchmark_frame(panel, column, years=years)
     summary = deviation_summary(frame)
     adjustment = error_correction(frame)
     _, metrics, _ = forecast_evaluation(
@@ -132,19 +138,34 @@ def run_shaikh_comparison(
         panel, use_matrices, accounts, base_year=base_year
     )
     comparison = compare_benchmarks(shaikh.panel)
+    common_columns = ["PP_market", "PP_Sraffa", "PP_Shaikh", "P_V", "GO"]
+    valid = shaikh.panel.dropna(subset=common_columns)
+    common_years = sorted(valid["year"].astype(int).unique())
     gravitation = pd.DataFrame(
         [
             _benchmark_gravitation(
-                shaikh.panel, "PP_market", "Moseley PP (stock capital)"
+                shaikh.panel,
+                "PP_market",
+                "Moseley PP (stock capital)",
+                years=common_years,
             ),
             _benchmark_gravitation(
-                shaikh.panel, "PP_Sraffa", "Sraffa prices of production (flow capital)"
+                shaikh.panel,
+                "PP_Sraffa",
+                "Sraffa prices of production (flow capital)",
+                years=common_years,
             ),
             _benchmark_gravitation(
-                shaikh.panel, "PP_Shaikh", "Shaikh iterated prices (endogenous r)"
+                shaikh.panel,
+                "PP_Shaikh",
+                "Shaikh iterated prices (endogenous r)",
+                years=common_years,
             ),
             _benchmark_gravitation(
-                shaikh.panel, "P_V", "Direct prices (labour values)"
+                shaikh.panel,
+                "P_V",
+                "Direct prices (labour values)",
+                years=common_years,
             ),
         ]
     )

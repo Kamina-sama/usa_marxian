@@ -382,32 +382,32 @@ without predictive power.
 ## 11. Sraffa's prices of production and Shaikh's process
 
 For comparison, the project builds Sraffian prices of production and classical
-labour values from annual BEA Use matrices (1998-2023, current prices):
+labour values from **deflated** annual BEA Use matrices (2005-2023, 2017 dollars):
 
 ```
-A_t,ij = U_t,ij / GO_t,j
-l_t,j  = L_t,j / GO_t,j
+A_t,ij = U_t,ij / GO_t,j          (deflated to 2017 dollars)
+l_t,j  = L_t,j / GO_real_t,j
 lambda_t = l_t (I - A_t)^-1
 p_t = (1 + r_t)(p_t A_t + w l_t)
 ```
 
-`r` is the observed aggregate surplus-value rate on flow capital,
-`sum(S)/sum(K)`. Relative prices are independent of `w`; the scale is fixed by
-normalising `p . GO` to total gross output. The resulting `PP_Sraffa` is compared
-with Moseley's stock-based `PP`.
+`r` is the real aggregate surplus-value rate on flow capital,
+`sum(S_real)/sum(K_real)`. Relative prices are independent of `w`; the scale is
+fixed by normalising to total real output, and the resulting benchmarks are
+reflated to nominal for comparison with observed gross output.
 
-The comparison is on 65 market industries, 1998-2023:
+The comparison is on 65 market industries, 2005-2023:
 
-- Moseley: MAE 13.7%, RMSE 22.9%, corr 0.983, slope 1.043, mean gap -7.2%.
-- Sraffa: MAE 15.7%, RMSE 19.5%, corr 0.975, slope 0.974, mean gap -1.6%.
-- Shaikh iterated: MAE 15.7%, RMSE 19.6%, corr 0.976, mean gap -1.7%.
-- Direct labour values: MAE 17.8%, RMSE 23.4%, corr 0.953, mean gap -0.6%.
+- Moseley: MAE 13.7%, RMSE 23.0%, corr 0.983, slope 1.046, mean gap -7.4%.
+- Sraffa: MAE 16.8%, RMSE 20.5%, corr 0.971, slope 0.982, mean gap -2.4%.
+- Shaikh iterated: MAE 17.2%, RMSE 21.3%, corr 0.973, mean gap -3.1%.
+- Direct labour values: MAE 18.6%, RMSE 23.6%, corr 0.954, mean gap -1.3%.
 
 Moseley fits typical industry errors better; Sraffa has lower aggregate bias, a
-slope closer to one, and lower RMSE. With annual `A_t`, Sraffa's clean one-way
-gravitation disappears: `β_GO = +0.029` (p=0.235) and `β_PP = +0.264` (p<0.001).
-The center adjusts toward the data, not the other way. Neither beats a naive
-forecast.
+slope closer to one, and lower RMSE. With constant-price `A_t`, Sraffa's clean
+one-way gravitation still disappears: `β_GO = +0.068` (p=0.195) and
+`β_PP = +0.341` (p<0.001). The center adjusts toward the data, not the other
+way. Neither beats a naive forecast.
 
 The direct solve is the Sraffian fixed point. The project also runs the explicit
 Shaikh cost-plus iteration:
@@ -417,8 +417,8 @@ p_{k+1} = (1 + r_k)(p_k A + w l)
 r_k = (p_k y - (p_k A + w l)y) / ((p_k A + w l)y)
 ```
 
-starting from labour values. It converges in 27 rounds on average (maximum 34),
-with a model-implied profit rate averaging 33.9% against an observed 30.3%. The
-iterated prices are almost identical to the fixed point (MAE 15.7%, corr 0.976).
-A toy cross-dual price/output simulation also reduces profit-rate dispersion from
-0.146 to approximately zero. See `docs/sraffa.md` and `docs/shaikh.md`.
+starting from labour values. It converges in 29 rounds on average (maximum 34),
+with a model-implied real profit rate averaging 35.9% against an observed 23.2%.
+The iterated prices are almost identical to the fixed point (MAE 17.2%, corr
+0.973). A toy cross-dual price/output simulation reduces profit-rate dispersion
+from 0.160 to approximately zero. See `docs/sraffa.md` and `docs/shaikh.md`.
