@@ -109,7 +109,9 @@ def add_industry_ratios(
     out = panel.copy()
     out["is_market"] = ~out["industry_code"].astype(str).isin(NON_MARKET_CODES)
     out["surplus_basis"] = basis
-    out["capital_proxy"] = capital_proxy
+    out["capital_proxy"] = (
+        "fixed_assets+inventories" if capital_proxy == "fixed_assets" else capital_proxy
+    )
 
     out["S_gross"] = out["T"] + out["GOS"]
     out["K_gross"] = out["C"] + out["V"]
@@ -226,7 +228,10 @@ def year_summary(
         value_column = "S_net" if basis == "net" else "S_gross"
         weights = group[cost_column].to_numpy(dtype=float)
         rates = group["r"].to_numpy(dtype=float)
-        aggregate_rate = float(group[value_column].sum() / group[cost_column].sum())
+        aggregate_rate = float(group[value_column].sum() / group["M_proxy"].sum())
+        aggregate_markup = float(
+            group[value_column].sum() / group[cost_column].sum()
+        )
 
         p10 = _weighted_quantile(rates, weights, 0.10)
         p90 = _weighted_quantile(rates, weights, 0.90)
@@ -257,6 +262,7 @@ def year_summary(
             "surplus_basis": str(group["surplus_basis"].iloc[0]),
             "capital_proxy": str(group["capital_proxy"].iloc[0]),
             "R_benchmark": aggregate_rate,
+            "markup_cost": aggregate_markup,
             "rate_weighted_cv": _weighted_cv(rates, weights),
             "rate_p10": p10,
             "rate_p90": p90,
@@ -415,7 +421,9 @@ def proxy_sensitivity(
         summary = year_summary(panel, capital_proxy=proxy, surplus=surplus)
         rows.append(
             {
-                "capital_proxy": proxy,
+                "capital_proxy": (
+                    "fixed_assets+inventories" if proxy == "fixed_assets" else proxy
+                ),
                 "surplus_basis": str(summary["surplus_basis"].iloc[0]),
                 "mae_pct_PP": float(summary["mae_pct_PP"].mean()),
                 "mae_pct_PP_market": float(summary["mae_pct_PP_market"].mean()),

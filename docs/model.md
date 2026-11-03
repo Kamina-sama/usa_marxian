@@ -140,6 +140,10 @@ S = P - K
 R = (S/V) / (M/V)
 ```
 
+`K100071A027NBEA` is an opening balance: the value for year `t` is the stock at
+the start of `t`. The code shifts it forward one year so that `M` uses an
+end-of-year inventory stock, consistent with the fixed-asset stock.
+
 ### Hours methods
 
 - `indexed` (default): nonfarm business hours index (`HOANBS`) scaled to the
@@ -280,10 +284,11 @@ PP_i = K_i + R M_i,        R = sum(S_i) / sum(M_i)
 PP_V_i = V_i (1 + sum(S) / sum(V))
 ```
 
-`M_i` is the actual BEA current-cost net stock of private nonresidential fixed
-assets. The 74 detailed fixed-asset industries map to 65 of the 71 IO
-industries; government units and housing fall back to `K_i` and are flagged.
-Inventories are not allocated by industry, so `M_i` is fixed assets only.
+`M_i` is the actual BEA fixed-asset stock plus allocated private inventory
+stock. Fixed assets come from the 74 detailed industries, mapped to 65 of the
+71 IO industries. Inventories come from NIPA Table 5.8.5B and are allocated
+within broad sectors in proportion to gross output. Government units and
+housing fall back to `K_i` and are flagged.
 
 Older proxies remain available for sensitivity: `cost` (`M_i = K_i`), `output`
 (`M_i = GO_i`), and `value_added` (`M_i = N_i`). The old `K_i(1+R)` expression is
@@ -334,8 +339,8 @@ Reconciliation for 2023:
 - industry net value added minus NDP: the same -105.2 bn;
 - industry net surplus-value minus macro `S`: -80.3 bn (0.9%).
 
-What is still approximate: the within-sector CFC allocation, the absence of
-industry inventories in `M_i`, the cost-proxy fallback for government and
+What is still approximate: the within-sector CFC allocation, the within-sector
+allocation of inventory stocks, the cost-proxy fallback for government and
 housing, and the absence of an intermediate-input deflator.
 
 ## 10. Predictive and gravitation tests

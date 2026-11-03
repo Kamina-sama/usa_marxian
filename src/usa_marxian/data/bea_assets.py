@@ -204,13 +204,15 @@ def attach_capital_stock(
     panel: pd.DataFrame,
     capital: pd.DataFrame,
     *,
+    inventories: pd.DataFrame | None = None,
     fallback: str = "cost",
 ) -> pd.DataFrame:
-    """Merge actual fixed-asset stocks into the industry panel.
+    """Merge actual fixed-asset and inventory stocks into the industry panel.
 
-    ``M_assets`` is the actual BEA stock (millions). ``M`` uses the actual stock
-    where available and the configured fallback otherwise. ``capital_source``
-    records which was used.
+    ``M_assets`` is the actual BEA fixed-asset stock (millions); ``M_inv`` is the
+    allocated inventory stock (millions). ``M`` equals their sum where fixed
+    assets are available and the configured fallback otherwise.
+    ``capital_source`` records which was used.
     """
     out = panel.copy()
     if "K" not in out.columns:
@@ -221,43 +223,94 @@ def attach_capital_stock(
         on=["year", "industry_code"],
         how="left",
     )
+    if inventories is not None:
+        out = out.merge(
+            inventories.loc[
+                :, ["year", "industry_code", "M_inv", "inventory_category"]
+            ],
+            on=["year", "industry_code"],
+            how="left",
+        )
+    else:
+        out["M_inv"] = 0.0
+        out["inventory_category"] = None
+
+    out["M_inv"] = out["M_inv"].fillna(0.0)
     out["M_assets"] = out["M_assets"].where(out["M_assets"] > 0)
-    out["capital_source"] = np.where(
-        out["M_assets"].notna(), "fixed_assets", f"{fallback}_proxy"
-    )
+    actual = out["M_assets"].notna()
 
     if fallback == "cost":
-        out["M"] = out["M_assets"].fillna(out["K"])
+        out["M"] = np.where(
+            actual,
+            out["M_assets"].fillna(0.0) + out["M_inv"],
+            out["K"],
+        )
     elif fallback == "nan":
-        out["M"] = out["M_assets"]
+        out["M"] = np.where(
+            actual,
+            out["M_assets"].fillna(0.0) + out["M_inv"],
+            np.nan,
+        )
     else:
         raise ValueError(f"Unknown capital fallback: {fallback}")
+
+    out["capital_source"] = np.where(
+        actual & (out["M_inv"] > 0),
+        "fixed_assets+inventories",
+        np.where(actual, "fixed_assets", f"{fallback}_proxy"),
+    )
 
     return out
 
 
-def capital_coverage(panel: pd.DataFrame, macro_capital: pd.Series | None = None) -> pd.DataFrame:
+def capital_coverage(
+    panel: pd.DataFrame,
+    macro: pd.DataFrame | None = None,
+) -> pd.DataFrame:
     """Per-year coverage of actual versus proxied capital stocks.
 
-    ``macro_capital`` is the aggregate private nonresidential net stock in
-    billions (the macro accounts' ``M_fixed_only`` column).
+    ``macro`` is the macro accounts frame indexed by year with columns
+    ``M_fixed_only`` (fixed assets) and ``M`` (fixed assets plus inventories),
+    both in billions.
     """
     grouped = (
         panel.groupby("year")
         .agg(
             n_industries=("industry_code", "nunique"),
-            n_actual=("capital_source", lambda s: int((s == "fixed_assets").sum())),
-            n_proxy=("capital_source", lambda s: int((s != "fixed_assets").sum())),
+            n_actual=(
+                "capital_source",
+                lambda s: int(s.astype(str).str.startswith("fixed_assets").sum()),
+            ),
+            n_proxy=(
+                "capital_source",
+                lambda s: int((~s.astype(str).str.startswith("fixed_assets")).sum()),
+            ),
             total_M_assets_mn=("M_assets", "sum"),
+            total_M_inv_mn=("M_inv", "sum"),
             total_M_used_mn=("M", "sum"),
         )
         .reset_index()
     )
     grouped["total_M_assets_bn"] = grouped["total_M_assets_mn"] / 1000.0
-    if macro_capital is not None:
-        grouped["macro_M_bn"] = macro_capital.reindex(grouped["year"]).to_numpy()
-        grouped["gap_pct"] = (
-            100.0
-            * (grouped["total_M_assets_bn"] / grouped["macro_M_bn"] - 1.0)
+    grouped["total_M_inv_bn"] = grouped["total_M_inv_mn"] / 1000.0
+    grouped["total_M_actual_bn"] = (
+        grouped["total_M_assets_bn"] + grouped["total_M_inv_bn"]
+    )
+
+    if macro is not None and {"M_fixed_only", "M"}.issubset(macro.columns):
+        macro_fixed = macro["M_fixed_only"].reindex(grouped["year"]).to_numpy()
+        macro_total = macro["M"].reindex(grouped["year"]).to_numpy()
+        macro_inventory = macro_total - macro_fixed
+        grouped["macro_fixed_bn"] = macro_fixed
+        grouped["macro_inv_bn"] = macro_inventory
+        grouped["macro_M_bn"] = macro_total
+        grouped["gap_fixed_pct"] = 100.0 * (
+            grouped["total_M_assets_bn"] / grouped["macro_fixed_bn"] - 1.0
+        )
+        grouped["gap_inv_pct"] = 100.0 * (
+            grouped["total_M_inv_bn"] / grouped["macro_inv_bn"] - 1.0
+        )
+        grouped["gap_total_pct"] = 100.0 * (
+            grouped["total_M_actual_bn"] / grouped["macro_M_bn"] - 1.0
         )
     return grouped

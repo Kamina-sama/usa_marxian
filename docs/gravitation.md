@@ -32,8 +32,8 @@ price of production, also a gross annual revenue:
 PP_it = K_it + R_t M_it
 ```
 
-`M_it` is the actual BEA current-cost net stock of private nonresidential fixed
-assets. `d` is approximately the industry profit-rate gap.
+`M_it` is the actual BEA fixed-asset stock plus allocated private inventory
+stock. `d` is approximately the industry profit-rate gap.
 
 A value of `d = 0.10` means market gross output is about 10% above the price of
 production.
@@ -42,18 +42,18 @@ production.
 
 Sample: 65 market industries, 1998-2023, 1,690 observations.
 
-- Mean absolute deviation: **13.0%** (gross-output weighted: **12.1%**).
-- Median absolute deviation: **8.4%**.
-- 57.7% of observations are within ±10%; **88.7%** are within ±25%.
-- Lag-1 autocorrelation: **0.975**.
-- AR(1) persistence coefficient (industry and year effects): **0.734**;
+- Mean absolute deviation: **12.8%** (gross-output weighted: **11.6%**).
+- Median absolute deviation: **8.9%**.
+- 56.2% of observations are within ±10%; **89.3%** are within ±25%.
+- Lag-1 autocorrelation: **0.973**.
+- AR(1) persistence coefficient (industry and year effects): **0.733**;
   implied half-life of a deviation: **2.2 years**.
 - The mean absolute deviation has a tiny positive trend (+0.05 percentage
-  points per year, p=0.158), not statistically distinguishable from zero.
+  points per year, p=0.139), not statistically distinguishable from zero.
 
 Panel ADF results are mixed. The Fisher combination rejects a unit root
-(p<0.001), but only **14%** of industries reject individually and the median
-industry p-value is 0.28. The panel test is helped by having 65 industries; the
+(p<0.001), but only **12%** of industries reject individually and the median
+industry p-value is 0.34. The panel test is helped by having 65 industries; the
 typical industry series is too short (26 annual observations) to be decisive on
 its own.
 
@@ -76,11 +76,11 @@ clustered by industry:
 
 Results:
 
-- `β_GO = -0.163` (s.e. 0.065, p=0.013). The sign is the one gravitation
+- `β_GO = -0.157` (s.e. 0.067, p=0.018). The sign is the one gravitation
   predicts: when market output is above PP, future market output grows more
-  slowly. The implied half-life of the output response is **3.9 years**.
-- `β_PP = +0.103` (s.e. 0.045, p=0.020). PP also rises toward market output.
-- The gap itself closes: `Δd` on `d_lag` gives `β = -0.266` (p<0.001),
+  slowly. The implied half-life of the output response is **4.0 years**.
+- `β_PP = +0.110` (s.e. 0.047, p=0.019). PP also rises toward market output.
+- The gap itself closes: `Δd` on `d_lag` gives `β = -0.267` (p<0.001),
   half-life **2.2 years**.
 
 **Reading:** the adjustment is two-way. Market output does move toward PP, which
@@ -102,15 +102,15 @@ Pooled log RMSE (lower is better):
 
 | Horizon | naive | pp | ar1 | ecm |
 |---|---|---|---|---|
-| 1 year | 0.120 | 0.227 | 0.120 | 0.120 |
-| 3 years | 0.202 | 0.264 | 0.174 | 0.171 |
-| 5 years | 0.258 | 0.310 | 0.199 | 0.198 |
+| 1 year | 0.120 | 0.217 | 0.120 | 0.120 |
+| 3 years | 0.202 | 0.255 | 0.174 | 0.172 |
+| 5 years | 0.258 | 0.302 | 0.199 | 0.198 |
 
 - PP is **worse than the naive forecast at every horizon**. The RMSE difference
-  is +0.107 at one year, +0.062 at three years and +0.052 at five years; the
+  is +0.097 at one year, +0.053 at three years and +0.044 at five years; the
   bootstrap confidence intervals exclude zero.
 - The ECM is marginally better than AR(1) at three years (RMSE difference
-  -0.0021, confidence interval excludes zero), but the gain is economically
+  -0.0019, confidence interval excludes zero), but the gain is economically
   negligible. At one year it is indistinguishable from AR(1); at five years the
   difference is also tiny.
 
@@ -132,12 +132,12 @@ In this 65-industry, 1998-2023 annual panel, with actual fixed-asset stocks:
 The defensible summary is **"weak and slow gravitation, no forecast power"**. The
 data do not support a strong claim that prices of production are the immediate
 centers of gravitation of market gross output. They also do not refute the
-theory: the test is limited by the value-based output measure, the absence of
-industry inventories in `M_i`, annual data, and the short sample.
+theory: the test is limited by the value-based output measure, the within-sector
+allocation of inventory stocks, annual data, and the short sample.
 
 ## What changed when actual capital stocks replaced `M_i = K_i`
 
-The price fit got **worse on average error**, from 13.3% to 16.9% full-sample
+The price fit got **worse on average error**, from 13.3% to 16.3% full-sample
 MAE. That is informative. With `M_i = K_i`, `PP_i` is mechanically close to
 `GO_i`, so the old fit was partly built in. Actual capital stocks expose the
 profit-rate dispersion, especially in regulated utilities and capital-intensive
@@ -146,8 +146,8 @@ output became negative and significant, which the cost proxy did not produce.
 
 ## What would make the test sharper
 
-1. **Industry inventories.** Add inventory stocks to `M_i` so it matches the
-   macro capital concept.
+1. **Industry-level inventory data.** Replace the gross-output allocation of
+   broad-sector inventory stocks with industry-level data.
 2. **Actual government and housing capital.** Remove the cost-proxy fallback for
    those six industries, or keep them out of the market sample as now.
 3. **Unit prices and quantities.** Compare prices per unit of output rather than

@@ -302,7 +302,14 @@ def build_accounts(
     else:  # pragma: no cover
         raise ValueError(f"Unknown capital_stock specification: {capital_stock}")
 
-    inventories = raw["inventories"].fillna(0.0) if "inventories" in raw else 0.0
+    # K100071A027NBEA is an *opening* balance: the value for year t is the
+    # stock at the start of t, i.e. the end of t-1. Shift it forward so the
+    # inventory stock is measured at the end of the year, like the fixed-asset
+    # stock. The last year falls back to its opening value.
+    if "inventories" in raw:
+        inventories = raw["inventories"].shift(-1).fillna(raw["inventories"])
+    else:
+        inventories = 0.0
     out["M_fixed_only"] = fixed
     out["M"] = fixed + inventories if include_inventories else fixed
     out["M_private_total"] = (

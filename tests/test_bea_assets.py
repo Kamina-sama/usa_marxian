@@ -37,6 +37,32 @@ def test_attach_uses_actual_then_fallback():
     assert np.isclose(attached.loc[attached["industry_code"] == "B", "M"].iloc[0], 260.0)
 
 
+def test_attach_adds_inventories():
+    panel = pd.DataFrame(
+        {
+            "year": [2020],
+            "industry_code": ["A"],
+            "C": [100.0],
+            "V": [50.0],
+        }
+    )
+    capital = pd.DataFrame({"year": [2020], "industry_code": ["A"], "M": [1_000.0]})
+    inventories = pd.DataFrame(
+        {
+            "year": [2020],
+            "industry_code": ["A"],
+            "M_inv": [200.0],
+            "inventory_category": ["Manufacturing"],
+        }
+    )
+
+    attached = attach_capital_stock(panel, capital, inventories=inventories)
+
+    assert np.isclose(attached["M"].iloc[0], 1200.0)
+    assert np.isclose(attached["M_inv"].iloc[0], 200.0)
+    assert attached["capital_source"].iloc[0] == "fixed_assets+inventories"
+
+
 def test_capital_coverage():
     panel = pd.DataFrame(
         {
@@ -44,12 +70,15 @@ def test_capital_coverage():
             "industry_code": ["A", "B", "C"],
             "capital_source": ["fixed_assets", "cost_proxy", "cost_proxy"],
             "M_assets": [1_000_000.0, np.nan, np.nan],
+            "M_inv": [0.0, 0.0, 0.0],
             "M": [1_000_000.0, 260.0, 370.0],
         }
     )
-    coverage = capital_coverage(panel, pd.Series({2020: 1000.0}))
+    macro = pd.DataFrame({"M_fixed_only": [1000.0], "M": [1000.0]}, index=[2020])
+    coverage = capital_coverage(panel, macro)
     row = coverage.iloc[0]
     assert row["n_actual"] == 1
     assert row["n_proxy"] == 2
     assert np.isclose(row["total_M_assets_bn"], 1000.0)
-    assert np.isclose(row["gap_pct"], 0.0)
+    assert np.isclose(row["total_M_actual_bn"], 1000.0)
+    assert np.isclose(row["gap_total_pct"], 0.0)

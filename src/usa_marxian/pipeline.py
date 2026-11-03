@@ -19,6 +19,7 @@ from .analysis.ltv import LTVResult, estimate_ltv
 from .analysis.profit_check import property_income_check, property_income_summary
 from .config import ProjectConfig
 from .data.bea_assets import attach_capital_stock, capital_coverage, load_industry_capital
+from .data.bea_inventories import load_industry_inventories
 from .data.bea_io import build_industry_panel
 from .data.build import build_accounts, build_raw_panel, validate_accounts
 from .data.quality import write_quality
@@ -272,7 +273,27 @@ def run_industries(
         max_age_days=max(365, config.settings.cache_max_age_days),
         force=refresh,
     )
-    panel = attach_capital_stock(panel, capital, fallback="cost")
+    inventories = load_industry_inventories(
+        config.settings.raw_dir,
+        panel,
+        max_age_days=max(365, config.settings.cache_max_age_days),
+        force=refresh,
+    )
+    panel = attach_capital_stock(
+        panel, capital, inventories=inventories, fallback="cost"
+    )
+    capital_table = panel.loc[
+        :,
+        [
+            "year",
+            "industry_code",
+            "M_assets",
+            "M_inv",
+            "M",
+            "capital_source",
+            "inventory_category",
+        ],
+    ].copy()
 
     enriched = add_industry_ratios(panel, capital_proxy="fixed_assets")
     summary = year_summary(panel, capital_proxy="fixed_assets")
@@ -293,21 +314,22 @@ def run_industries(
         reconciliation = industry_reconciliation(panel, macro_accounts)
         report["reconciliation"] = reconciliation.to_dict(orient="records")
 
-        macro_capital = (
-            macro_accounts["M_fixed_only"]
-            if "M_fixed_only" in macro_accounts.columns
-            else None
-        )
-        coverage = capital_coverage(panel, macro_capital)
+        coverage = capital_coverage(panel, macro_accounts)
         latest_coverage = coverage.iloc[-1]
         report["capital"] = {
-            "capital_proxy": "fixed_assets",
+            "capital_proxy": "fixed_assets+inventories",
             "fallback": "cost",
             "n_actual": int(latest_coverage["n_actual"]),
             "n_proxy": int(latest_coverage["n_proxy"]),
             "total_M_assets_bn": float(latest_coverage["total_M_assets_bn"]),
+            "total_M_inv_bn": float(latest_coverage["total_M_inv_bn"]),
+            "total_M_actual_bn": float(latest_coverage["total_M_actual_bn"]),
+            "macro_fixed_bn": float(latest_coverage["macro_fixed_bn"]),
+            "macro_inv_bn": float(latest_coverage["macro_inv_bn"]),
             "macro_M_bn": float(latest_coverage["macro_M_bn"]),
-            "gap_pct": float(latest_coverage["gap_pct"]),
+            "gap_fixed_pct": float(latest_coverage["gap_fixed_pct"]),
+            "gap_inv_pct": float(latest_coverage["gap_inv_pct"]),
+            "gap_total_pct": float(latest_coverage["gap_total_pct"]),
         }
         report["capital_coverage"] = coverage.to_dict(orient="records")
     except Exception as exc:  # reconciliation is a check, not a prerequisite
@@ -332,7 +354,9 @@ def run_industries(
     if save:
         processed = config.settings.processed_dir
         enriched.to_csv(processed / "industries.csv", index=False)
-        capital.to_csv(processed / "industry_capital.csv", index=False)
+        capital.to_csv(processed / "industry_fixed_assets.csv", index=False)
+        inventories.to_csv(processed / "industry_inventories.csv", index=False)
+        capital_table.to_csv(processed / "industry_capital.csv", index=False)
         tables = config.settings.output_dir / "tables"
         tables.mkdir(parents=True, exist_ok=True)
         summary.to_csv(tables / "industry_summary.csv", index=False)

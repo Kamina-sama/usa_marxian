@@ -40,7 +40,7 @@ CSV endpoint on failure.
 | `capital_stock` | `K1NTOTL1ES000` | Net stock of private nonresidential fixed assets | mn USD |
 | `capital_stock_private` | `K1PTOTL1ES000` | Net stock of total private fixed assets | mn USD |
 | `net_national_factor_income` | `X032RC1A027NBEA` | Net national factor income | bn USD |
-| `inventories` | `K100071A027NBEA` | Net stock of private inventories | bn USD |
+| `inventories` | `K100071A027NBEA` | Net stock of private inventories (opening balance) | bn USD |
 | `employment` | `CEU0500000001` | All employees, total private | thousands |
 | `weekly_hours` | `AWHAETP` | Average weekly hours, total private | hours/week |
 | `hours_nipa` | `B4701C0A222NBEA` | Hours worked, full- and part-time employees | mn hours |
@@ -173,6 +173,29 @@ files if you want to extend the module:
 
 Consumption of fixed capital by industry comes from NIPA Section 6 tables
 6.13D and 6.22D, as described in `docs/industry.md`.
+
+## BEA private inventories (industry stocks)
+
+Keyless NIPA Section 5 workbook:
+
+```
+https://apps.bea.gov/national/Release/XLS/Survey/Section5All_xls.xlsx
+```
+
+Table 5.8.5B, "Private Inventories and Domestic Final Sales by Industry",
+provides quarterly private inventory stocks in current dollars. The project
+uses Q4 values as year-end stocks and allocates the nine broad categories to IO
+industries:
+
+- Farm, wholesale and the four retail categories map directly;
+- mining/utilities/construction and manufacturing are allocated within the
+  group by gross output;
+- "Other industries" is allocated across the remaining market industries by
+  gross output.
+
+The broad totals are official BEA data. The within-group allocation is a proxy.
+On the current vintage the allocated total is 3,805 bn in 2023 against the macro
+inventory stock of 3,805 bn (0.0%).
 
 ## World Bank (not used by default)
 
