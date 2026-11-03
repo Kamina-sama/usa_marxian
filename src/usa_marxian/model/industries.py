@@ -210,12 +210,11 @@ def add_industry_ratios(
 
     # Real accounts use sector-specific price indexes when available.
     #
-    # Value added, compensation and gross output can each be deflated by their
-    # own sector index. We deliberately do NOT construct real intermediate
-    # consumption as GO_real - N_real: with different deflators that residual
-    # is not a valid volume and can even be negative. A real profit rate would
-    # need a sector intermediate-input deflator, which the summary Use table
-    # does not provide.
+    # Value added and compensation are deflated by the sector value-added
+    # index. Intermediate consumption uses a supplier-weighted input deflator
+    # built from the 2017 Use table and broad-sector gross-output indexes.
+    # Capital is deflated by the industry's own gross-output index as a
+    # transparent proxy for a capital-goods deflator.
     if {"va_price", "go_price"}.issubset(out.columns):
         va_deflator = out["va_price"] / 100.0
         go_deflator = out["go_price"] / 100.0
@@ -225,6 +224,16 @@ def add_industry_ratios(
         out["S_real"] = out["N_real"] - out["V_real"]
         out["va_deflator"] = out["va_price"]
         out["go_deflator"] = out["go_price"]
+
+        if "input_price" in out.columns:
+            input_deflator = out["input_price"] / 100.0
+            out["C_real"] = out["C"] / input_deflator
+            out["K_real"] = out["C_real"] + out["V_real"]
+            out["r_real"] = out["S_real"] / out["K_real"]
+            out["M_real"] = out["M_proxy"] / go_deflator
+            out["R_real"] = out["S_real"] / out["M_real"]
+            out["PP_real"] = out["K_real"] + out["R_real"] * out["M_real"]
+            out["input_deflator"] = out["input_price"]
 
     return out
 
@@ -365,6 +374,25 @@ def year_summary(
             row["total_S_real"] = (
                 float(group["S_real"].sum()) if group["S_real"].notna().any() else np.nan
             )
+            if "r_real" in group.columns:
+                real = group.dropna(subset=["r_real", "K_real", "S_real", "M_real"])
+                if not real.empty:
+                    row["r_real_weighted_cv"] = _weighted_cv(
+                        real["r_real"].to_numpy(dtype=float),
+                        real["K_real"].to_numpy(dtype=float),
+                    )
+                    row["R_real"] = float(
+                        real["S_real"].sum() / real["M_real"].sum()
+                    )
+                    market_real = real.loc[real["is_market"]]
+                    if len(market_real) >= 3:
+                        row["r_real_weighted_cv_market"] = _weighted_cv(
+                            market_real["r_real"].to_numpy(dtype=float),
+                            market_real["K_real"].to_numpy(dtype=float),
+                        )
+                        row["R_real_market"] = float(
+                            market_real["S_real"].sum() / market_real["M_real"].sum()
+                        )
         rows.append(row)
     return pd.DataFrame(rows)
 
@@ -397,6 +425,17 @@ def industry_report(
                 float(real["total_N_net"].iloc[-1]) / float(real["total_N_real"].iloc[-1])
             )
 
+    real_metrics = {}
+    if "r_real_weighted_cv" in numeric.columns:
+        real_metrics = {
+            "r_real_weighted_cv": float(numeric["r_real_weighted_cv"].mean()),
+            "r_real_weighted_cv_market": float(
+                numeric["r_real_weighted_cv_market"].mean()
+            ),
+            "R_real": float(numeric["R_real"].mean()),
+            "R_real_market": float(numeric["R_real_market"].mean()),
+        }
+
     return {
         "n_years": int(summary.shape[0]),
         "n_industries": int(panel["industry_code"].nunique()),
@@ -420,6 +459,7 @@ def industry_report(
             "share_within_25pct_PP_long": float(
                 numeric["share_within_25pct_PP_long"].mean()
             ),
+            **real_metrics,
             "share_within_25pct_PP_long_market": float(
                 numeric["share_within_25pct_PP_long_market"].mean()
             ),
@@ -541,5 +581,5 @@ def latest_dispersion(
         "is_market",
     ]
     if "N_real" in latest.columns:
-        columns += ["N_real", "GO_real", "r_real"]
+        columns += ["N_real", "GO_real", "C_real", "K_real", "r_real", "R_real"]
     return latest.loc[:, [column for column in columns if column in latest.columns]]

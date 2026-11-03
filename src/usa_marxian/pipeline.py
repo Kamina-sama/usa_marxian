@@ -25,10 +25,15 @@ from .data.bea_assets import (
     load_industry_capital,
 )
 from .data.bea_inventory_detail import load_industry_inventories_detail
-from .data.bea_io import build_industry_panel
+from .data.bea_io import build_industry_panel, load_use_matrices
 from .data.build import build_accounts, build_raw_panel, validate_accounts
 from .data.quality import write_quality
-from .data.sectors import attach_sector_data
+from .data.sectors import (
+    attach_input_deflator,
+    attach_sector_data,
+    fetch_sector_prices,
+    load_sector_config,
+)
 from .model.equalities import profit_rate_decomposition, profit_rate_summary
 from .model.industries import (
     add_industry_ratios,
@@ -292,6 +297,28 @@ def run_industries(
             stacklevel=2,
         )
 
+    try:
+        sector_config = load_sector_config()
+        use_matrices = load_use_matrices(
+            config.settings.raw_dir,
+            max_age_days=max(365, config.settings.cache_max_age_days),
+            force=refresh,
+        )
+        sector_prices = fetch_sector_prices(
+            sector_config,
+            config.settings.raw_dir,
+            max_age_days=config.settings.cache_max_age_days,
+            force=refresh,
+        )
+        panel = attach_input_deflator(
+            panel, use_matrices, sector_prices, sector_config, base_year=2017
+        )
+    except Exception as exc:
+        warnings.warn(
+            f"Intermediate-input deflator unavailable, real profit rates skipped: {exc}",
+            stacklevel=2,
+        )
+
     capital = load_industry_capital(
         config.settings.raw_dir,
         max_age_days=max(365, config.settings.cache_max_age_days),
@@ -331,10 +358,22 @@ def run_industries(
 
     enriched = add_industry_ratios(panel, capital_proxy="fixed_assets")
     summary = year_summary(panel, capital_proxy="fixed_assets")
-    latest = latest_dispersion(panel, capital_proxy="fixed_assets")
+    latest_table = latest_dispersion(panel, capital_proxy="fixed_assets")
     report = industry_report(panel, capital_proxy="fixed_assets")
     proxies = proxy_sensitivity(panel)
     report["proxy_sensitivity"] = proxies.to_dict(orient="records")
+
+    latest_summary = report["latest"]
+    if "R_real_market" in latest_summary:
+        report["real"] = {
+            "R_real": float(latest_summary["R_real"]),
+            "R_real_market": float(latest_summary["R_real_market"]),
+            "r_real_weighted_cv": float(latest_summary["r_real_weighted_cv"]),
+            "r_real_weighted_cv_market": float(
+                latest_summary["r_real_weighted_cv_market"]
+            ),
+            "input_deflator_base_year": 2017,
+        }
 
     reconciliation = None
     coverage = None
@@ -406,7 +445,7 @@ def run_industries(
         tables = config.settings.output_dir / "tables"
         tables.mkdir(parents=True, exist_ok=True)
         summary.to_csv(tables / "industry_summary.csv", index=False)
-        latest.to_csv(tables / "industry_latest.csv", index=False)
+        latest_table.to_csv(tables / "industry_latest.csv", index=False)
         proxies.to_csv(tables / "industry_proxy_sensitivity.csv", index=False)
         if reconciliation is not None:
             reconciliation.to_csv(tables / "industry_reconciliation.csv", index=False)
@@ -465,7 +504,7 @@ def run_industries(
     if make_plots:
         figures = config.settings.output_dir / "figures"
         plot_industry_dispersion(summary, figures / "industry_dispersion.png")
-        plot_pp_vs_go(latest, figures / "pp_vs_go.png")
+        plot_pp_vs_go(latest_table, figures / "pp_vs_go.png")
         if gravitation is not None:
             plot_gravitation_deviation(
                 gravitation["deviation"]["by_year"],
@@ -476,7 +515,7 @@ def run_industries(
                 figures / "gravitation_forecast.png",
             )
 
-    return IndustryResult(panel=panel, summary=summary, latest=latest, report=report)
+    return IndustryResult(panel=panel, summary=summary, latest=latest_table, report=report)
 
 
 def load_accounts(config: ProjectConfig | None = None) -> pd.DataFrame:

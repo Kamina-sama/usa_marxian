@@ -90,6 +90,82 @@ def fetch_sector_prices(
     return wide.loc[:, ["year", "sector", "va_price", "go_price"]]
 
 
+def code_to_sector(config: dict) -> dict[str, str]:
+    mapping = {}
+    for sector, spec in config.get("deflators", {}).items():
+        for code in spec["industries"]:
+            mapping[str(code)] = sector
+    return mapping
+
+
+def attach_input_deflator(
+    panel: pd.DataFrame,
+    use_matrices: pd.DataFrame,
+    sector_prices: pd.DataFrame,
+    config: dict,
+    *,
+    base_year: int = 2017,
+) -> pd.DataFrame:
+    """Attach a supplier-weighted intermediate-input price index.
+
+    For each industry, intermediate inputs are weighted by the 2017 Use table.
+    Each commodity's price is proxied by the gross-output deflator of its broad
+    sector. The result is an index (2017=100) for the industry's input bundle.
+    """
+    mapping = code_to_sector(config)
+    base = use_matrices.loc[use_matrices["year"] == base_year]
+    if base.empty:
+        raise ValueError(f"No Use matrix for base year {base_year}")
+
+    weights = (
+        base.pivot_table(
+            index="industry_code",
+            columns="commodity_code",
+            values="value",
+            aggfunc="sum",
+        )
+        .fillna(0.0)
+        .sort_index()
+    )
+    price_wide = sector_prices.pivot(index="year", columns="sector", values="go_price")
+    if base_year not in price_wide.index:
+        raise ValueError(f"No sector prices for base year {base_year}")
+
+    records = []
+    for industry_code, row in weights.iterrows():
+        weights_row = row.loc[row > 0]
+        if weights_row.empty:
+            continue
+        sectors = weights_row.index.to_series().map(mapping)
+        valid = sectors.notna() & sectors.isin(price_wide.columns)
+        if not valid.any():
+            continue
+        weights_row = weights_row.loc[valid]
+        sectors = sectors.loc[valid]
+        weights_row = weights_row / weights_row.sum()
+
+        for year in price_wide.index:
+            sector_values = np.array(
+                [price_wide.loc[year, sector] for sector in sectors], dtype=float
+            )
+            if not np.isfinite(sector_values).all():
+                continue
+            records.append(
+                {
+                    "year": int(year),
+                    "industry_code": str(industry_code),
+                    "input_price": float(np.dot(weights_row.to_numpy(), sector_values)),
+                }
+            )
+
+    if not records:
+        raise ValueError("Intermediate-input deflator produced no rows")
+    deflator = pd.DataFrame(records)
+    return panel.merge(
+        deflator, on=["year", "industry_code"], how="left", validate="many_to_one"
+    )
+
+
 def merge_sector_prices(panel: pd.DataFrame, prices: pd.DataFrame, config: dict) -> pd.DataFrame:
     """Attach sector, va_price and go_price to the industry panel."""
     code_to_sector = {}

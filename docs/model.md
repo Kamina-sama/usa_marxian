@@ -313,8 +313,10 @@ otherwise the dispersion statistic is dominated by structural outliers.
 
 Sector deflation uses broad-sector chain-type price indexes from the BEA
 GDP-by-Industry release (`VAPI*` for value added, `GOPI*` for gross output).
-Real intermediate consumption is not constructed as `GO_real - N_real`; with
-different deflators that residual is not a valid volume.
+Intermediate consumption uses a supplier-weighted input deflator: 2017 Use-table
+weights applied to the broad-sector gross-output deflators of the supplying
+commodities. Real intermediate consumption is not constructed as
+`GO_real - N_real`; the direct deflator avoids that invalid residual.
 
 ## 9. Accounting audit
 
@@ -344,7 +346,8 @@ Reconciliation for 2023:
 
 What is still approximate: the within-sector CFC allocation, the broad
 inventory allocation for mining/utilities/construction and “other” industries,
-and the absence of an intermediate-input deflator.
+and the broad-sector commodity price proxies in the intermediate-input
+deflator.
 
 ## 10. Predictive and gravitation tests
 

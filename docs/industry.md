@@ -22,6 +22,10 @@ Additional sources:
   `https://apps.bea.gov/national/FA2004/Details/xls/detailnonres_stk1.xlsx`
   Current-cost net stock of private nonresidential fixed assets by detailed
   industry, 1925-present.
+- BEA Fixed Assets Sections 7 and 5 (keyless):
+  `https://apps.bea.gov/national/FixedAssets/Release/XLS/Section7All_xls.xlsx`
+  and `Section5All_xls.xlsx` for government and owner-occupied residential
+  capital stocks.
 - BEA NIPA Section 5 workbook (keyless):
   `https://apps.bea.gov/national/Release/XLS/Survey/Section5All_xls.xlsx`
   Table 5.8.5B gives private inventory stocks by broad industry.
@@ -126,10 +130,24 @@ GO_real_i = GO_i / (GOPI_sector / 100)
 S_real_i = N_real_i - V_real_i
 ```
 
-Real intermediate consumption is **not** constructed as `GO_real - N_real`:
-with different deflators that residual is not a valid volume and can be
-negative. A real profit rate would require a sector intermediate-input
-deflator, which the summary Use table does not provide.
+Intermediate consumption uses a supplier-weighted input deflator:
+
+```
+w_ci = U_ci(2017) / sum_c U_ci(2017)
+input_price_it = sum_c w_ci * GOPI_sector(c),t
+C_real_i = C_i / (input_price_i / 100)
+K_real_i = C_real_i + V_real_i
+r_real_i = S_real_i / K_real_i
+R_real_i = S_real_i / M_real_i
+```
+
+The 2017 Use table supplies the weights; each commodity's price is proxied by
+its broad sector's gross-output deflator. Capital is deflated by the industry's
+own gross-output index. On 2023 the real market profit rate is 20.1% vs 20.2%
+nominal, and real dispersion is 0.659 vs 0.609.
+
+Caveats: fixed 2017 weights, broad-sector commodity price proxies, and a
+gross-output proxy for the capital-goods deflator.
 
 ## Structural outliers
 
@@ -187,7 +205,7 @@ out-of-sample forecasts.
 
 - Replace the broad allocation for mining/utilities/construction and “other”
   industries with detailed inventory data.
-- Build a sector intermediate-input deflator for real cost prices and profit
-  rates.
+- Refine the intermediate-input deflator with commodity-level prices and
+  time-varying Use weights.
 - Use Make and Use tables to compute labour values via the Leontief inverse.
 - Build unit prices by dividing gross output by quantity indices.

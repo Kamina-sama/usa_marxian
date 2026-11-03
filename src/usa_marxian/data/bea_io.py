@@ -160,6 +160,74 @@ def parse_use_sheet(rows: list[tuple], year: int) -> pd.DataFrame:
     return pd.DataFrame(records)
 
 
+def parse_use_matrix(rows: list[tuple], year: int) -> pd.DataFrame:
+    """Parse the commodity-by-industry intermediate-use matrix.
+
+    Returns a long frame: ``year, commodity_code, commodity_name,
+    industry_code, value`` in millions of dollars.
+    """
+    if len(rows) < 10:
+        raise BEAIOError("Use sheet is too short to parse")
+
+    codes, names = rows[0], rows[1]
+    industry_columns = []
+    for index in range(2, len(codes)):
+        code = codes[index]
+        if isinstance(code, str) and code.startswith("F") and len(code) > 2:
+            break
+        if code and index < len(names):
+            industry_columns.append(index)
+
+    records = []
+    for row in rows[2:]:
+        if not row:
+            continue
+        code = row[0]
+        if code is None:
+            break  # totals block follows the commodity rows
+        if not isinstance(code, str) or not code.strip():
+            continue
+        commodity_name = str(row[1]).strip() if len(row) > 1 and row[1] else ""
+        for index in industry_columns:
+            records.append(
+                {
+                    "year": int(year),
+                    "commodity_code": code.strip(),
+                    "commodity_name": commodity_name,
+                    "industry_code": str(codes[index]).strip(),
+                    "value": _num(row[index]),
+                }
+            )
+    return pd.DataFrame(records)
+
+
+def load_use_matrices(
+    raw_dir: Path,
+    *,
+    max_age_days: int = 365,
+    force: bool = False,
+) -> pd.DataFrame:
+    """Download and parse the commodity-by-industry intermediate-use matrices."""
+    zip_path = download_archive(raw_dir, max_age_days=max_age_days, force=force)
+    workbook_path = extract_use_table(zip_path, force=force)
+
+    workbook = openpyxl.load_workbook(workbook_path, read_only=True, data_only=True)
+    frames = []
+    try:
+        for sheet_name in workbook.sheetnames:
+            if not sheet_name.isdigit():
+                continue
+            sheet = workbook[sheet_name]
+            rows = list(sheet.iter_rows(min_row=6, values_only=True))
+            frames.append(parse_use_matrix(rows, int(sheet_name)))
+    finally:
+        workbook.close()
+
+    if not frames:
+        raise BEAIOError("No annual Use sheets found")
+    return pd.concat(frames, ignore_index=True)
+
+
 def build_industry_panel(
     raw_dir: Path,
     *,

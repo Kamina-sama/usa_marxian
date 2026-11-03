@@ -294,6 +294,14 @@ def cmd_industries(args: argparse.Namespace) -> int:
             share=means["share_within_25pct_PP_market"],
         )
     )
+    real = report.get("real")
+    if real:
+        print(
+            "Real accounts: R_real market = {r:.1%}; CV of r_real = {cv:.3f} "
+            "(2017 input deflator)".format(
+                r=real["R_real_market"], cv=real["r_real_weighted_cv_market"]
+            )
+        )
     long_run = report.get("gravitation", {}).get("long_run")
     if long_run:
         dev = long_run["deviation"]

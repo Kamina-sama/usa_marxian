@@ -122,6 +122,17 @@ def test_pp_formula_uses_selected_capital_proxy(industry_panel):
         )
 
 
+def test_real_accounts_use_input_deflator(industry_panel):
+    panel = industry_panel.copy()
+    panel["va_price"] = 100.0
+    panel["go_price"] = 100.0
+    panel["input_price"] = 100.0
+    enriched = add_industry_ratios(panel)
+    assert np.allclose(enriched["C_real"], enriched["C"])
+    assert np.allclose(enriched["K_real"], enriched["C"] + enriched["V"])
+    assert np.allclose(enriched["r_real"], enriched["S_real"] / enriched["K_real"])
+
+
 def test_long_run_pp_formula(industry_panel):
     enriched = add_industry_ratios(industry_panel)
     assert {"K_trend", "M_trend", "R_long", "PP_long"}.issubset(enriched.columns)

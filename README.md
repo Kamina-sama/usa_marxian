@@ -358,17 +358,29 @@ deflator. For industry accounts the project uses broad-sector chain-type price
 indexes from BEA's GDP-by-Industry release (via FRED):
 
 - value-added deflators for `N_i`, `V_i` and `S_i`;
-- gross-output deflators for `GO_i`.
+- gross-output deflators for `GO_i`;
+- a supplier-weighted intermediate-input deflator for `C_i`.
 
-This gives `N_real`, `V_real`, `S_real` and `GO_real` by industry. On
-2005-2023, real industry value added grew **1.80%/yr** and real gross output
-**1.67%/yr**.
+The intermediate-input deflator uses the 2017 Use table to weight each
+industry's input bundle, and proxies each commodity's price with the
+gross-output deflator of its broad sector. Real accounts are then:
 
-A real profit rate is deliberately not constructed: deflating `N` and `GO` by
-different indexes does not yield a valid real intermediate input residual, and
-the summary Use table has no intermediate-input deflator. The nominal
-prices-of-production comparison remains the correct one for the value-theory
-question.
+```
+C_real = C / (input_price / 100)
+K_real = C_real + V_real
+S_real = N_real - V_real
+r_real = S_real / K_real
+R_real = S_real / M_real
+```
+
+On 2005-2023, real industry value added grew **1.80%/yr** and real gross output
+**1.67%/yr**. The real market profit rate is **20.1%** in 2023, essentially the
+same as the nominal **20.2%**; real dispersion is higher (weighted CV **0.659**
+vs **0.609**).
+
+Caveats: the input weights are fixed at 2017, commodity prices are broad-sector
+proxies, and capital is deflated by the industry's own gross-output index. The
+nominal prices-of-production comparison remains the primary value-theory test.
 
 ## Predictive power and gravitation
 
@@ -502,9 +514,9 @@ output/            tables, figures, JSON reports (gitignored)
    detailed from BEA Table 1BUC, and government/housing capital is now actual.
    Still outstanding: detailed inventories for mining/utilities/construction and
    “other” industries (about 11% of inventory value).
-2. **Intermediate-input deflators.** Build a sector intermediate deflator so
-   real cost prices and real profit rates can be constructed without the
-   invalid `GO_real - N_real` residual.
+2. **Refine the intermediate-input deflator.** It now uses 2017 Use-table
+   weights and broad-sector supplier prices. Replace the broad-sector proxies
+   with commodity-level prices and chain the weights over time.
 3. **Unit prices and quantities.** Use the Make and Use tables to construct
    unit value prices and compare them with unit prices of production.
 4. **Input-output value magnitudes.** Compute direct and total labour

@@ -109,8 +109,11 @@ Useful members in the same archive if you want to extend the module:
 - detail-level Use and Make tables for 2017.
 
 The summary Use table provides intermediate consumption, compensation, taxes,
-gross operating surplus, value added and gross output. It does **not** provide
-industry capital stocks, consumption of fixed capital, or sector price indexes.
+gross operating surplus, value added and gross output. Its commodity-by-industry
+matrix is also used to build supplier-weighted intermediate-input deflators:
+2017 input shares applied to broad-sector gross-output price indexes. It does
+**not** provide industry capital stocks, consumption of fixed capital, or sector
+price indexes.
 
 ## Industry CFC and price indexes
 
