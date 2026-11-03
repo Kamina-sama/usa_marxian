@@ -12,7 +12,7 @@ from typing import Any
 import numpy as np
 import pandas as pd
 
-from .analysis.compare import run_shaikh_comparison
+from .analysis.compare import compare_benchmarks, run_shaikh_comparison
 from .analysis.descriptives import summary_table
 from .analysis.diagnostics import diagnostics_table
 from .analysis.gravitation import run_gravitation
@@ -34,6 +34,7 @@ from .data.bea_employment import (
 from .data.bea_inventory_detail import load_industry_inventories_detail
 from .data.bea_io import build_industry_panel, load_use_matrices
 from .data.build import build_accounts, build_raw_panel, validate_accounts
+from .data.census_ecn import load_regulating_data
 from .data.quality import write_quality
 from .data.sectors import (
     attach_input_deflator,
@@ -51,6 +52,7 @@ from .model.industries import (
     year_summary,
 )
 from .model.melt import MeltSummary, melt_summary
+from .model.regulating import build_regulating_benchmark
 from .model.robustness import run_specifications, specification_ranges
 from .model.state_space import build_state_space
 from .model.stock_flow import fit_stock_flow
@@ -529,6 +531,32 @@ def run_industries(
             )
             report["shaikh"] = shaikh.summary
             report["benchmark_comparison"] = shaikh.comparison.to_dict(orient="records")
+            if config.api.census_api_key:
+                try:
+                    regulating_data = load_regulating_data(
+                        config.settings.raw_dir,
+                        config.api.census_api_key,
+                        force=refresh,
+                    )
+                    if regulating_data is not None:
+                        unit_cost, concentration = regulating_data
+                        regulating = build_regulating_benchmark(
+                            shaikh.shaikh.panel,
+                            unit_cost,
+                            concentration,
+                            theta=0.5,
+                        )
+                        shaikh.shaikh.panel = regulating.panel
+                        shaikh.comparison = compare_benchmarks(regulating.panel)
+                        report["regulating"] = regulating.summary
+                        report["benchmark_comparison"] = shaikh.comparison.to_dict(
+                            orient="records"
+                        )
+                except Exception as exc:
+                    warnings.warn(
+                        f"Regulating-capital benchmark unavailable: {exc}",
+                        stacklevel=2,
+                    )
         except Exception as exc:
             warnings.warn(
                 f"Shaikh comparison unavailable: {exc}",

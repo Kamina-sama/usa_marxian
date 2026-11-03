@@ -14,6 +14,7 @@ BENCHMARK_LABELS = {
     "PP": "Moseley PP (stock capital)",
     "PP_Sraffa": "Sraffa prices of production (flow capital)",
     "PP_Shaikh": "Shaikh iterated prices (endogenous r)",
+    "PP_reg": "Regulating capital (low-cost firms)",
     "P_V": "Direct prices (labour values)",
 }
 
@@ -61,7 +62,7 @@ def compare_benchmarks(panel: pd.DataFrame) -> pd.DataFrame:
     frame = panel.loc[panel["is_market"]].copy() if "is_market" in panel.columns else panel
     common = [
         column
-        for column in ("PP_market", "PP_Sraffa", "PP_Shaikh", "P_V", "GO")
+        for column in ("PP_market", "PP_Sraffa", "PP_Shaikh", "PP_reg", "P_V", "GO")
         if column in frame.columns
     ]
     if common:
@@ -138,37 +139,51 @@ def run_shaikh_comparison(
         panel, use_matrices, accounts, base_year=base_year
     )
     comparison = compare_benchmarks(shaikh.panel)
-    common_columns = ["PP_market", "PP_Sraffa", "PP_Shaikh", "P_V", "GO"]
+    common_columns = [
+        column
+        for column in ("PP_market", "PP_Sraffa", "PP_Shaikh", "PP_reg", "P_V", "GO")
+        if column in shaikh.panel.columns
+    ]
     valid = shaikh.panel.dropna(subset=common_columns)
     common_years = sorted(valid["year"].astype(int).unique())
-    gravitation = pd.DataFrame(
-        [
+    gravitation_rows = [
+        _benchmark_gravitation(
+            shaikh.panel,
+            "PP_market",
+            "Moseley PP (stock capital)",
+            years=common_years,
+        ),
+        _benchmark_gravitation(
+            shaikh.panel,
+            "PP_Sraffa",
+            "Sraffa prices of production (flow capital)",
+            years=common_years,
+        ),
+        _benchmark_gravitation(
+            shaikh.panel,
+            "PP_Shaikh",
+            "Shaikh iterated prices (endogenous r)",
+            years=common_years,
+        ),
+    ]
+    if "PP_reg" in shaikh.panel.columns:
+        gravitation_rows.append(
             _benchmark_gravitation(
                 shaikh.panel,
-                "PP_market",
-                "Moseley PP (stock capital)",
+                "PP_reg",
+                "Regulating capital (low-cost firms)",
                 years=common_years,
-            ),
-            _benchmark_gravitation(
-                shaikh.panel,
-                "PP_Sraffa",
-                "Sraffa prices of production (flow capital)",
-                years=common_years,
-            ),
-            _benchmark_gravitation(
-                shaikh.panel,
-                "PP_Shaikh",
-                "Shaikh iterated prices (endogenous r)",
-                years=common_years,
-            ),
-            _benchmark_gravitation(
-                shaikh.panel,
-                "P_V",
-                "Direct prices (labour values)",
-                years=common_years,
-            ),
-        ]
+            )
+        )
+    gravitation_rows.append(
+        _benchmark_gravitation(
+            shaikh.panel,
+            "P_V",
+            "Direct prices (labour values)",
+            years=common_years,
+        )
     )
+    gravitation = pd.DataFrame(gravitation_rows)
 
     latest_year = int(shaikh.panel["year"].max())
     latest_frame = shaikh.panel.loc[

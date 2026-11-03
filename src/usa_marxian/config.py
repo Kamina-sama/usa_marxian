@@ -90,6 +90,7 @@ class APIConfig(BaseModel):
     fred_api_key: str | None = None
     bea_api_key: str | None = None
     bls_api_key: str | None = None
+    census_api_key: str | None = None
 
     @classmethod
     def from_env(cls) -> APIConfig:
@@ -100,6 +101,7 @@ class APIConfig(BaseModel):
             fred_api_key=os.getenv("FRED_API_KEY") or None,
             bea_api_key=os.getenv("BEA_API_KEY") or None,
             bls_api_key=os.getenv("BLS_API_KEY") or None,
+            census_api_key=os.getenv("CENSUS_API_KEY") or None,
         )
 
 

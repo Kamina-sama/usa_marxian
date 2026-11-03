@@ -510,6 +510,12 @@ There is no single winner. **Moseley fits typical industry errors and forecasts
 better.** **Sraffa calibrates the aggregate level better.** **Shaikh's iteration
 converges to Sraffa.** All three fail the random-walk forecast benchmark.
 
+A regulating-capital benchmark `PP_reg` is available when a `CENSUS_API_KEY` is
+set. It scales the Sraffa price by `1 - theta * (1 - concentration)` so that
+less-concentrated industries (more dispersed costs) have a lower regulating
+cost, then normalises to total gross output. Without firm-level data it is a
+documented proxy, not plant-level regulating capitals.
+
 See `docs/sraffa.md` and `docs/shaikh.md`.
 
 ## State space for real competition

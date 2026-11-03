@@ -253,6 +253,20 @@ On the current vintage total inventories are 3,805 bn in 2023, matching the
 macro inventory stock. Detailed manufacturing/retail data cover 54.5% of the
 total; the remaining 45.5% is broad-group allocation.
 
+## Census Economic Census (regulating capitals, optional key)
+
+The regulating-capital benchmark uses two Census Economic Census tables. Both
+require a free Census API key (`CENSUS_API_KEY` in `.env`):
+
+- `https://api.census.gov/data/2017/ecnbasic` — receipts, payroll and cost of
+  materials by NAICS (unit cost).
+- `https://api.census.gov/data/2012/ecnsize` — concentration (HHI, top-firm
+  shares).
+
+NAICS codes are mapped to the 71 IO industries via `config/census_mapping.yaml`
+using longest-prefix matching. Without a key the module returns `None` and the
+regulating benchmark is skipped.
+
 ## World Bank (not used by default)
 
 Keyless JSON API, useful for long-run cross-country comparisons:

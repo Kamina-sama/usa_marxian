@@ -21,6 +21,24 @@ starting from labour values and using the deflated annual `A_t`. It converges in
   MAE **17.2%**, correlation **0.973**. Iteration adds convergence diagnostics
   and an implied rate, not a different price center.
 
+## Regulating capitals (partial, key-gated)
+
+Shaikh's prices are set by the lowest-cost "regulating" capitals, not the
+average firm. Firm-level cost data are not keyless, so the project uses two
+Census proxies (requires a free `CENSUS_API_KEY`):
+
+- `unit_cost_i = (payroll + materials) / receipts` — Economic Census basic data;
+- `concentration_i` — the top firms' share of receipts.
+
+```
+cost_dispersion_i = 1 - concentration_i
+PP_reg_i = PP_Sraffa_i * (1 - theta * cost_dispersion_i)
+```
+
+with `theta` a calibration parameter and the benchmark normalised to total gross
+output. Industries without Census coverage fall back to the Sraffa price. This
+is a proxy, not plant-level regulating capitals.
+
 ## Cross-dual gravitation
 
 A minimal price/output adjustment:
