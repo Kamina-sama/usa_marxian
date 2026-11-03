@@ -667,7 +667,7 @@ output/            tables, figures, JSON reports (gitignored)
   Shaikh endogenous-`r` iteration and a toy cross-dual simulation.
 - **State space** — `p, q, k, I, u, w, l, A_t`, with FTE/BLS industry hours and
   industry wage rates, feeding a first stock-flow cross-dual model.
-- **Regulating capitals** — a concentration-based `PP_reg` proxy (Census, key-gated).
+- **Regulating capitals** — a sub-industry cost-dispersion `PP_reg` proxy (Census, key-gated).
 
 ### Remaining, in rough priority order
 
