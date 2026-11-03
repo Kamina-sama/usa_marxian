@@ -31,6 +31,11 @@ from ..config import PROJECT_ROOT
 
 FA_DETAIL_URL = "https://apps.bea.gov/national/FA2004/Details/xls/detailnonres_stk1.xlsx"
 FA_DETAIL_FILENAME = "detailnonres_stk1.xlsx"
+GOV_FA_URL = "https://apps.bea.gov/national/FixedAssets/Release/XLS/Section7All_xls.xlsx"
+GOV_FA_FILENAME = "Section7All_xls.xlsx"
+RES_FA_URL = "https://apps.bea.gov/national/FixedAssets/Release/XLS/Section5All_xls.xlsx"
+RES_FA_FILENAME = "FixedAssets_Section5All_xls.xlsx"
+SPECIAL_CAPITAL_CODES = {"HS", "GFE", "GFGD", "GFGN", "GSLE", "GSLG"}
 CAPITAL_CONFIG_PATH = PROJECT_ROOT / "config" / "industry_capital.yaml"
 DEFAULT_HEADERS = {"User-Agent": "usa-marxian/0.1 (research project)"}
 
@@ -200,11 +205,161 @@ def load_industry_capital(
     return capital
 
 
+def download_fixed_assets_section(
+    raw_dir: Path,
+    url: str,
+    filename: str,
+    *,
+    max_age_days: int = 365,
+    force: bool = False,
+    timeout: float = 120.0,
+) -> Path:
+    """Download a BEA Fixed Assets section workbook."""
+    path = raw_dir / "bea" / filename
+    path.parent.mkdir(parents=True, exist_ok=True)
+    if path.exists() and not force:
+        age_days = (datetime.now().timestamp() - path.stat().st_mtime) / 86_400
+        if age_days < max_age_days:
+            return path
+
+    response = requests.get(url, headers=DEFAULT_HEADERS, timeout=timeout)
+    response.raise_for_status()
+    if not response.content.startswith(b"PK"):
+        raise BEAAssetsError(f"BEA fixed-assets download did not return xlsx: {url}")
+    tmp = path.with_suffix(".xlsx.tmp")
+    tmp.write_bytes(response.content)
+    tmp.replace(path)
+    return path
+
+
+def parse_fixed_assets_table(
+    path: Path,
+    sheet_name: str,
+    labels: set[str],
+) -> pd.DataFrame:
+    """Parse selected labels from a BEA Fixed Assets annual table.
+
+    The first occurrence of each label is used; some tables repeat
+    "National defense" and "Nondefense" in a nonresidential addendum.
+    """
+    workbook = openpyxl.load_workbook(path, read_only=True, data_only=True)
+    try:
+        sheet = workbook[sheet_name]
+        rows = list(sheet.iter_rows(min_row=8, max_row=sheet.max_row, values_only=True))
+    finally:
+        workbook.close()
+    if not rows:
+        raise BEAAssetsError(f"{sheet_name}: empty fixed-assets table")
+
+    header = rows[0]
+    year_columns = {}
+    for index, value in enumerate(header):
+        if isinstance(value, (int, float)):
+            year_columns[int(value)] = index
+        elif isinstance(value, str) and value.strip().isdigit():
+            year_columns[int(value.strip())] = index
+    if not year_columns:
+        raise BEAAssetsError(f"{sheet_name}: no year columns")
+
+    found: dict[str, dict[int, float]] = {}
+    for row in rows[1:]:
+        if not row or len(row) <= 1 or row[1] is None:
+            continue
+        label = " ".join(str(row[1]).split())
+        if label not in labels or label in found:
+            continue
+        found[label] = {
+            year: _num(row[index])
+            for year, index in year_columns.items()
+            if index < len(row)
+        }
+
+    missing = labels.difference(found)
+    if missing:
+        raise BEAAssetsError(f"{sheet_name}: missing labels {sorted(missing)}")
+
+    records = []
+    for label, values in found.items():
+        for year, value in values.items():
+            records.append({"year": year, "label": label, "value": value})
+    return pd.DataFrame(records)
+
+
+def load_government_housing_capital(
+    raw_dir: Path,
+    *,
+    max_age_days: int = 365,
+    force: bool = False,
+    years: range = range(1997, 2026),
+) -> pd.DataFrame:
+    """Actual fixed-asset stocks for government units and owner-occupied housing.
+
+    Returns ``year, industry_code, M, capital_source`` in millions.
+    Federal fixed assets equal defense plus nondefense, so federal government
+    enterprises are zero in this source. All government enterprise fixed assets
+    are therefore state and local.
+    """
+    gov_path = download_fixed_assets_section(
+        raw_dir, GOV_FA_URL, GOV_FA_FILENAME, max_age_days=max_age_days, force=force
+    )
+    res_path = download_fixed_assets_section(
+        raw_dir, RES_FA_URL, RES_FA_FILENAME, max_age_days=max_age_days, force=force
+    )
+
+    gov = parse_fixed_assets_table(
+        gov_path,
+        "FAAt701-A",
+        {
+            "National defense",
+            "Nondefense",
+            "General government fixed assets",
+            "Government enterprise fixed assets",
+        },
+    ).pivot(index="year", columns="label", values="value")
+    res = parse_fixed_assets_table(
+        res_path,
+        "FAAt501-A",
+        {"Owner-occupied"},
+    ).pivot(index="year", columns="label", values="value")
+
+    frame = gov.join(res, how="inner")
+    frame = frame.loc[frame.index.isin(list(years))].sort_index()
+
+    general = frame["General government fixed assets"]
+    defense = frame["National defense"]
+    nondefense = frame["Nondefense"]
+    enterprise = frame["Government enterprise fixed assets"]
+    state_local_general = general - defense - nondefense
+    if (state_local_general < 0).any():
+        raise BEAAssetsError("Negative state/local general government capital")
+
+    special = pd.DataFrame(
+        {
+            "HS": frame["Owner-occupied"],
+            "GFGD": defense,
+            "GFGN": nondefense,
+            "GFE": 0.0,
+            "GSLE": enterprise,
+            "GSLG": state_local_general,
+        }
+    )
+    special = special.reset_index().melt(
+        id_vars="year", var_name="industry_code", value_name="M"
+    )
+    special["capital_source"] = np.where(
+        special["industry_code"] == "HS",
+        "residential_fixed_assets",
+        "government_fixed_assets",
+    )
+    return special.loc[:, ["year", "industry_code", "M", "capital_source"]]
+
+
 def attach_capital_stock(
     panel: pd.DataFrame,
     capital: pd.DataFrame,
     *,
     inventories: pd.DataFrame | None = None,
+    special: pd.DataFrame | None = None,
     fallback: str = "cost",
 ) -> pd.DataFrame:
     """Merge actual fixed-asset and inventory stocks into the industry panel.
@@ -223,6 +378,18 @@ def attach_capital_stock(
         on=["year", "industry_code"],
         how="left",
     )
+    if special is not None:
+        out = out.merge(
+            special.loc[:, ["year", "industry_code", "M", "capital_source"]].rename(
+                columns={"M": "M_special", "capital_source": "special_source"}
+            ),
+            on=["year", "industry_code"],
+            how="left",
+        )
+    else:
+        out["M_special"] = np.nan
+        out["special_source"] = None
+
     if inventories is not None:
         inventory_columns = ["year", "industry_code", "M_inv", "inventory_category"]
         if "inventory_source" in inventories.columns:
@@ -240,7 +407,8 @@ def attach_capital_stock(
         out["inventory_source"] = None
 
     out["M_inv"] = out["M_inv"].fillna(0.0)
-    out["M_assets"] = out["M_assets"].where(out["M_assets"] > 0)
+    out["M_assets"] = out["M_assets"].where(out["M_assets"].notna())
+    out["M_assets"] = out["M_assets"].fillna(out["M_special"])
     actual = out["M_assets"].notna()
 
     if fallback == "cost":
@@ -258,10 +426,13 @@ def attach_capital_stock(
     else:
         raise ValueError(f"Unknown capital fallback: {fallback}")
 
-    out["capital_source"] = np.where(
+    base_source = np.where(
         actual & (out["M_inv"] > 0),
         "fixed_assets+inventories",
         np.where(actual, "fixed_assets", f"{fallback}_proxy"),
+    )
+    out["capital_source"] = out["special_source"].where(
+        out["special_source"].notna(), base_source
     )
 
     return out
@@ -277,28 +448,40 @@ def capital_coverage(
     ``M_fixed_only`` (fixed assets) and ``M`` (fixed assets plus inventories),
     both in billions.
     """
+    data = panel.copy()
+    data["is_special"] = data["industry_code"].astype(str).isin(SPECIAL_CAPITAL_CODES)
+    data["M_assets_private"] = data["M_assets"].where(~data["is_special"], 0.0)
+    data["M_assets_special"] = data["M_assets"].where(data["is_special"], 0.0)
+
     grouped = (
-        panel.groupby("year")
+        data.groupby("year")
         .agg(
             n_industries=("industry_code", "nunique"),
             n_actual=(
                 "capital_source",
-                lambda s: int(s.astype(str).str.startswith("fixed_assets").sum()),
+                lambda s: int((s.astype(str) != "cost_proxy").sum()),
             ),
             n_proxy=(
                 "capital_source",
-                lambda s: int((~s.astype(str).str.startswith("fixed_assets")).sum()),
+                lambda s: int((s.astype(str) == "cost_proxy").sum()),
             ),
             total_M_assets_mn=("M_assets", "sum"),
+            private_M_assets_mn=("M_assets_private", "sum"),
+            special_M_assets_mn=("M_assets_special", "sum"),
             total_M_inv_mn=("M_inv", "sum"),
             total_M_used_mn=("M", "sum"),
         )
         .reset_index()
     )
     grouped["total_M_assets_bn"] = grouped["total_M_assets_mn"] / 1000.0
+    grouped["private_M_assets_bn"] = grouped["private_M_assets_mn"] / 1000.0
+    grouped["special_M_assets_bn"] = grouped["special_M_assets_mn"] / 1000.0
     grouped["total_M_inv_bn"] = grouped["total_M_inv_mn"] / 1000.0
     grouped["total_M_actual_bn"] = (
         grouped["total_M_assets_bn"] + grouped["total_M_inv_bn"]
+    )
+    grouped["private_M_actual_bn"] = (
+        grouped["private_M_assets_bn"] + grouped["total_M_inv_bn"]
     )
 
     if macro is not None and {"M_fixed_only", "M"}.issubset(macro.columns):
@@ -309,12 +492,12 @@ def capital_coverage(
         grouped["macro_inv_bn"] = macro_inventory
         grouped["macro_M_bn"] = macro_total
         grouped["gap_fixed_pct"] = 100.0 * (
-            grouped["total_M_assets_bn"] / grouped["macro_fixed_bn"] - 1.0
+            grouped["private_M_assets_bn"] / grouped["macro_fixed_bn"] - 1.0
         )
         grouped["gap_inv_pct"] = 100.0 * (
             grouped["total_M_inv_bn"] / grouped["macro_inv_bn"] - 1.0
         )
         grouped["gap_total_pct"] = 100.0 * (
-            grouped["total_M_actual_bn"] / grouped["macro_M_bn"] - 1.0
+            grouped["private_M_actual_bn"] / grouped["macro_M_bn"] - 1.0
         )
     return grouped

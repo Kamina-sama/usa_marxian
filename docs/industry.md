@@ -83,23 +83,23 @@ Moseley's general formula is:
 PP_i = K_i + R M_i,        R = sum(S_i) / sum(M_i)
 ```
 
-`M_i` combines two BEA sources:
+`M_i` combines three BEA sources:
 
 - current-cost net stock of private nonresidential **fixed assets**, mapped from
-  74 detailed industries to 65 of the 71 IO industries;
+  74 detailed industries to 65 IO industries;
+- **government and housing capital** from BEA Fixed Assets Sections 7 and 5:
+  federal defense/nondefense, state/local general government, state/local
+  government enterprises, and owner-occupied residential stock;
 - year-end private **inventory stocks**: manufacturing and retail from BEA
   Table 1BUC at detailed NAICS level (23 IO industries, 54.5% of inventory
   value); farm, mining/utilities/construction, wholesale and “other” from NIPA
   Table 5.8.5B, allocated within the broad group by gross output.
 
-Government units and housing have no private nonresidential stock and fall back
-to `K_i`, flagged as `cost_proxy`.
-
-Coverage in 2023: 65 of 71 industries actual. Fixed assets 34,948 bn vs macro
-34,771 bn (+0.51%); inventories 3,805 bn vs macro 3,805 bn (0.0%); combined
-38,753 bn vs 38,576 bn (+0.46%). The inventory totals are official.
-Manufacturing and retail are detailed; only the remaining broad groups use a
-within-sector allocation.
+Coverage in 2023: **all 71 industries use actual capital**, with no cost proxy.
+Private nonresidential fixed assets are 34,948 bn vs macro 34,771 bn (+0.51%);
+government and housing add 47,797 bn; inventories are 3,805 bn and match the
+macro stock. Total capital assets are 82,746 bn. The market sample excludes
+government and housing and is the headline comparison.
 
 Older proxies remain available for sensitivity:
 
@@ -140,24 +140,26 @@ market-industry subset, which is the headline sample.
 
 ## Results, 1998-2023, net basis
 
-- Market general rate of profit `R = S/M`: 20.2% in 2023; full sample 20.7%.
+- Market general rate of profit `R = S/M`: 20.2% in 2023; full sample 10.3%.
 - Market surplus-value rate on cost `S/K`: 23.8%.
 - Market weighted CV of `r_i`: 0.609 in 2023 (sample mean 0.703); p90/p10 6.10.
 - Full-sample CV: 2.109 in 2023 (sample mean 2.296), dominated by housing and
   government.
-- MAE of `PP` vs gross output: 16.5% full, 13.7% market-only.
-- MAE of the long-run `PP*`: 17.5% full, 16.2% market-only.
+- MAE of `PP` vs gross output: 12.6% full, 13.7% market-only.
+- MAE of the long-run `PP*`: 16.8% full, 15.8% market-only.
 - MAE of `PP_V` vs gross output: 53.1%.
-- Correlation of `PP` with gross output: 0.888 full, 0.983 market-only.
-- Share within 25% of `PP`: 83.2% full, 88.8% market-only.
-- Proxy sensitivity, full-sample MAE: fixed assets + inventories 16.5%, cost
+- Correlation of `PP` with gross output: 0.941 full, 0.983 market-only.
+- Share within 25% of `PP`: 86.9% full, 88.8% market-only.
+- Proxy sensitivity, full-sample MAE: fixed assets + inventories 12.6%, cost
   13.3%, output 11.0%, value-added 9.0%. Market-only MAE: 13.7%, 10.5%, 8.7%,
   7.1%.
 - Sector-deflated real growth, 2005-2023: value added 1.80%/yr, gross output
   1.67%/yr.
 
-Interpretation: actual capital stocks fit **worse on average error** than the
-cost proxy, though the market cross-sectional correlation is high (0.983). That
+Interpretation: in the market sample, actual capital stocks still fit **worse on
+average error** than the cost proxy, though the cross-sectional correlation is
+high (0.983). The full-sample numbers move because government and housing
+capital are now actual and very large relative to their surplus-value. That
 is informative: with `M_i = K_i`, `PP_i` is mechanically close to `GO_i`, so the
 old fit was partly built in. Actual capital stocks expose the profit-rate
 dispersion, especially regulated utilities and capital-intensive industries.
@@ -174,10 +176,10 @@ centers of gravitation for market gross output. That analysis has its own
 document: `docs/gravitation.md`.
 
 Short version: on the 65 market industries, deviations have a mean absolute
-value of 12.9% and a half-life of about 2.3 years. The error-correction evidence
-supports slow, two-way gravitation: market output adjusts toward PP (β=-0.166,
-p=0.012) and PP also adjusts toward market output (β=+0.097, p=0.046). A
-five-year trailing long-run centre shows stronger mean reversion (β=-0.135,
+value of 12.4% and a half-life of about 2.2 years. The error-correction evidence
+supports slow, two-way gravitation: market output adjusts toward PP (β=-0.163,
+p=0.015) and PP also adjusts toward market output (β=+0.105, p=0.035). A
+five-year trailing long-run centre shows stronger mean reversion (β=-0.134,
 p=0.001) and a 1.8-year half-life. Neither benchmark beats a random walk in
 out-of-sample forecasts.
 

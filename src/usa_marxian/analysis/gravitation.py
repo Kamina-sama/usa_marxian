@@ -74,22 +74,33 @@ def prepare_gravitation_panel(
     capital_proxy: CapitalProxy = "fixed_assets",
     surplus: SurplusBasis = "auto",
     market_only: bool = True,
+    price_column: str = "auto",
 ) -> pd.DataFrame:
     """Build the industry deviation panel used by all tests.
 
     Government units and housing are excluded by default: their "prices" are
     not market prices, and their capital stocks fall back to the cost proxy.
+    For the market sample the market-specific price benchmark is used so that
+    government/housing capital does not contaminate the general profit rate.
     """
     frame = add_industry_ratios(panel, capital_proxy=capital_proxy, surplus=surplus)
     if market_only and "is_market" in frame.columns:
         frame = frame.loc[frame["is_market"]].copy()
-    frame = frame.loc[(frame["GO"] > 0) & (frame["PP"] > 0)].copy()
+
+    if price_column == "auto":
+        price_column = (
+            "PP_market" if market_only and "PP_market" in frame.columns else "PP"
+        )
+    long_column = "PP_long_market" if price_column == "PP_market" else "PP_long"
+
+    frame = frame.loc[(frame["GO"] > 0) & (frame[price_column] > 0)].copy()
     frame = frame.sort_values(["industry_code", "year"])
 
-    frame["d"] = np.log(frame["GO"] / frame["PP"])
+    frame["PP_benchmark"] = frame[price_column]
+    frame["d"] = np.log(frame["GO"] / frame[price_column])
     frame["profit_gap"] = frame["r"] - frame["R_benchmark"]
     frame["log_GO"] = np.log(frame["GO"])
-    frame["log_PP"] = np.log(frame["PP"])
+    frame["log_PP"] = np.log(frame[price_column])
 
     grouped = frame.groupby("industry_code", group_keys=False)
     frame["d_lag"] = grouped["d"].shift(1)
@@ -99,9 +110,12 @@ def prepare_gravitation_panel(
     frame["delta_log_PP"] = grouped["log_PP"].diff()
     frame["delta_d"] = grouped["d"].diff()
 
-    if "PP_long" in frame.columns:
-        frame["log_PP_long"] = np.log(frame["PP_long"].where(frame["PP_long"] > 0))
-        frame["d_long"] = np.log(frame["GO"] / frame["PP_long"].where(frame["PP_long"] > 0))
+    if long_column in frame.columns:
+        frame["PP_long_benchmark"] = frame[long_column]
+        frame["log_PP_long"] = np.log(frame[long_column].where(frame[long_column] > 0))
+        frame["d_long"] = np.log(
+            frame["GO"] / frame[long_column].where(frame[long_column] > 0)
+        )
         grouped = frame.groupby("industry_code", group_keys=False)
         frame["d_long_lag"] = grouped["d_long"].shift(1)
         frame["delta_log_PP_long"] = grouped["log_PP_long"].diff()
@@ -594,7 +608,7 @@ def run_gravitation(
 
     current = _run_benchmark(
         frame,
-        pp="PP",
+        pp="PP_benchmark",
         d="d",
         d_lag="d_lag",
         log_pp="log_PP",
@@ -605,10 +619,10 @@ def run_gravitation(
     )
 
     long_run = None
-    if "PP_long" in frame.columns:
+    if "PP_long_benchmark" in frame.columns:
         long_run = _run_benchmark(
             frame,
-            pp="PP_long",
+            pp="PP_long_benchmark",
             d="d_long",
             d_lag="d_long_lag",
             log_pp="log_PP_long",

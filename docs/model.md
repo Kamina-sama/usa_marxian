@@ -284,12 +284,14 @@ PP_i = K_i + R M_i,        R = sum(S_i) / sum(M_i)
 PP_V_i = V_i (1 + sum(S) / sum(V))
 ```
 
-`M_i` is the actual BEA fixed-asset stock plus private inventory stock. Fixed
-assets come from the 74 detailed industries, mapped to 65 of the 71 IO
-industries. Manufacturing and retail inventories come from BEA Table 1BUC at
-detailed NAICS level; farm, mining/utilities/construction, wholesale and
-“other” come from Table 5.8.5B and are allocated within the broad group.
-Government units and housing fall back to `K_i` and are flagged.
+`M_i` is the actual BEA fixed-asset stock plus private inventory stock. Private
+nonresidential fixed assets come from the 74 detailed industries, mapped to 65
+IO industries. Government/housing capital comes from Fixed Assets Sections 7
+and 5: federal defense/nondefense, state/local general government, state/local
+government enterprises, and owner-occupied residential stock. Manufacturing and
+retail inventories come from BEA Table 1BUC at detailed NAICS level; farm,
+mining/utilities/construction, wholesale and “other” come from Table 5.8.5B and
+are allocated within the broad group.
 
 Older proxies remain available for sensitivity: `cost` (`M_i = K_i`), `output`
 (`M_i = GO_i`), and `value_added` (`M_i = N_i`). The old `K_i(1+R)` expression is
@@ -342,8 +344,7 @@ Reconciliation for 2023:
 
 What is still approximate: the within-sector CFC allocation, the broad
 inventory allocation for mining/utilities/construction and “other” industries,
-the cost-proxy fallback for government and housing, and the absence of an
-intermediate-input deflator.
+and the absence of an intermediate-input deflator.
 
 ## 10. Predictive and gravitation tests
 
@@ -363,14 +364,14 @@ should be temporary, and market gross output should adjust toward `PP` when
 
 and with expanding-window out-of-sample forecasts of `GO` at 1, 3 and 5 years.
 The results are in `docs/gravitation.md`. With actual capital stocks the gap
-closes through both channels: `β_GO = -0.166` (p=0.012) and `β_PP = +0.097`
-(p=0.046). A slow-moving long-run centre is also tested:
+closes through both channels: `β_GO = -0.163` (p=0.015) and `β_PP = +0.105`
+(p=0.035). A slow-moving long-run centre is also tested:
 
 ```
 PP*_it = K_trend_it + R_long_t * M_trend_it
 ```
 
 using five-year trailing averages. It shows stronger mean reversion
-(`β_GO = -0.135`, p=0.001) and a 1.8-year half-life. Neither benchmark beats a
+(`β_GO = -0.134`, p=0.001) and a 1.8-year half-life. Neither benchmark beats a
 naive random-walk forecast, so the evidence is best described as slow gravitation
 without predictive power.

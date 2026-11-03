@@ -14,8 +14,8 @@ time. If prices of production are centers of gravitation, then:
    naive "same as last year" forecast.
 
 The tests below check each claim separately. Government units and housing are
-excluded: their "prices" are not market prices, and their capital stocks fall
-back to the cost proxy.
+excluded: their "prices" are not market prices, even though their capital stocks
+are now actual.
 
 ## What is compared
 
@@ -44,12 +44,12 @@ production.
 
 Sample: 65 market industries, 1998-2023, 1,690 observations.
 
-- Mean absolute deviation: **12.9%** (gross-output weighted: **11.6%**).
-- Median absolute deviation: **9.1%**.
-- 54.8% of observations are within ±10%; **88.9%** are within ±25%.
-- Lag-1 autocorrelation: **0.973**.
-- AR(1) persistence coefficient (industry and year effects): **0.736**;
-  implied half-life of a deviation: **2.3 years**.
+- Mean absolute deviation: **12.4%** (gross-output weighted: **11.4%**).
+- Median absolute deviation: **8.6%**.
+- 57.5% of observations are within ±10%; **89.7%** are within ±25%.
+- Lag-1 autocorrelation: **0.972**.
+- AR(1) persistence coefficient (industry and year effects): **0.732**;
+  implied half-life of a deviation: **2.2 years**.
 - The mean absolute deviation has a tiny positive trend (+0.06 percentage
   points per year, p=0.087), not statistically distinguishable from zero.
 
@@ -78,12 +78,12 @@ clustered by industry:
 
 Results:
 
-- `β_GO = -0.166` (s.e. 0.066, p=0.012). The sign is the one gravitation
+- `β_GO = -0.163` (s.e. 0.066, p=0.015). The sign is the one gravitation
   predicts: when market output is above PP, future market output grows more
-  slowly. The implied half-life of the output response is **3.8 years**.
-- `β_PP = +0.097` (s.e. 0.049, p=0.046). PP also rises toward market output.
-- The gap itself closes: `Δd` on `d_lag` gives `β = -0.264` (p<0.001),
-  half-life **2.3 years**.
+  slowly. The implied half-life of the output response is **3.9 years**.
+- `β_PP = +0.105` (s.e. 0.050, p=0.035). PP also rises toward market output.
+- The gap itself closes: `Δd` on `d_lag` gives `β = -0.268` (p<0.001),
+  half-life **2.2 years**.
 
 **Reading:** the adjustment is two-way. Market output does move toward PP, which
 the old `M_i = K_i` proxy did not deliver. PP also moves toward market output,
@@ -104,12 +104,12 @@ PP*_it = K_trend_it + R_long_t * M_trend_it
 `K_trend` and `M_trend` are five-year trailing averages by industry; `R_long` is
 the five-year trailing average general rate of profit. Results:
 
-- Mean absolute deviation: **15.4%** (weighted 16.4%); 81.7% within ±25%.
-- Autocorrelation: **0.905**; half-life **1.8 years**.
-- 54% of industries reject a unit root individually; Fisher p<0.001.
-- Output adjustment: `β = -0.135` (p=0.001).
-- PP adjustment: `β = +0.179` (p<0.001).
-- Forecast log RMSE, 1/3/5 years: PP **0.240 / 0.288 / 0.347** vs naive
+- Mean absolute deviation: **15.2%** (weighted 16.6%); 81.5% within ±25%.
+- Autocorrelation: **0.901**; half-life **1.8 years**.
+- 52% of industries reject a unit root individually; Fisher p<0.001.
+- Output adjustment: `β = -0.134` (p=0.001).
+- PP adjustment: `β = +0.181` (p<0.001).
+- Forecast log RMSE, 1/3/5 years: PP **0.238 / 0.289 / 0.349** vs naive
   **0.120 / 0.202 / 0.258**.
 
 **Reading:** the long-run centre is farther away, so deviations are larger, but
@@ -130,15 +130,15 @@ Pooled log RMSE (lower is better):
 
 | Horizon | naive | pp | ar1 | ecm |
 |---|---|---|---|---|
-| 1 year | 0.120 | 0.218 | 0.120 | 0.120 |
+| 1 year | 0.120 | 0.213 | 0.120 | 0.120 |
 | 3 years | 0.202 | 0.256 | 0.174 | 0.172 |
-| 5 years | 0.258 | 0.303 | 0.199 | 0.198 |
+| 5 years | 0.258 | 0.304 | 0.199 | 0.199 |
 
 - PP is **worse than the naive forecast at every horizon**. The RMSE difference
-  is +0.099 at one year, +0.054 at three years and +0.045 at five years; the
+  is +0.093 at one year, +0.053 at three years and +0.046 at five years; the
   bootstrap confidence intervals exclude zero.
 - The ECM is marginally better than AR(1) at three years (RMSE difference
-  -0.0021, confidence interval excludes zero), but the gain is economically
+  -0.0012, confidence interval excludes zero), but the gain is economically
   negligible. At one year it is indistinguishable from AR(1); at five years the
   difference is also tiny.
 
@@ -152,10 +152,10 @@ In this 65-industry, 1998-2023 annual panel, with actual fixed-asset stocks:
 
 - prices of production are a **moderate contemporaneous benchmark**, not a tight
   fit;
-- deviations are persistent, with a half-life of about 2.3 years;
+- deviations are persistent, with a half-life of about 2.2 years;
 - the error-correction evidence supports **slow, two-way gravitation**: market
   output adjusts toward PP, and PP also adjusts toward market output;
-- the **long-run centre** shows stronger mean reversion (`β_GO = -0.135`,
+- the **long-run centre** shows stronger mean reversion (`β_GO = -0.134`,
   p=0.001) and a shorter half-life of 1.8 years;
 - PP **does not beat a random walk** in out-of-sample forecasts, for either the
   current or long-run benchmark.
@@ -169,8 +169,9 @@ industries, annual data, and the short sample.
 
 ## What changed when actual capital stocks replaced `M_i = K_i`
 
-The price fit got **worse on average error**, from 13.3% to 16.5% full-sample
-MAE. That is informative. With `M_i = K_i`, `PP_i` is mechanically close to
+The market price fit is **13.7% MAE** for current PP and **15.8%** for long-run
+PP; the full-sample figures are not comparable because government and housing
+capital are now actual and very large. That is informative. With `M_i = K_i`, `PP_i` is mechanically close to
 `GO_i`, so the old fit was partly built in. Actual capital stocks expose the
 profit-rate dispersion, especially in regulated utilities and capital-intensive
 industries. The error-correction result also changed: the coefficient on market
@@ -181,16 +182,13 @@ output became negative and significant, which the cost proxy did not produce.
 1. **Detailed inventories for the remaining groups.** Replace the broad
    allocation for mining/utilities/construction and “other” industries with
    detailed inventory data.
-2. **Actual government and housing capital.** Remove the cost-proxy fallback for
-   those six industries, or keep them out of the market sample as now.
-3. **Unit prices and quantities.** Compare prices per unit of output rather than
+2. **Unit prices and quantities.** Compare prices per unit of output rather than
    gross revenue values. This requires industry quantity and price indexes.
-4. **Longer and higher-frequency data.** Annual data give only 26 observations
+3. **Longer and higher-frequency data.** Annual data give only 26 observations
    per industry; quarterly data and a longer sample would give the panel tests
    more power.
-5. **A long-run PP benchmark.** Use a fixed capital stock and a long-run average
-   profit rate rather than current-year K and R, so PP is not mechanically
-   tied to current GO.
+4. **Industry-level CFC.** Replace the broad-sector CFC allocation with detailed
+   industry data where available.
 
 ## Reproduce
 

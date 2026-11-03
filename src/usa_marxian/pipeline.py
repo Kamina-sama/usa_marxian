@@ -18,7 +18,12 @@ from .analysis.gravitation import run_gravitation
 from .analysis.ltv import LTVResult, estimate_ltv
 from .analysis.profit_check import property_income_check, property_income_summary
 from .config import ProjectConfig
-from .data.bea_assets import attach_capital_stock, capital_coverage, load_industry_capital
+from .data.bea_assets import (
+    attach_capital_stock,
+    capital_coverage,
+    load_government_housing_capital,
+    load_industry_capital,
+)
 from .data.bea_inventory_detail import load_industry_inventories_detail
 from .data.bea_io import build_industry_panel
 from .data.build import build_accounts, build_raw_panel, validate_accounts
@@ -292,6 +297,11 @@ def run_industries(
         max_age_days=max(365, config.settings.cache_max_age_days),
         force=refresh,
     )
+    special_capital = load_government_housing_capital(
+        config.settings.raw_dir,
+        max_age_days=max(365, config.settings.cache_max_age_days),
+        force=refresh,
+    )
     inventories = load_industry_inventories_detail(
         config.settings.raw_dir,
         panel,
@@ -299,7 +309,11 @@ def run_industries(
         force=refresh,
     )
     panel = attach_capital_stock(
-        panel, capital, inventories=inventories, fallback="cost"
+        panel,
+        capital,
+        inventories=inventories,
+        special=special_capital,
+        fallback="cost",
     )
     capital_table = panel.loc[
         :,
@@ -342,6 +356,8 @@ def run_industries(
             "n_actual": int(latest_coverage["n_actual"]),
             "n_proxy": int(latest_coverage["n_proxy"]),
             "total_M_assets_bn": float(latest_coverage["total_M_assets_bn"]),
+            "private_M_assets_bn": float(latest_coverage["private_M_assets_bn"]),
+            "special_M_assets_bn": float(latest_coverage["special_M_assets_bn"]),
             "total_M_inv_bn": float(latest_coverage["total_M_inv_bn"]),
             "total_M_actual_bn": float(latest_coverage["total_M_actual_bn"]),
             "macro_fixed_bn": float(latest_coverage["macro_fixed_bn"]),
@@ -384,6 +400,7 @@ def run_industries(
         processed = config.settings.processed_dir
         enriched.to_csv(processed / "industries.csv", index=False)
         capital.to_csv(processed / "industry_fixed_assets.csv", index=False)
+        special_capital.to_csv(processed / "industry_government_housing.csv", index=False)
         inventories.to_csv(processed / "industry_inventories.csv", index=False)
         capital_table.to_csv(processed / "industry_capital.csv", index=False)
         tables = config.settings.output_dir / "tables"

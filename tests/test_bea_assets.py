@@ -37,6 +37,32 @@ def test_attach_uses_actual_then_fallback():
     assert np.isclose(attached.loc[attached["industry_code"] == "B", "M"].iloc[0], 260.0)
 
 
+def test_attach_uses_special_government_housing_capital():
+    panel = pd.DataFrame(
+        {
+            "year": [2020, 2020],
+            "industry_code": ["HS", "A"],
+            "C": [100.0, 100.0],
+            "V": [50.0, 50.0],
+        }
+    )
+    capital = pd.DataFrame({"year": [2020], "industry_code": ["A"], "M": [1_000.0]})
+    special = pd.DataFrame(
+        {
+            "year": [2020],
+            "industry_code": ["HS"],
+            "M": [5_000.0],
+            "capital_source": ["residential_fixed_assets"],
+        }
+    )
+
+    attached = attach_capital_stock(panel, capital, special=special)
+
+    hs = attached.loc[attached["industry_code"] == "HS"].iloc[0]
+    assert np.isclose(hs["M"], 5000.0)
+    assert hs["capital_source"] == "residential_fixed_assets"
+
+
 def test_attach_adds_inventories():
     panel = pd.DataFrame(
         {

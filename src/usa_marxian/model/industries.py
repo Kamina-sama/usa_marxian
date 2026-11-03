@@ -194,6 +194,18 @@ def add_industry_ratios(
     out["abs_gap_pct_PP_long"] = (out["gap_PP_long"].abs() / out["GO"]).replace(
         [np.inf, -np.inf], np.nan
     )
+
+    market_aggregate_rate = (
+        out.groupby("year")["R_benchmark_market"].first().sort_index()
+    )
+    out["R_long_market"] = out["year"].map(
+        market_aggregate_rate.rolling(window=5, min_periods=1).mean()
+    )
+    out["PP_long_market"] = out["K_trend"] + out["R_long_market"] * out["M_trend"]
+    out["gap_PP_long_market"] = out["GO"] - out["PP_long_market"]
+    out["abs_gap_pct_PP_long_market"] = (
+        out["gap_PP_long_market"].abs() / out["GO"]
+    ).replace([np.inf, -np.inf], np.nan)
     out = out.sort_values(["year", "industry_code"]).reset_index(drop=True)
 
     # Real accounts use sector-specific price indexes when available.
@@ -314,17 +326,17 @@ def year_summary(
                 (group["abs_gap_pct_PP_long"] <= 0.25).mean()
             ),
             "mae_pct_PP_long_market": (
-                100.0 * float(market["abs_gap_pct_PP_long"].mean())
+                100.0 * float(market["abs_gap_pct_PP_long_market"].mean())
                 if market_n >= 3
                 else float("nan")
             ),
             "corr_PP_long_market": (
-                float(market["GO"].corr(market["PP_long"]))
+                float(market["GO"].corr(market["PP_long_market"]))
                 if market_n >= 3
                 else float("nan")
             ),
             "share_within_25pct_PP_long_market": (
-                float((market["abs_gap_pct_PP_long"] <= 0.25).mean())
+                float((market["abs_gap_pct_PP_long_market"] <= 0.25).mean())
                 if market_n >= 3
                 else float("nan")
             ),
@@ -520,10 +532,12 @@ def latest_dispersion(
         "PP",
         "PP_market",
         "PP_long",
+        "PP_long_market",
         "PP_V",
         "abs_gap_pct_PP",
         "abs_gap_pct_PP_market",
         "abs_gap_pct_PP_long",
+        "abs_gap_pct_PP_long_market",
         "is_market",
     ]
     if "N_real" in latest.columns:

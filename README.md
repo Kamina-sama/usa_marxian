@@ -57,9 +57,9 @@ project therefore separates five kinds of work:
    out-of-sample forecasts of market gross output.
 
 The project implements all five. It still does not identify individual labour
-values, and the industry capital stock combines actual fixed assets for 65 of 71
-industries with broad-sector inventory stocks; six industries still fall back to
-the cost proxy. Treat the output as measurement and evidence, not proof.
+values, and about 11% of industry inventory value still uses broad-group
+allocation. All 71 industries now use actual fixed assets, including government
+and housing. Treat the output as measurement and evidence, not proof.
 
 ## Quickstart
 
@@ -108,6 +108,8 @@ No key is needed by default:
   consumption by industry.
 - **BEA fixed-asset detail** for current-cost net stocks of private
   nonresidential fixed assets by industry.
+- **BEA Fixed Assets Sections 7 and 5** for government and owner-occupied
+  residential capital stocks.
 - **BEA NIPA Section 5** workbook for private inventory stocks by broad
   industry (Table 5.8.5B).
 - **BEA NIPA underlying detail** (keyless iTable API) for detailed
@@ -254,26 +256,28 @@ Prices of production follow Moseley's general formula:
 PP_i = K_i + R M_i,        R = sum(S_i) / sum(M_i)
 ```
 
-`M_i` now combines two actual BEA sources:
+`M_i` now combines three actual BEA sources:
 
-- **fixed assets** — current-cost net stock of private nonresidential fixed
-  assets from the detailed fixed-asset tables, mapped from 74 detailed
-  industries to 65 of the 71 IO industries;
+- **private fixed assets** — current-cost net stock of private nonresidential
+  fixed assets, mapped from 74 detailed industries to 65 IO industries;
+- **government and housing capital** — federal defense/nondefense, state and
+  local general government, state and local government enterprises, and
+  owner-occupied residential fixed assets;
 - **inventories** — year-end private inventory stocks. Manufacturing and retail
   come from BEA Table 1BUC at detailed NAICS level (23 IO industries, **54.5%**
   of inventory value); farm, mining/utilities/construction, wholesale and
   “other” industries come from Table 5.8.5B and are allocated within the broad
   group.
 
-Government units and housing have no private nonresidential stock; they fall
-back to `K_i` and are flagged as `cost_proxy` in `capital_source`.
+Coverage in 2023: **all 71 industries use actual capital**, with **no cost
+proxy**. Private nonresidential fixed assets total **34,948 bn** vs the macro
+aggregate **34,771 bn** (+0.51%); government and housing add **47,797 bn**;
+inventories are **3,805 bn** and match the macro inventory stock. Total capital
+assets are **82,746 bn**.
 
-Coverage in 2023: **65 of 71 industries actual**. Fixed assets total
-**34,948 bn** vs the macro aggregate **34,771 bn** (+0.51%); inventories total
-**3,805 bn** vs macro **3,805 bn** (0.0%); combined **38,753 bn** vs **38,576
-bn** (**+0.46%**). The inventory totals are official BEA data. Manufacturing and
-retail are detailed; the remaining broad groups are allocated in proportion to
-gross output.
+The full sample now includes government and housing, whose capital is very large
+relative to their surplus-value; the **market sample is the headline** and
+excludes them.
 
 The older proxies remain available for sensitivity: `cost` (`M_i = K_i`),
 `output` (`M_i = GO_i`), and `value_added` (`M_i = N_i`). The earlier
@@ -291,25 +295,26 @@ value-price test at this level would be vacuous. The informative tests are:
 Results, 1998-2023, net basis:
 
 - Market general rate of profit `R = S/M`: **20.2%** in 2023; full sample
-  including government and housing **20.7%**.
+  including government and housing **10.3%**.
 - Market surplus-value rate on cost `S/K`: **23.8%**.
 - Market weighted CV of `r_i`: **0.609** in 2023 (sample mean 0.703);
   p90/p10 **6.10**.
 - Full-sample CV: **2.109** in 2023 (sample mean 2.296), dominated by housing
   and government units.
-- MAE of `PP` vs gross output (sample means): **16.5%** full, **13.7%**
+- MAE of `PP` vs gross output (sample means): **12.6%** full, **13.7%**
   market-only.
-- MAE of the long-run `PP*`: **17.5%** full, **16.2%** market-only.
+- MAE of the long-run `PP*`: **16.8%** full, **15.8%** market-only.
 - MAE of the labour-only benchmark `PP_V`: **53.1%**.
-- Correlation of `PP` with gross output: **0.888** full, **0.983** market-only.
-- Share of industries within 25% of `PP` (sample means): **83.2%** full,
+- Correlation of `PP` with gross output: **0.941** full, **0.983** market-only.
+- Share of industries within 25% of `PP` (sample means): **86.9%** full,
   **88.8%** market-only.
-- Proxy sensitivity, full-sample MAE: fixed assets + inventories **16.5%**,
+- Proxy sensitivity, full-sample MAE: fixed assets + inventories **12.6%**,
   cost **13.3%**, output **11.0%**, value-added **9.0%**. Market-only MAE:
   **13.7%**, **10.5%**, **8.7%**, **7.1%**.
 
-The actual capital measure still fits **worse on average error** than the cost
-proxy, though its market cross-sectional correlation is very high (**0.983**).
+The market sample is the meaningful comparison. Its fit is essentially unchanged
+from the previous version; the full-sample numbers move because government and
+housing capital are now actual and very large relative to their surplus-value.
 That is informative, not a failure: with `M_i = K_i`, `PP_i` is mechanically
 close to `GO_i`, so the old fit was partly built in. Actual capital stocks expose
 the profit-rate dispersion, especially regulated utilities and capital-intensive
@@ -376,17 +381,17 @@ time. The project tests three separate claims on the 65 market industries:
 3. `PP` predicts future market output better than a naive forecast.
 
 **Deviations are persistent but not permanent.** Mean absolute deviation is
-**12.9%** (gross-output weighted 11.6%; median 9.1%); 88.9% of observations are
-within ±25%. Lag-1 autocorrelation is **0.973**, and the estimated half-life of
-a deviation is **2.3 years**. Panel ADF rejects a unit root in the Fisher sense
-(p<0.001), but only 12% of industries reject individually.
+**12.4%** (gross-output weighted 11.4%; median 8.6%); 89.7% of observations are
+within ±25%. Lag-1 autocorrelation is **0.972**, and the estimated half-life of
+a deviation is **2.2 years**. Panel ADF rejects a unit root in the Fisher sense
+(p<0.001), but only 14% of industries reject individually.
 
 **The adjustment is now two-way, and market output does move toward PP.**
 Panel error-correction with industry and year effects gives:
 
-- market output adjustment: `β = -0.166` (p=0.012), the sign gravitation
-  predicts; half-life of the output response is about 3.8 years;
-- price-of-production adjustment: `β = +0.097` (p=0.046).
+- market output adjustment: `β = -0.163` (p=0.015), the sign gravitation
+  predicts; half-life of the output response is about 3.9 years;
+- price-of-production adjustment: `β = +0.105` (p=0.035).
 
 So the gap closes through both channels: market output moves down toward `PP`
 when it is above it, and `PP` also rises toward market output. With actual
@@ -396,9 +401,9 @@ capital stocks, the first channel is statistically significant, which the old
 **PP still does not forecast better than a random walk.** Pooled out-of-sample
 log RMSE, 2008-2023:
 
-- 1 year: naive 0.120, AR(1) 0.120, ECM 0.120, PP **0.218**
+- 1 year: naive 0.120, AR(1) 0.120, ECM 0.120, PP **0.213**
 - 3 years: naive 0.202, AR(1) 0.174, ECM 0.172, PP **0.256**
-- 5 years: naive 0.258, AR(1) 0.199, ECM 0.198, PP **0.303**
+- 5 years: naive 0.258, AR(1) 0.199, ECM 0.199, PP **0.304**
 
 The PP forecast is worse than naive at every horizon; the bootstrap confidence
 interval for the RMSE difference excludes zero. The ECM is marginally better
@@ -413,12 +418,12 @@ average profit rate:
 PP*_it = K_trend_it + R_long_t * M_trend_it
 ```
 
-- Mean absolute deviation: **15.4%**; 81.7% within ±25%.
-- Autocorrelation: **0.905**; half-life **1.8 years**.
-- Output adjustment: `β = -0.135` (p=0.001); PP adjustment: `β = +0.179`
+- Mean absolute deviation: **15.2%**; 81.5% within ±25%.
+- Autocorrelation: **0.901**; half-life **1.8 years**.
+- Output adjustment: `β = -0.134` (p=0.001); PP adjustment: `β = +0.181`
   (p<0.001).
-- 54% of industries reject a unit root individually.
-- Forecast log RMSE, 1/3/5 years: PP **0.240 / 0.288 / 0.347** vs naive
+- 52% of industries reject a unit root individually.
+- Forecast log RMSE, 1/3/5 years: PP **0.238 / 0.289 / 0.349** vs naive
   **0.120 / 0.202 / 0.258**.
 
 The long-run benchmark is farther from market output, so deviations are larger,
@@ -455,7 +460,8 @@ After `analyze`:
 After `industries`:
 
 - `data/processed/industries.csv`, `industry_capital.csv`,
-  `industry_fixed_assets.csv`, `industry_inventories.csv`
+  `industry_fixed_assets.csv`, `industry_government_housing.csv`,
+  `industry_inventories.csv`
 - `output/industries.json`
 - `output/tables/industry_summary.csv`, `industry_latest.csv`,
   `industry_proxy_sensitivity.csv`, `industry_reconciliation.csv`,
@@ -492,11 +498,10 @@ output/            tables, figures, JSON reports (gitignored)
 
 ## Roadmap
 
-1. **Remaining inventory detail and government/housing capital.** Manufacturing
-   and retail inventories are now detailed from BEA Table 1BUC. Still
-   outstanding: detailed inventories for mining/utilities/construction and
-   “other” industries (about 11% of inventory value), and actual capital stocks
-   for government and housing instead of the cost proxy.
+1. **Residual inventory detail.** Manufacturing and retail inventories are
+   detailed from BEA Table 1BUC, and government/housing capital is now actual.
+   Still outstanding: detailed inventories for mining/utilities/construction and
+   “other” industries (about 11% of inventory value).
 2. **Intermediate-input deflators.** Build a sector intermediate deflator so
    real cost prices and real profit rates can be constructed without the
    invalid `GO_real - N_real` residual.

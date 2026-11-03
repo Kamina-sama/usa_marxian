@@ -157,9 +157,9 @@ sheet has three top-level totals (equipment, structures, intellectual property
 products); their sum is the industry capital stock.
 
 `config/industry_capital.yaml` maps the 74 detailed industries to the 65 IO
-summary industries that have private nonresidential capital. Government units
-and housing have no counterpart and fall back to the cost proxy, flagged in
-`capital_source`.
+summary industries that have private nonresidential capital. Government and
+housing capital comes from the separate Section 7 and Section 5 workbooks
+described below.
 
 Validation on the current vintage: the summed industry stocks are 34,948 bn in
 2023 against the macro aggregate `K1NTOTL1ES000` of 34,771 bn, a 0.51% gap.
@@ -173,6 +173,28 @@ files if you want to extend the module:
 
 Consumption of fixed capital by industry comes from NIPA Section 6 tables
 6.13D and 6.22D, as described in `docs/industry.md`.
+
+## BEA fixed assets: government and residential
+
+Keyless BEA Fixed Assets workbooks:
+
+```
+https://apps.bea.gov/national/FixedAssets/Release/XLS/Section7All_xls.xlsx
+https://apps.bea.gov/national/FixedAssets/Release/XLS/Section5All_xls.xlsx
+```
+
+Table 7.1 gives current-cost net stocks of government fixed assets. On the
+current vintage:
+
+- Federal fixed assets equal national defense plus nondefense, so federal
+  government enterprises are zero;
+- government enterprise fixed assets are therefore all state and local;
+- state/local general government = general government total − federal defense −
+  federal nondefense.
+
+Table 5.1 gives residential fixed assets. Owner-occupied residential stock is
+used for the housing IO industry; tenant-occupied stock is not added because the
+other-real-estate industry already has actual nonresidential fixed assets.
 
 ## BEA private inventories (industry stocks)
 
