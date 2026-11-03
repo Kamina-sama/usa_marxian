@@ -379,10 +379,10 @@ using five-year trailing averages. It shows stronger mean reversion
 naive random-walk forecast, so the evidence is best described as slow gravitation
 without predictive power.
 
-## 11. Shaikh's classical benchmarks
+## 11. Sraffa's prices of production and Shaikh's process
 
-For comparison, the project also builds Shaikh-style labour values and prices of
-production from annual BEA Use matrices (1998-2023, current prices):
+For comparison, the project builds Sraffian prices of production and classical
+labour values from annual BEA Use matrices (1998-2023, current prices):
 
 ```
 A_t,ij = U_t,ij / GO_t,j
@@ -393,17 +393,18 @@ p_t = (1 + r_t)(p_t A_t + w l_t)
 
 `r` is the observed aggregate surplus-value rate on flow capital,
 `sum(S)/sum(K)`. Relative prices are independent of `w`; the scale is fixed by
-normalising `p . GO` to total gross output. The resulting `PP_S` is compared with
-Moseley's stock-based `PP`.
+normalising `p . GO` to total gross output. The resulting `PP_Sraffa` is compared
+with Moseley's stock-based `PP`.
 
 The comparison is on 65 market industries, 1998-2023:
 
 - Moseley: MAE 13.7%, RMSE 22.9%, corr 0.983, slope 1.043, mean gap -7.2%.
-- Shaikh: MAE 15.7%, RMSE 19.5%, corr 0.975, slope 0.974, mean gap -1.6%.
-- Shaikh direct prices: MAE 17.8%, RMSE 23.4%, corr 0.953, mean gap -0.6%.
+- Sraffa: MAE 15.7%, RMSE 19.5%, corr 0.975, slope 0.974, mean gap -1.6%.
+- Shaikh iterated: MAE 15.7%, RMSE 19.6%, corr 0.976, mean gap -1.7%.
+- Direct labour values: MAE 17.8%, RMSE 23.4%, corr 0.953, mean gap -0.6%.
 
-Moseley fits typical industry errors better; Shaikh has lower aggregate bias, a
-slope closer to one, and lower RMSE. With annual `A_t`, Shaikh's clean one-way
+Moseley fits typical industry errors better; Sraffa has lower aggregate bias, a
+slope closer to one, and lower RMSE. With annual `A_t`, Sraffa's clean one-way
 gravitation disappears: `β_GO = +0.029` (p=0.235) and `β_PP = +0.264` (p<0.001).
 The center adjusts toward the data, not the other way. Neither beats a naive
 forecast.
@@ -420,4 +421,4 @@ starting from labour values. It converges in 27 rounds on average (maximum 34),
 with a model-implied profit rate averaging 33.9% against an observed 30.3%. The
 iterated prices are almost identical to the fixed point (MAE 15.7%, corr 0.976).
 A toy cross-dual price/output simulation also reduces profit-rate dispersion from
-0.146 to approximately zero. See `docs/shaikh.md`.
+0.146 to approximately zero. See `docs/sraffa.md` and `docs/shaikh.md`.

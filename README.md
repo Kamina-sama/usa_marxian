@@ -457,59 +457,59 @@ years per industry.
 
 The full derivation, tables and caveats are in `docs/gravitation.md`.
 
-## Moseley vs Shaikh
+## Moseley vs Sraffa vs Shaikh
 
-The project also builds Shaikh's benchmarks from the same BEA Use table:
+The project builds three price benchmarks from the same BEA Use table:
 
-- **direct prices / labour values**, `lambda = l (I - A)^-1`;
-- **prices of production**, `p = (1+r)(p A + w l)`, with a uniform profit rate
-  on flow capital.
+- **Sraffa prices of production**, `p = (1+r)(p A + w l)`, a simultaneous
+  fixed point with a uniform profit rate on flow capital;
+- **Shaikh iterated prices**, the same system solved by cost-plus iteration
+  with an endogenous profit rate;
+- **direct prices / labour values**, `lambda = l (I - A)^-1`.
 
-Moseley's benchmark uses the stock of advanced capital and `R = S/M`; Shaikh's
-uses the flow cost matrix and `r = S/K`. They are different capital concepts,
-not two estimates of one parameter. `A_t` is annual and in current prices; a
-constant-price matrix is the next refinement.
+Moseley's benchmark uses the stock of advanced capital and `R = S/M`; Sraffa and
+Shaikh use the flow cost matrix and `r = S/K`. They are different capital
+concepts, not two estimates of one parameter. `A_t` is annual and in current
+prices; a constant-price matrix is the next refinement.
 
 Fit on the same 65 market industries, 1998-2023:
 
 - **Moseley `PP`**: MAE **13.7%**, RMSE **22.9%**, corr **0.983**, slope
   **1.043**, within 25% **88.8%**, mean gap **-7.2%**.
-- **Shaikh `PP_S`**: MAE **15.7%**, RMSE **19.5%**, corr **0.975**, slope
+- **Sraffa `PP_Sraffa`**: MAE **15.7%**, RMSE **19.5%**, corr **0.975**, slope
   **0.974**, within 25% **81.2%**, mean gap **-1.6%**.
-- **Shaikh iterated `PP_S_iter`**: MAE **15.7%**, RMSE **19.6%**, corr
+- **Shaikh iterated `PP_Shaikh`**: MAE **15.7%**, RMSE **19.6%**, corr
   **0.976**, slope **0.975**, within 25% **82.0%**, mean gap **-1.7%**.
-- **Shaikh direct prices**: MAE **17.8%**, RMSE **23.4%**, corr **0.953**,
-  slope **0.954**, within 25% **70.9%**, mean gap **-0.6%**.
+- **Direct prices (labour values)**: MAE **17.8%**, RMSE **23.4%**, corr
+  **0.953**, slope **0.954**, within 25% **70.9%**, mean gap **-0.6%**.
 
 Gravitation comparison:
 
 - **Moseley**: mean gap 12.4%, half-life 2.2y, output adjustment `-0.163`
   (p=0.015), PP adjustment `+0.105` (p=0.035), 1y forecast RMSE 0.213.
-- **Shaikh `PP_S`**: mean gap 16.1%, half-life 2.6y, output adjustment
+- **Sraffa `PP_Sraffa`**: mean gap 16.1%, half-life 2.6y, output adjustment
   `+0.029` (p=0.235), PP adjustment `+0.264` (p<0.001), 1y forecast RMSE 0.249.
-- **Shaikh iterated `PP_S_iter`**: mean gap 16.1%, half-life 2.6y, output
+- **Shaikh iterated `PP_Shaikh`**: mean gap 16.1%, half-life 2.6y, output
   adjustment `+0.038` (p=0.101), PP adjustment `+0.274` (p<0.001), 1y forecast
   RMSE 0.249.
-- **Shaikh direct prices**: mean gap 18.7%, half-life 2.7y, output adjustment
-  `-0.043` (p=0.199), 1y forecast RMSE 0.293.
+- **Direct prices**: mean gap 18.7%, half-life 2.7y, output adjustment `-0.043`
+  (p=0.199), 1y forecast RMSE 0.293.
 - Naive forecast RMSE: **0.120**.
 
-The explicit Shaikh iteration starts from labour values, recomputes the profit
-rate each round, and converges in **27 rounds on average** (maximum 34) with a
-residual below `1e-10`. The model-implied rate averages **33.9%** against an
-observed **30.3%** (2023: **35.7%** vs **33.8%**). Iterated prices are nearly
-identical to the Sraffian fixed point, so the iteration adds convergence
-diagnostics, not a different center. A toy cross-dual simulation also equalises
-rates, reducing the weighted dispersion from **0.146** to approximately zero in
-about **199** steps.
+The Sraffian fixed point is a static center: it fits the aggregate level well
+(low RMSE, small bias, slope near one) but does not attract output with annual
+`A_t` — output does not adjust toward it, while it adjusts toward output. The
+Shaikh iteration starts from labour values, recomputes the profit rate each
+round, and converges in **27 rounds on average** (maximum 34) to essentially the
+Sraffian center; the model-implied rate averages **33.9%** against **30.3%**
+observed. So the iteration adds convergence diagnostics, not a different price
+benchmark. Direct labour values fit worst.
 
 There is no single winner. **Moseley fits typical industry errors and forecasts
-better.** **Shaikh has lower aggregate bias and a slope closer to one.** But the
-clean one-way gravitation from the fixed-2017 matrix disappears with annual
-`A_t`: output does not adjust toward `PP_S`, while `PP_S` adjusts toward output.
-Both fail the random-walk forecast benchmark. Labour values alone fit worst.
+better.** **Sraffa calibrates the aggregate level better.** **Shaikh's iteration
+converges to Sraffa.** All three fail the random-walk forecast benchmark.
 
-The full comparison is in `docs/shaikh.md`.
+See `docs/sraffa.md` and `docs/shaikh.md`.
 
 ## State space for real competition
 
@@ -623,7 +623,7 @@ src/usa_marxian/
   pipeline.py      macro and industry pipelines
   cli.py           `usa-marxian` command
 tests/             offline unit tests
-docs/              model derivation, data sources, industry notes, Shaikh comparison, state space
+docs/              model derivation, data sources, industry notes, Sraffa, Shaikh, state space, stock flow
 notebooks/         exploratory notebooks
 data/raw           cached downloads (gitignored)
 data/processed     panels, accounts, quality reports (gitignored)

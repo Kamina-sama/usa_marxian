@@ -109,16 +109,17 @@ def test_compare_benchmarks_prefers_closer_benchmark():
             "is_market": [True] * 5,
             "GO": [100.0, 120.0, 80.0, 60.0, 200.0],
             "PP_market": [102.0, 118.0, 82.0, 59.0, 198.0],
-            "PP_S": [90.0, 110.0, 70.0, 80.0, 230.0],
+            "PP_Sraffa": [90.0, 110.0, 70.0, 80.0, 230.0],
+            "PP_Shaikh": [88.0, 108.0, 72.0, 78.0, 228.0],
             "P_V": [80.0, 100.0, 60.0, 90.0, 250.0],
         }
     )
     comparison = compare_benchmarks(panel)
-    assert len(comparison) == 3
+    assert len(comparison) == 4
     moseley = comparison.loc[
         comparison["benchmark"].str.startswith("Moseley"), "mae_pct"
     ].iloc[0]
-    shaikh = comparison.loc[
-        comparison["benchmark"].str.startswith("Shaikh prices"), "mae_pct"
+    sraffa = comparison.loc[
+        comparison["benchmark"].str.startswith("Sraffa prices"), "mae_pct"
     ].iloc[0]
-    assert moseley < shaikh
+    assert moseley < sraffa

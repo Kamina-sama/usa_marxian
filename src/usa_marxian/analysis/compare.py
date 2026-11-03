@@ -12,9 +12,9 @@ from .gravitation import deviation_summary, error_correction, forecast_evaluatio
 
 BENCHMARK_LABELS = {
     "PP": "Moseley PP (stock capital)",
-    "PP_S": "Shaikh prices of production (flow capital)",
-    "PP_S_iter": "Shaikh iterated prices (endogenous r)",
-    "P_V": "Shaikh direct prices (labour values)",
+    "PP_Sraffa": "Sraffa prices of production (flow capital)",
+    "PP_Shaikh": "Shaikh iterated prices (endogenous r)",
+    "P_V": "Direct prices (labour values)",
 }
 
 
@@ -61,7 +61,7 @@ def compare_benchmarks(panel: pd.DataFrame) -> pd.DataFrame:
     frame = panel.loc[panel["is_market"]].copy() if "is_market" in panel.columns else panel
     common = [
         column
-        for column in ("PP_market", "PP_S", "PP_S_iter", "P_V", "GO")
+        for column in ("PP_market", "PP_Sraffa", "PP_Shaikh", "P_V", "GO")
         if column in frame.columns
     ]
     if common:
@@ -138,13 +138,13 @@ def run_shaikh_comparison(
                 shaikh.panel, "PP_market", "Moseley PP (stock capital)"
             ),
             _benchmark_gravitation(
-                shaikh.panel, "PP_S", "Shaikh prices of production (flow capital)"
+                shaikh.panel, "PP_Sraffa", "Sraffa prices of production (flow capital)"
             ),
             _benchmark_gravitation(
-                shaikh.panel, "PP_S_iter", "Shaikh iterated prices (endogenous r)"
+                shaikh.panel, "PP_Shaikh", "Shaikh iterated prices (endogenous r)"
             ),
             _benchmark_gravitation(
-                shaikh.panel, "P_V", "Shaikh direct prices (labour values)"
+                shaikh.panel, "P_V", "Direct prices (labour values)"
             ),
         ]
     )

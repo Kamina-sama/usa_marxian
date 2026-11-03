@@ -155,12 +155,16 @@ def labour_values(
     return pd.Series(values, index=matrix.index, name="labour_value")
 
 
-def prices_of_production(
+def sraffa_prices_of_production(
     matrix: pd.DataFrame,
     labour: pd.Series,
     profit_rate: float,
 ) -> pd.Series:
-    """Return relative prices ``p = l [I - (1+r)A]^-1``."""
+    """Return Sraffian prices ``p = l [I - (1+r)A]^-1``.
+
+    This is the simultaneous, fixed-point solution. It is attributed to
+    Sraffa, not Shaikh. Shaikh's contribution is the adjustment process.
+    """
     identity = np.eye(matrix.shape[0])
     coefficients = matrix.to_numpy(dtype=float)
     direct = labour.reindex(matrix.index).to_numpy(dtype=float)
@@ -171,6 +175,15 @@ def prices_of_production(
     except np.linalg.LinAlgError as exc:
         raise ValueError(f"Price system singular at r={profit_rate:.3f}") from exc
     return pd.Series(prices, index=matrix.index, name="price")
+
+
+def prices_of_production(
+    matrix: pd.DataFrame,
+    labour: pd.Series,
+    profit_rate: float,
+) -> pd.Series:
+    """Backward-compatible alias for :func:`sraffa_prices_of_production`."""
+    return sraffa_prices_of_production(matrix, labour, profit_rate)
 
 
 @dataclass
@@ -458,7 +471,7 @@ def build_shaikh_benchmarks(
         try:
             values = labour_values(matrix, direct_labour)
             value_price = _normalise(values, output)
-            prices = prices_of_production(matrix, labour_cost, profit_rate)
+            prices = sraffa_prices_of_production(matrix, labour_cost, profit_rate)
             fixed_iteration = iterative_prices(
                 matrix, labour_cost, profit_rate, initial=value_price
             )
@@ -500,8 +513,8 @@ def build_shaikh_benchmarks(
                     "year": int(year),
                     "industry_code": code,
                     "P_V": float(value_price.loc[code] * output.loc[code]),
-                    "PP_S": float(production_price.loc[code] * output.loc[code]),
-                    "PP_S_iter": float(iterated_price.loc[code] * output.loc[code]),
+                    "PP_Sraffa": float(production_price.loc[code] * output.loc[code]),
+                    "PP_Shaikh": float(iterated_price.loc[code] * output.loc[code]),
                     "r_observed": float(profit_rate),
                     "r_model": float(endogenous_iteration.profit_rate),
                     "iterations": int(endogenous_iteration.iterations),
