@@ -255,6 +255,17 @@ def cmd_industries(args: argparse.Namespace) -> int:
                 m=state["n_matrices"],
             )
         )
+    stock_flow = report.get("stock_flow")
+    if stock_flow:
+        metrics = {row["variable"]: row for row in stock_flow["metrics"]}
+        print(
+            "Stock-flow fit: price RMSE {p:.3f}, quantity RMSE {q:.3f}, "
+            "capital RMSE {k:.3f}".format(
+                p=metrics["price"]["rmse_log"],
+                q=metrics["quantity"]["rmse_log"],
+                k=metrics["capital"]["rmse_log"],
+            )
+        )
     latest = report["latest"]
     means = report["sample_means"]
     print(

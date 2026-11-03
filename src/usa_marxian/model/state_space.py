@@ -53,8 +53,34 @@ STATE_COLUMNS = [
 class StateSpaceResult:
     state: pd.DataFrame
     matrices: pd.DataFrame
+    matrices_real: pd.DataFrame
     macro: pd.DataFrame
     summary: dict
+
+
+def build_real_technical_matrices(
+    current_matrices: dict[int, pd.DataFrame],
+    panel: pd.DataFrame,
+) -> dict[int, pd.DataFrame]:
+    """Deflate current-price input matrices to 2017-dollar coefficients.
+
+    ``A_real[c, j] = A_current[c, j] * p_j / p_c``. This uses the broad-sector
+    gross-output deflators already in the panel.
+    """
+    prices = (
+        panel.loc[:, ["year", "industry_code", "go_price"]]
+        .assign(price=lambda frame: frame["go_price"] / 100.0)
+        .set_index(["year", "industry_code"])["price"]
+    )
+    real: dict[int, pd.DataFrame] = {}
+    for year, matrix in current_matrices.items():
+        price = prices.loc[int(year)].reindex(matrix.columns)
+        if price.isna().any() or (price <= 0).any():
+            continue
+        real[int(year)] = matrix.mul(price, axis=1).div(price, axis=0)
+    if not real:
+        raise ValueError("No real technical matrices could be built")
+    return real
 
 
 def _matrix_long(matrices: dict[int, pd.DataFrame]) -> pd.DataFrame:
@@ -169,7 +195,9 @@ def build_state_space(
         raise ValueError("State space has no complete industry-year rows")
 
     matrices = build_technical_matrices(use_matrices, panel, base_year=base_year)
+    matrices_real = build_real_technical_matrices(matrices, panel)
     matrix_long = _matrix_long(matrices)
+    matrix_real_long = _matrix_long(matrices_real)
 
     summary = {
         "start_year": int(state["year"].min()),
@@ -177,16 +205,19 @@ def build_state_space(
         "n_years": int(state["year"].nunique()),
         "n_industries": int(state["industry_code"].nunique()),
         "n_matrices": int(len(matrices)),
+        "n_matrices_real": int(len(matrices_real)),
         "base_year": int(base_year),
         "market_only": bool(market_only),
         "n_observations": int(state.shape[0]),
         "price_start_year": int(state["year"].min()),
         "state_columns": list(state.columns),
         "matrix_rows": int(matrix_long.shape[0]),
+        "matrix_real_rows": int(matrix_real_long.shape[0]),
     }
     return StateSpaceResult(
         state=state.reset_index(drop=True),
         matrices=matrix_long,
+        matrices_real=matrix_real_long,
         macro=macro.reset_index(),
         summary=summary,
     )

@@ -515,7 +515,7 @@ The full comparison is in `docs/shaikh.md`.
 
 The project now writes the measurement layer for a stock-flow cross-dual model:
 **65 market industries**, 2005-2023 for the complete state table, with 26 annual
-input-output matrices (1998-2023).
+current-price matrices (1998-2023) and 19 deflated real matrices (2005-2023).
 
 The state table contains:
 
@@ -540,6 +540,39 @@ proxy, and industry hours allocated by compensation.
 
 See `docs/state_space.md`.
 
+## Stock-flow simulation
+
+The state space now feeds a first stock-flow cross-dual model:
+
+```
+cost_i = (p A)_i + w l_i
+r_i    = (p_i - cost_i) / cost_i
+r_bar  = (p q - cost q) / (cost q)
+
+p_i' = p_i exp(-alpha (r_i - r_bar))
+q_i' = q_i + beta (D_i - q_i)
+I_i  = k_i [gamma0 + gamma1 (r_i - r_bar) + gamma2 (u_i - 1)]
+k_i' = k_i - depreciation_i + I_i
+w'   = w [1 + phi (U - 1)]
+```
+
+Final demand is reconstructed from observed output and the real input matrix,
+`F_t = q_t - A_t q_t`, and treated as exogenous. This is a dynamic adjustment
+model, not a complete demand system.
+
+Calibrated fit, 2005-2023:
+
+- price: log RMSE **0.134**, correlation **0.284**
+- quantity: log RMSE **0.108**, correlation **0.995**
+- capital: log RMSE **0.237**, correlation **0.976**
+- investment: log RMSE **0.582**, correlation **0.729**
+
+Output and capital fit well. Relative prices do not. The price block is the weak
+part, and `beta` and `gamma2` hit their calibration bounds. The model is a first
+structural layer, not a finished real-competition model.
+
+See `docs/stock_flow.md`.
+
 ## Outputs
 
 After `analyze`:
@@ -557,7 +590,8 @@ After `industries`:
 
 - `data/processed/industries.csv`, `industries_shaikh.csv`,
   `shaikh_iterations.csv`, `state_space.csv`, `technical_matrices.csv`,
-  `state_space_macro.csv`, `state_space.json`, `industry_capital.csv`,
+  `technical_matrices_real.csv`, `state_space_macro.csv`, `state_space.json`,
+  `industry_capital.csv`,
   `industry_fixed_assets.csv`, `industry_government_housing.csv`,
   `industry_inventories.csv`
 - `output/industries.json`
@@ -571,7 +605,8 @@ After `industries`:
 - `output/tables/gravitation_long_run_summary.csv`,
   `gravitation_long_run_ecm.csv`, `gravitation_long_run_forecast_metrics.csv`,
   `gravitation_long_run_forecast_comparisons.csv`
-- `output/gravitation.json`, `output/shaikh.json`
+- `output/tables/stock_flow_metrics.csv`, `stock_flow_trajectories.csv`
+- `output/gravitation.json`, `output/shaikh.json`, `output/stock_flow.json`
 - `output/figures/industry_dispersion.png`, `pp_vs_go.png`,
   `gravitation_deviation.png`, `gravitation_forecast.png`
 
@@ -582,7 +617,7 @@ config/            settings.yaml, series.yaml, sectors.yaml, industry_capital.ya
 src/usa_marxian/
   config.py        typed config + series catalog
   data/            FRED, BLS, BEA, BEA IO, sector deflators, cache, quality
-  model/           MELT, equalities, robustness, industries, Shaikh, state space
+  model/           MELT, equalities, robustness, industries, Shaikh, state space, stock flow
   analysis/        LTV, diagnostics, property check, gravitation, comparison
   viz/             plots
   pipeline.py      macro and industry pipelines

@@ -48,6 +48,7 @@ from .model.industries import (
 from .model.melt import MeltSummary, melt_summary
 from .model.robustness import run_specifications, specification_ranges
 from .model.state_space import build_state_space
+from .model.stock_flow import fit_stock_flow
 from .viz.plots import (
     plot_composition,
     plot_distribution,
@@ -448,6 +449,21 @@ def run_industries(
                 stacklevel=2,
             )
 
+    stock_flow = None
+    if state_space is not None:
+        try:
+            stock_flow = fit_stock_flow(
+                state_space.state,
+                state_space.matrices_real,
+                calibrate=False,
+            )
+            report["stock_flow"] = stock_flow.summary
+        except Exception as exc:
+            warnings.warn(
+                f"Stock-flow simulation unavailable: {exc}",
+                stacklevel=2,
+            )
+
     shaikh = None
     if use_matrices is not None and macro_accounts is not None:
         try:
@@ -496,6 +512,9 @@ def run_industries(
             state_space.matrices.to_csv(
                 processed / "technical_matrices.csv", index=False
             )
+            state_space.matrices_real.to_csv(
+                processed / "technical_matrices_real.csv", index=False
+            )
             state_space.macro.to_csv(
                 processed / "state_space_macro.csv", index=False
             )
@@ -503,6 +522,17 @@ def run_industries(
                 "w", encoding="utf-8"
             ) as handle:
                 json.dump(_json_safe(state_space.summary), handle, indent=2)
+        if stock_flow is not None:
+            stock_flow.metrics.to_csv(
+                tables / "stock_flow_metrics.csv", index=False
+            )
+            stock_flow.trajectories.to_csv(
+                tables / "stock_flow_trajectories.csv", index=False
+            )
+            with (config.settings.output_dir / "stock_flow.json").open(
+                "w", encoding="utf-8"
+            ) as handle:
+                json.dump(_json_safe(stock_flow.summary), handle, indent=2)
         if shaikh is not None:
             shaikh.shaikh.panel.to_csv(
                 processed / "industries_shaikh.csv", index=False

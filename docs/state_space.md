@@ -8,8 +8,9 @@ a long annual input-output matrix.
 
 - 65 market industries; government units and housing are excluded
 - 2005-2023 complete state data (19 years, 1,235 observations)
-- 26 annual matrices, 1998-2023
-- 86,518 non-zero matrix entries
+- 26 current-price annual matrices, 1998-2023
+- 19 deflated real matrices, 2005-2023
+- 86,518 non-zero current-price matrix entries; 63,261 real entries
 
 Complete state data start in 2005 because the broad-sector GDP-by-Industry price
 indexes start then. The annual matrices themselves cover 1998-2023.
@@ -91,6 +92,7 @@ variable on the right-hand side except demand and the behavioural parameters.
 ## Files
 
 - `data/processed/state_space.csv` — industry-year state table
-- `data/processed/technical_matrices.csv` — long annual `A_t`
+- `data/processed/technical_matrices.csv` — long annual current-price `A_t`
+- `data/processed/technical_matrices_real.csv` — deflated annual `A_t` used by the stock-flow model
 - `data/processed/state_space_macro.csv` — macro wage, hours and aggregates
 - `data/processed/state_space.json` — coverage summary
