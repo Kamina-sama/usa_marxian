@@ -62,7 +62,7 @@ def fetch_ecn_basic(api_key: str, *, timeout: float = 60.0) -> pd.DataFrame:
     response = requests.get(
         ECN_BASIC_URL,
         params={
-            "get": "NAICS2017,RCPTOT,PAYANN,CSTMPRT,OPEX,EMP,FIRM",
+            "get": "NAICS2017,RCPTOT,PAYANN,CSTMPRT,OPEX,EMP,FIRM,INDLEVEL",
             "for": "us:*",
             "key": api_key,
         },
@@ -81,7 +81,7 @@ def fetch_ecn_size(api_key: str, *, timeout: float = 60.0) -> pd.DataFrame:
     response = requests.get(
         ECN_SIZE_URL,
         params={
-            "get": "NAICS2017,HHI,CONCENFI,RCPTOT,PAYANN,EMP",
+            "get": "NAICS2012,CONCENFI,RCPTOT,PAYANN,EMP,INDLEVEL",
             "for": "us:*",
             "key": api_key,
         },
@@ -108,11 +108,12 @@ def load_regulating_data(
     *,
     max_age_days: int = 365,
     force: bool = False,
-) -> tuple[pd.DataFrame, pd.DataFrame] | None:
-    """Load ``(unit_cost, concentration)`` by IO industry, or ``None`` if no key.
+) -> pd.DataFrame | None:
+    """Load unit cost and within-industry cost dispersion by IO industry.
 
-    ``unit_cost`` is ``(payroll + materials) / receipts``; ``concentration`` is
-    the share of receipts accounted for by the top firms.
+    Returns ``industry_code, unit_cost, unit_cost_min, cost_cv, n_subindustries``.
+    The dispersion is across 6-digit NAICS sub-industries inside each IO industry;
+    it is a sub-industry proxy, not a firm-level distribution.
     """
     if not api_key:
         return None
@@ -120,7 +121,6 @@ def load_regulating_data(
     cache = raw_dir / "census"
     cache.mkdir(parents=True, exist_ok=True)
     basic_path = cache / "ecnbasic.csv"
-    size_path = cache / "ecnsize.csv"
 
     def _cached(path: Path, fetch):
         if path.exists() and not force:
@@ -132,40 +132,42 @@ def load_regulating_data(
         return frame
 
     basic = _cached(basic_path, lambda: fetch_ecn_basic(api_key))
-    size = _cached(size_path, lambda: fetch_ecn_size(api_key))
-
+    basic = basic.loc[basic["INDLEVEL"].astype(str) == "6"].copy()
     config = load_census_config()
     basic["industry_code"] = map_naics_to_io(basic["NAICS2017"], config)
-    size["industry_code"] = map_naics_to_io(size["NAICS2017"], config)
-
     basic = basic.dropna(subset=["industry_code"])
-    size = size.dropna(subset=["industry_code"])
-    numeric = ["RCPTOT", "PAYANN", "CSTMPRT", "CONCENFI", "HHI"]
-    for column in numeric:
-        if column in basic:
-            basic[column] = pd.to_numeric(basic[column], errors="coerce")
-        if column in size:
-            size[column] = pd.to_numeric(size[column], errors="coerce")
 
-    basic = (
-        basic.groupby("industry_code")
-        .agg(receipts=("RCPTOT", "sum"), payroll=("PAYANN", "sum"), materials=("CSTMPRT", "sum"))
-        .reset_index()
-    )
-    basic["unit_cost"] = (basic["payroll"] + basic["materials"]) / basic["receipts"]
+    for column in ["RCPTOT", "PAYANN", "CSTMPRT"]:
+        basic[column] = pd.to_numeric(basic[column], errors="coerce")
+    basic["unit_cost_sub"] = (basic["PAYANN"] + basic["CSTMPRT"]) / basic["RCPTOT"]
+    basic = basic.loc[
+        (basic["RCPTOT"] > 0)
+        & basic["unit_cost_sub"].notna()
+        & (basic["unit_cost_sub"] > 0)
+    ]
 
-    size = (
-        size.groupby("industry_code")
-        .agg(receipts=("RCPTOT", "sum"), hhi=("HHI", "first"), concenfi=("CONCENFI", "first"))
-        .reset_index()
-    )
-    size["concentration"] = size["concenfi"].clip(lower=0.0, upper=100.0) / 100.0
+    rows = []
+    for industry_code, group in basic.groupby("industry_code"):
+        receipts = group["RCPTOT"].sum()
+        unit_cost = (group["PAYANN"].sum() + group["CSTMPRT"].sum()) / receipts
+        subsidies = group["unit_cost_sub"]
+        rows.append(
+            {
+                "industry_code": industry_code,
+                "unit_cost": float(unit_cost),
+                "unit_cost_min": float(subsidies.min()),
+                "cost_cv": float(subsidies.std(ddof=1) / subsidies.mean())
+                if len(subsidies) > 1
+                else float("nan"),
+                "n_subindustries": int(len(subsidies)),
+            }
+        )
 
+    result = pd.DataFrame(rows)
     metadata = {
         "downloaded_at_utc": datetime.now(timezone.utc).isoformat(timespec="seconds"),
-        "basic_rows": int(basic.shape[0]),
-        "size_rows": int(size.shape[0]),
+        "n_industries": int(result.shape[0]),
+        "n_subindustries": int(basic.shape[0]),
     }
     (cache / "census.json").write_text(json.dumps(metadata, indent=2), encoding="utf-8")
-
-    return basic, size
+    return result

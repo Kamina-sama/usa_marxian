@@ -24,20 +24,26 @@ starting from labour values and using the deflated annual `A_t`. It converges in
 ## Regulating capitals (partial, key-gated)
 
 Shaikh's prices are set by the lowest-cost "regulating" capitals, not the
-average firm. Firm-level cost data are not keyless, so the project uses two
-Census proxies (requires a free `CENSUS_API_KEY`):
-
-- `unit_cost_i = (payroll + materials) / receipts` — Economic Census basic data;
-- `concentration_i` — the top firms' share of receipts.
+average firm. Firm-level cost data are not keyless, so the project uses Census
+Economic Census basic data (requires a free `CENSUS_API_KEY`):
 
 ```
-cost_dispersion_i = 1 - concentration_i
-PP_reg_i = PP_Sraffa_i * (1 - theta * cost_dispersion_i)
+unit_cost_sub = (payroll + materials) / receipts      # 6-digit NAICS
+unit_cost_i   = weighted average within the IO industry
+unit_cost_min = lowest sub-industry unit cost
+factor_i      = 1 - theta * (1 - unit_cost_min / unit_cost_i)
+PP_reg_i      = PP_Sraffa_i * factor_i
 ```
 
-with `theta` a calibration parameter and the benchmark normalised to total gross
-output. Industries without Census coverage fall back to the Sraffa price. This
-is a proxy, not plant-level regulating capitals.
+with `theta = 0.10`. The dispersion measure is the coefficient of variation of
+6-digit unit costs within each IO industry. This is a sub-industry proxy, not a
+firm-level distribution. Coverage is 60 of 65 market industries (1,140
+observations); unmapped industries fall back to the Sraffa price.
+
+Live result: `PP_reg` MAE 16.1%, RMSE 20.1%, corr 0.971, mean gap +0.5% —
+slightly better than Sraffa's 16.7% MAE and much better aggregate calibration
+than the -2.7% Sraffa bias. Gravitation remains weak: `β_GO = +0.072`
+(p=0.215), `β_PP = +0.345`, one-year forecast RMSE 0.264.
 
 ## Cross-dual gravitation
 

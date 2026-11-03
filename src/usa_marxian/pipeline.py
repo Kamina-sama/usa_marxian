@@ -12,7 +12,11 @@ from typing import Any
 import numpy as np
 import pandas as pd
 
-from .analysis.compare import compare_benchmarks, run_shaikh_comparison
+from .analysis.compare import (
+    benchmark_gravitation,
+    compare_benchmarks,
+    run_shaikh_comparison,
+)
 from .analysis.descriptives import summary_table
 from .analysis.diagnostics import diagnostics_table
 from .analysis.gravitation import run_gravitation
@@ -539,15 +543,24 @@ def run_industries(
                         force=refresh,
                     )
                     if regulating_data is not None:
-                        unit_cost, concentration = regulating_data
                         regulating = build_regulating_benchmark(
                             shaikh.shaikh.panel,
-                            unit_cost,
-                            concentration,
-                            theta=0.5,
+                            regulating_data,
                         )
                         shaikh.shaikh.panel = regulating.panel
                         shaikh.comparison = compare_benchmarks(regulating.panel)
+                        reg_grav = benchmark_gravitation(
+                            regulating.panel,
+                            "PP_reg",
+                            "Regulating capital (low-cost firms)",
+                        )
+                        shaikh.gravitation = pd.concat(
+                            [shaikh.gravitation, pd.DataFrame([reg_grav])],
+                            ignore_index=True,
+                        )
+                        shaikh.summary["gravitation"] = shaikh.gravitation.to_dict(
+                            orient="records"
+                        )
                         report["regulating"] = regulating.summary
                         report["benchmark_comparison"] = shaikh.comparison.to_dict(
                             orient="records"

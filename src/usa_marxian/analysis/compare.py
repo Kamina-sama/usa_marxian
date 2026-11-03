@@ -101,6 +101,16 @@ def _benchmark_frame(
     return frame
 
 
+def benchmark_gravitation(
+    panel: pd.DataFrame,
+    column: str,
+    label: str,
+    years: list[int] | None = None,
+) -> dict:
+    """Public wrapper for a single benchmark's gravitation statistics."""
+    return _benchmark_gravitation(panel, column, label, years=years)
+
+
 def _benchmark_gravitation(
     panel: pd.DataFrame, column: str, label: str, years: list[int] | None = None
 ) -> dict:

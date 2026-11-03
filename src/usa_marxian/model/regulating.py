@@ -21,7 +21,6 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
-import numpy as np
 import pandas as pd
 
 
@@ -33,51 +32,45 @@ class RegulatingResult:
 
 def build_regulating_benchmark(
     panel: pd.DataFrame,
-    unit_cost: pd.DataFrame,
-    concentration: pd.DataFrame,
+    regulating: pd.DataFrame,
     *,
-    theta: float = 0.5,
     base_column: str = "PP_Sraffa",
+    theta: float = 0.10,
 ) -> RegulatingResult:
-    """Attach ``PP_reg`` and cost-heterogeneity columns to the panel."""
+    """Attach ``PP_reg`` and cost-heterogeneity columns to the panel.
+
+    ``regulating`` must contain ``industry_code, unit_cost, unit_cost_min,
+    cost_cv``. The low-cost sub-industry's relative cost gap is applied only
+    partially: ``factor = 1 - theta * (1 - unit_cost_min / unit_cost)``.
+    """
     if base_column not in panel.columns:
         raise KeyError(f"Missing base benchmark column {base_column!r}")
 
     out = panel.merge(
-        unit_cost.loc[:, ["industry_code", "unit_cost"]],
-        on="industry_code",
-        how="left",
-        validate="many_to_one",
-    )
-    out = out.merge(
-        concentration.loc[:, ["industry_code", "concentration"]],
+        regulating.loc[
+            :, ["industry_code", "unit_cost", "unit_cost_min", "cost_cv"]
+        ],
         on="industry_code",
         how="left",
         validate="many_to_one",
     )
 
-    out["cost_dispersion"] = 1.0 - out["concentration"]
-    mapped = out["cost_dispersion"].notna()
-    out["regulating_factor"] = np.where(
-        mapped, 1.0 - theta * out["cost_dispersion"], 1.0
-    )
+    raw_gap = 1.0 - (out["unit_cost_min"] / out["unit_cost"])
+    raw_gap = raw_gap.clip(lower=0.0, upper=0.5)
+    out["regulating_factor"] = 1.0 - theta * raw_gap
+    out["cost_dispersion"] = out["cost_cv"]
     out["regulating_cost"] = out["unit_cost"] * out["regulating_factor"]
     out["PP_reg"] = out[base_column] * out["regulating_factor"]
 
-    total_go = float(out["GO"].sum())
-    total_reg = float(out["PP_reg"].sum())
-    if total_reg > 0:
-        out["PP_reg"] = out["PP_reg"] * (total_go / total_reg)
-
+    mapped = out["regulating_factor"].notna()
     summary = {
         "theta": float(theta),
         "n_mapped": int(mapped.sum()),
         "n_total": int(out.shape[0]),
-        "mean_cost_dispersion": float(
-            out.loc[mapped, "cost_dispersion"].mean()
-        ),
+        "mean_regulating_factor": float(out.loc[mapped, "regulating_factor"].mean()),
+        "mean_cost_dispersion": float(out.loc[mapped, "cost_dispersion"].mean()),
         "coverage_share": float(mapped.mean()),
         "base_column": base_column,
-        "source": "Census ecnbasic unit cost + ecnsize concentration",
+        "source": "Census ecnbasic 6-digit sub-industry unit costs",
     }
     return RegulatingResult(panel=out, summary=summary)

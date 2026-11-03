@@ -27,25 +27,26 @@ def test_build_regulating_benchmark_reduces_low_concentration_prices():
             "PP_Sraffa": [90.0, 110.0],
         }
     )
-    unit_cost = pd.DataFrame(
-        {"industry_code": ["A", "B"], "unit_cost": [0.5, 0.5]}
-    )
-    concentration = pd.DataFrame(
-        {"industry_code": ["A", "B"], "concentration": [0.8, 0.2]}
-    )
-
-    result = build_regulating_benchmark(
-        panel, unit_cost, concentration, theta=0.5
+    regulating = pd.DataFrame(
+        {
+            "industry_code": ["A", "B"],
+            "unit_cost": [0.5, 0.5],
+            "unit_cost_min": [0.4, 0.45],
+            "cost_cv": [0.2, 0.1],
+        }
     )
 
-    # A is concentrated (dispersion 0.2), B is not (dispersion 0.8).
+    result = build_regulating_benchmark(panel, regulating, theta=0.5)
+
     a = result.panel.loc[result.panel["industry_code"] == "A"].iloc[0]
     b = result.panel.loc[result.panel["industry_code"] == "B"].iloc[0]
+    # factor = 1 - theta * (1 - min/avg)
+    assert np.isclose(a["regulating_factor"], 1 - 0.5 * 0.2)
+    assert np.isclose(b["regulating_factor"], 1 - 0.5 * 0.1)
     assert np.isclose(a["cost_dispersion"], 0.2)
-    assert np.isclose(b["cost_dispersion"], 0.8)
-    assert np.isclose(a["regulating_factor"], 0.9)
-    assert np.isclose(b["regulating_factor"], 0.6)
 
-    # Normalised to total GO.
-    assert np.isclose(result.panel["PP_reg"].sum(), 200.0, atol=1e-9)
+    assert np.isclose(
+        result.panel.loc[result.panel["industry_code"] == "A", "PP_reg"].iloc[0],
+        90.0 * (1 - 0.5 * 0.2),
+    )
     assert result.summary["n_mapped"] == 2

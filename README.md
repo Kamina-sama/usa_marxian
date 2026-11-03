@@ -481,6 +481,9 @@ Fit on the same 65 market industries, 2005-2023:
   **0.982**, within 25% **77.2%**, mean gap **-2.4%**.
 - **Shaikh iterated `PP_Shaikh`**: MAE **17.2%**, RMSE **21.3%**, corr
   **0.973**, slope **0.985**, within 25% **76.9%**, mean gap **-3.1%**.
+- **Regulating capital `PP_reg`** (60 of 65 industries): MAE **16.1%**, RMSE
+  **20.1%**, corr **0.971**, slope **0.978**, within 25% **80.4%**, mean gap
+  **+0.5%**.
 - **Direct prices (labour values)**: MAE **37.2%**, RMSE **48.8%**, corr
   **0.887**, slope **0.893**, within 25% **42.1%**, mean gap **-8.0%**.
 
@@ -493,6 +496,9 @@ Gravitation comparison:
 - **Shaikh iterated `PP_Shaikh`**: mean gap 17.3%, half-life 2.4y, output
   adjustment `+0.078` (p=0.083), PP adjustment `+0.333` (p<0.001), 1y forecast
   RMSE 0.254.
+- **Regulating capital `PP_reg`**: mean gap 17.0%, half-life 2.2y, output
+  adjustment `+0.072` (p=0.215), PP adjustment `+0.345` (p<0.001), 1y forecast
+  RMSE 0.264.
 - **Direct prices**: mean gap 35.7%, half-life 2.7y, output adjustment `+0.032`
   (p=0.456), 1y forecast RMSE 0.460.
 - Naive forecast RMSE: **0.120**.
@@ -511,10 +517,12 @@ better.** **Sraffa calibrates the aggregate level better.** **Shaikh's iteration
 converges to Sraffa.** All three fail the random-walk forecast benchmark.
 
 A regulating-capital benchmark `PP_reg` is available when a `CENSUS_API_KEY` is
-set. It scales the Sraffa price by `1 - theta * (1 - concentration)` so that
-less-concentrated industries (more dispersed costs) have a lower regulating
-cost, then normalises to total gross output. Without firm-level data it is a
-documented proxy, not plant-level regulating capitals.
+set. It uses 6-digit Census unit costs: `factor = 1 - theta * (1 -
+unit_cost_min / unit_cost)`, with `theta = 0.10`, applied to the Sraffa price.
+With the live data it covers 60 of 65 market industries and gives MAE 16.1%,
+mean gap +0.5% — slightly better than Sraffa's 16.7% MAE and much better
+aggregate calibration. It remains a sub-industry proxy, not plant-level
+regulating capitals.
 
 See `docs/sraffa.md` and `docs/shaikh.md`.
 

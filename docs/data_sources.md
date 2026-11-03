@@ -255,17 +255,19 @@ total; the remaining 45.5% is broad-group allocation.
 
 ## Census Economic Census (regulating capitals, optional key)
 
-The regulating-capital benchmark uses two Census Economic Census tables. Both
-require a free Census API key (`CENSUS_API_KEY` in `.env`):
+The regulating-capital benchmark uses Census Economic Census basic data. It
+requires a free Census API key (`CENSUS_API_KEY` in `.env`):
 
-- `https://api.census.gov/data/2017/ecnbasic` — receipts, payroll and cost of
-  materials by NAICS (unit cost).
-- `https://api.census.gov/data/2012/ecnsize` — concentration (HHI, top-firm
-  shares).
+```
+https://api.census.gov/data/2017/ecnbasic
+```
 
-NAICS codes are mapped to the 71 IO industries via `config/census_mapping.yaml`
-using longest-prefix matching. Without a key the module returns `None` and the
-regulating benchmark is skipped.
+The query pulls receipts, payroll and cost of materials at 6-digit NAICS,
+computes unit cost `(payroll + materials) / receipts`, and aggregates to the 71
+IO industries via `config/census_mapping.yaml` (longest-prefix matching). Within
+each IO industry it reports the weighted unit cost, the lowest sub-industry unit
+cost, and the coefficient of variation across sub-industries. Without a key the
+module returns `None` and the regulating benchmark is skipped.
 
 ## World Bank (not used by default)
 
