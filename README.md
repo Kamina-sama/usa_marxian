@@ -641,23 +641,45 @@ output/            tables, figures, JSON reports (gitignored)
 
 ## Roadmap
 
-1. **Residual inventory detail.** Manufacturing and retail inventories are
-   detailed from BEA Table 1BUC, and government/housing capital is now actual.
-   Still outstanding: detailed inventories for mining/utilities/construction and
-   “other” industries (about 11% of inventory value).
-2. **Refine the intermediate-input deflator.** It now uses 2017 Use-table
-   weights and broad-sector supplier prices. Replace the broad-sector proxies
-   with commodity-level prices and chain the weights over time.
-3. **Unit prices and quantities.** Use the Make and Use tables to construct
-   unit value prices and compare them with unit prices of production.
-4. **Input-output value magnitudes.** Compute direct and total labour
-   requirements with the Leontief inverse.
-5. **Structural-break econometrics.** Bai-Perron multiple breaks, rolling
+### Done
+
+- **Macro accounts** — Moseley's `P, C, N, V, S, K, L, M, m, R`, with alternative
+  value-added, capital-stock, hours and MELT specifications.
+- **Industry accounts** — 71 BEA Use-table industries; actual fixed assets,
+  government and housing capital, detailed manufacturing/retail inventories,
+  industry CFC, and net surplus-value.
+- **Sector deflators** — value-added, gross-output, and a supplier-weighted
+  intermediate-input deflator (2017 weights), plus real profit rates.
+- **Property-income check** — `S = N - V` against independent NIPA property income.
+- **Gravitation tests** — deviation persistence, panel unit roots, panel error
+  correction, and out-of-sample forecasts for current and long-run `PP`.
+- **Input-output value magnitudes** — labour values via the Leontief inverse and
+  deflated annual `A_t`.
+- **Sraffa prices of production** — the fixed point `p = (1+r)(pA+wl)`, plus the
+  Shaikh endogenous-`r` iteration and a toy cross-dual simulation.
+- **State space** — `p, q, k, I, u, w, l, A_t`, with FTE-based industry hours and
+  industry wage rates, feeding a first stock-flow cross-dual model.
+- **Regulating capitals** — a concentration-based `PP_reg` proxy (Census, key-gated).
+
+### Remaining, in rough priority order
+
+1. **Residual inventory detail** — mining/utilities/construction and “other”
+   industries (about 11% of inventory value) still use broad-group allocation.
+2. **Commodity-level intermediate-input deflator** — replace broad-sector
+   supplier proxies and chain the Use-table weights over time.
+3. **Plant-level cost heterogeneity** — the regulating-capital benchmark is a
+   concentration proxy; true regulating capitals need Census microdata or ASM
+   size-class cost distributions.
+4. **Demand closure** — the cross-dual/stock-flow model uses exogenous final
+   demand; add consumption, investment demand, government and net exports.
+5. **Estimation and inference** — the stock-flow parameters are point-calibrated;
+   add bootstrap uncertainty, out-of-sample validation and identifiability checks.
+6. **Industry-specific hours** — replace the common hours-per-FTE assumption with
+   BLS CES hours by industry.
+7. **Structural-break econometrics** — Bai-Perron multiple breaks, rolling
    regressions, and regime-dependent profit-rate trends.
-6. **Alternative MELT measures.** Moseley's own estimates use NNP, NDP and net
-   national income; the infrastructure now supports swapping the numerator.
-7. **Cross-country comparison.** The World Bank endpoint is already documented;
-   the same accounting can be applied to other economies.
+8. **Cross-country comparison** — the World Bank endpoint is documented; the same
+   accounting can be applied to other economies.
 
 ## Reference
 
