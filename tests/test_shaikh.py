@@ -7,6 +7,8 @@ import pandas as pd
 
 from usa_marxian.analysis.compare import compare_benchmarks
 from usa_marxian.model.shaikh import (
+    build_technical_matrices,
+    build_technical_matrix,
     cross_dual_gravitation,
     iterative_prices,
     iterative_prices_endogenous,
@@ -25,6 +27,32 @@ def _matrix() -> pd.DataFrame:
 
 def _labour() -> pd.Series:
     return pd.Series({"A": 0.10, "B": 0.20})
+
+
+def test_technical_matrix_uses_requested_year():
+    panel = pd.DataFrame(
+        {
+            "year": [2017, 2017, 2018, 2018],
+            "industry_code": ["A", "B", "A", "B"],
+            "GO": [100.0, 100.0, 200.0, 100.0],
+        }
+    )
+    use = pd.DataFrame(
+        {
+            "year": [2017, 2017, 2017, 2017, 2018, 2018, 2018, 2018],
+            "commodity_code": ["A", "A", "B", "B", "A", "A", "B", "B"],
+            "industry_code": ["A", "B", "A", "B", "A", "B", "A", "B"],
+            "value": [20.0, 10.0, 30.0, 40.0, 80.0, 20.0, 60.0, 40.0],
+        }
+    )
+
+    matrix_2017 = build_technical_matrix(use, panel, year=2017)
+    matrix_2018 = build_technical_matrix(use, panel, year=2018)
+    matrices = build_technical_matrices(use, panel)
+
+    assert np.isclose(matrix_2017.loc["A", "A"], 0.20)
+    assert np.isclose(matrix_2018.loc["A", "A"], 0.40)
+    assert set(matrices) == {2017, 2018}
 
 
 def test_labour_values_solve_leontief_inverse():

@@ -53,6 +53,7 @@ from .industries import NON_MARKET_CODES
 class ShaikhResult:
     panel: pd.DataFrame
     matrix: pd.DataFrame
+    matrices: dict[int, pd.DataFrame]
     technical_coefficients: pd.DataFrame
     summary: dict
 
@@ -61,17 +62,23 @@ def build_technical_matrix(
     use_matrices: pd.DataFrame,
     panel: pd.DataFrame,
     *,
+    year: int | None = None,
     base_year: int = 2017,
 ) -> pd.DataFrame:
-    """Build the 71x71 input-output matrix ``A`` for the base year."""
+    """Build the 71x71 input-output matrix ``A`` for one year.
+
+    ``A[c, j] = U[c, j] / GO[j]`` in current prices. If ``year`` is omitted,
+    the matrix for ``base_year`` is returned.
+    """
+    selected_year = int(year if year is not None else base_year)
     codes = sorted(
         panel.loc[~panel["industry_code"].isin(NON_MARKET_CODES), "industry_code"]
         .astype(str)
         .unique()
     )
-    base = use_matrices.loc[use_matrices["year"] == base_year]
+    base = use_matrices.loc[use_matrices["year"] == selected_year]
     if base.empty:
-        raise ValueError(f"No Use matrix for base year {base_year}")
+        raise ValueError(f"No Use matrix for {selected_year}")
 
     base = base.loc[base["commodity_code"].astype(str).isin(codes)]
     matrix = (
@@ -86,14 +93,44 @@ def build_technical_matrix(
     )
 
     base_output = (
-        panel.loc[panel["year"] == base_year]
+        panel.loc[panel["year"] == selected_year]
         .set_index("industry_code")["GO"]
         .reindex(codes)
     )
     if base_output.isna().any() or (base_output <= 0).any():
-        raise ValueError("Base-year gross output missing or non-positive")
+        raise ValueError(f"Gross output missing or non-positive for {selected_year}")
 
     return matrix.div(base_output, axis=1)
+
+
+def build_technical_matrices(
+    use_matrices: pd.DataFrame,
+    panel: pd.DataFrame,
+    *,
+    base_year: int = 2017,
+) -> dict[int, pd.DataFrame]:
+    """Build annual input-output matrices for every year present in both."""
+    years = sorted(
+        set(use_matrices["year"].astype(int)).intersection(
+            set(panel["year"].astype(int))
+        )
+    )
+    if not years:
+        raise ValueError("No overlapping Use-table and panel years")
+
+    matrices: dict[int, pd.DataFrame] = {}
+    for year in years:
+        try:
+            matrices[int(year)] = build_technical_matrix(
+                use_matrices, panel, year=year
+            )
+        except ValueError:
+            continue
+    if not matrices:
+        raise ValueError("No annual technical matrices could be built")
+    if base_year not in matrices:
+        base_year = min(matrices)
+    return matrices
 
 
 def _normalise(values: pd.Series, output: pd.Series) -> pd.Series:
@@ -386,12 +423,16 @@ def build_shaikh_benchmarks(
     base_year: int = 2017,
 ) -> ShaikhResult:
     """Build Shaikh's value-price and price-of-production benchmarks."""
-    matrix = build_technical_matrix(use_matrices, panel, base_year=base_year)
+    matrices = build_technical_matrices(use_matrices, panel, base_year=base_year)
+    matrix = matrices.get(base_year, next(iter(matrices.values())))
     hours = accounts["L"].dropna()
 
     records = []
     for year, group in panel.groupby("year", sort=True):
         if year not in hours.index:
+            continue
+        matrix = matrices.get(int(year))
+        if matrix is None:
             continue
         group = group.set_index("industry_code").reindex(matrix.index)
         if group["GO"].isna().any() or (group["GO"] <= 0).any():
@@ -501,10 +542,14 @@ def build_shaikh_benchmarks(
     return ShaikhResult(
         panel=merged,
         matrix=matrix,
+        matrices=matrices,
         technical_coefficients=matrix,
         summary={
             "base_year": int(base_year),
             "n_industries": int(matrix.shape[0]),
+            "n_matrices": int(len(matrices)),
+            "matrix_years": [min(matrices), max(matrices)],
+            "matrix_prices": "current-price Use tables, annual",
             "profit_rate": "sum(S)/sum(K), current year",
             "solver": "Sraffian direct solve + fixed-r iteration + endogenous-r iteration + cross-dual simulation",
             "iterations_mean": float(iteration_summary["iterations"].mean()),

@@ -466,46 +466,47 @@ The project also builds Shaikh's benchmarks from the same BEA Use table:
 
 Moseley's benchmark uses the stock of advanced capital and `R = S/M`; Shaikh's
 uses the flow cost matrix and `r = S/K`. They are different capital concepts,
-not two estimates of one parameter.
+not two estimates of one parameter. `A_t` is annual and in current prices; a
+constant-price matrix is the next refinement.
 
 Fit on the same 65 market industries, 1998-2023:
 
 - **Moseley `PP`**: MAE **13.7%**, RMSE **22.9%**, corr **0.983**, slope
   **1.043**, within 25% **88.8%**, mean gap **-7.2%**.
-- **Shaikh `PP_S`**: MAE **15.9%**, RMSE **20.1%**, corr **0.977**, slope
-  **0.954**, within 25% **80.7%**, mean gap **-1.0%**.
-- **Shaikh iterated `PP_S_iter`**: MAE **15.9%**, RMSE **20.1%**, corr
-  **0.979**, slope **0.954**, within 25% **80.5%**, mean gap **-1.1%**.
-- **Shaikh direct prices**: MAE **18.5%**, RMSE **24.2%**, corr **0.954**,
-  slope **0.939**, within 25% **69.1%**, mean gap **-0.1%**.
+- **Shaikh `PP_S`**: MAE **15.7%**, RMSE **19.5%**, corr **0.975**, slope
+  **0.974**, within 25% **81.2%**, mean gap **-1.6%**.
+- **Shaikh iterated `PP_S_iter`**: MAE **15.7%**, RMSE **19.6%**, corr
+  **0.976**, slope **0.975**, within 25% **82.0%**, mean gap **-1.7%**.
+- **Shaikh direct prices**: MAE **17.8%**, RMSE **23.4%**, corr **0.953**,
+  slope **0.954**, within 25% **70.9%**, mean gap **-0.6%**.
 
 Gravitation comparison:
 
 - **Moseley**: mean gap 12.4%, half-life 2.2y, output adjustment `-0.163`
   (p=0.015), PP adjustment `+0.105` (p=0.035), 1y forecast RMSE 0.213.
-- **Shaikh `PP_S`**: mean gap 16.8%, half-life 3.2y, output adjustment
-  `-0.216` (p=0.005), PP adjustment `-0.019` (p=0.742), 1y forecast RMSE 0.255.
-- **Shaikh iterated `PP_S_iter`**: mean gap 16.8%, half-life 3.4y, output
-  adjustment `-0.204` (p=0.008), PP adjustment `-0.017` (p=0.778), 1y forecast
-  RMSE 0.255.
-- **Shaikh direct prices**: mean gap 19.7%, half-life 3.2y, output adjustment
-  `-0.173` (p=0.003), 1y forecast RMSE 0.298.
+- **Shaikh `PP_S`**: mean gap 16.1%, half-life 2.6y, output adjustment
+  `+0.029` (p=0.235), PP adjustment `+0.264` (p<0.001), 1y forecast RMSE 0.249.
+- **Shaikh iterated `PP_S_iter`**: mean gap 16.1%, half-life 2.6y, output
+  adjustment `+0.038` (p=0.101), PP adjustment `+0.274` (p<0.001), 1y forecast
+  RMSE 0.249.
+- **Shaikh direct prices**: mean gap 18.7%, half-life 2.7y, output adjustment
+  `-0.043` (p=0.199), 1y forecast RMSE 0.293.
 - Naive forecast RMSE: **0.120**.
 
 The explicit Shaikh iteration starts from labour values, recomputes the profit
-rate each round, and converges in **27-28 rounds** with a residual below
-`1e-10`. The model-implied rate averages **33.9%** against an observed **30.3%**
-(2023: **35.7%** vs **33.8%**). Iterated prices are nearly identical to the
-Sraffian fixed point, so the iteration adds convergence diagnostics, not a
-different center. A toy cross-dual simulation also equalises rates, reducing
-the weighted dispersion from **0.142** to approximately zero in about **194**
-steps.
+rate each round, and converges in **27 rounds on average** (maximum 34) with a
+residual below `1e-10`. The model-implied rate averages **33.9%** against an
+observed **30.3%** (2023: **35.7%** vs **33.8%**). Iterated prices are nearly
+identical to the Sraffian fixed point, so the iteration adds convergence
+diagnostics, not a different center. A toy cross-dual simulation also equalises
+rates, reducing the weighted dispersion from **0.146** to approximately zero in
+about **199** steps.
 
 There is no single winner. **Moseley fits typical industry errors and forecasts
-better.** **Shaikh has lower aggregate bias and cleaner one-way gravitation**:
-market output adjusts toward `PP_S`, while `PP_S` does not adjust toward market
-output. Both fail the random-walk forecast benchmark. Labour values alone fit
-worst.
+better.** **Shaikh has lower aggregate bias and a slope closer to one.** But the
+clean one-way gravitation from the fixed-2017 matrix disappears with annual
+`A_t`: output does not adjust toward `PP_S`, while `PP_S` adjusts toward output.
+Both fail the random-walk forecast benchmark. Labour values alone fit worst.
 
 The full comparison is in `docs/shaikh.md`.
 
