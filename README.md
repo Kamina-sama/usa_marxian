@@ -492,9 +492,11 @@ output/            tables, figures, JSON reports (gitignored)
 
 ## Roadmap
 
-1. **Within-sector inventory allocation and fallbacks.** Replace the
-   gross-output allocation of broad-sector inventories with industry-level
-   inventory data, and replace the cost proxy for government and housing.
+1. **Remaining inventory detail and government/housing capital.** Manufacturing
+   and retail inventories are now detailed from BEA Table 1BUC. Still
+   outstanding: detailed inventories for mining/utilities/construction and
+   “other” industries (about 11% of inventory value), and actual capital stocks
+   for government and housing instead of the cost proxy.
 2. **Intermediate-input deflators.** Build a sector intermediate deflator so
    real cost prices and real profit rates can be constructed without the
    invalid `GO_real - N_real` residual.
