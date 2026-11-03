@@ -204,19 +204,21 @@ other-real-estate industry already has actual nonresidential fixed assets.
 The Section 6 workbook (`Section6All_xls.xlsx`) also contains Table 6.5D,
 full-time equivalent employees by industry, 1998 forward. The project maps its
 detailed lines to the 71 IO industries via `config/employment_mapping.yaml`,
-scales FTE by the aggregate hours-per-FTE to obtain industry labour hours, and
-divides the Use table's compensation by those hours to obtain industry wage
-rates.
+scales FTE to industry labour hours, and divides the Use table's compensation by
+those hours to obtain industry wage rates.
+
+BEA Table 6.9D (hours worked by industry) was discontinued, so manufacturing
+hours-per-FTE is calibrated to BLS CES manufacturing totals instead:
 
 ```
-hours_per_fte_t = L_t / (sum of market FTE_t)
-labour_hours_i = FTE_i * 1000 * hours_per_fte_t
-wage_rate_i    = V_i / labour_hours_i
+CES3000000001  all employees, manufacturing
+CES3000000002  average weekly hours, manufacturing
+manufacturing_hours = employees * weekly_hours * 52
 ```
 
-Government and owner-occupied housing have no private market employment and are
-excluded from the market calibration. The remaining assumption is a common
-annual hours-per-FTE across industries.
+The common hours-per-FTE is split into manufacturing and non-manufacturing
+rates; non-manufacturing uses the aggregate hours-per-FTE. Government and
+owner-occupied housing are excluded from the market calibration.
 
 ## BEA private inventories (industry stocks)
 

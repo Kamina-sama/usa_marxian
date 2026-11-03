@@ -27,6 +27,11 @@ from .sectors import download_section6
 FTE_SHEET = "T60500D-A"
 EMPLOYMENT_CONFIG_PATH = PROJECT_ROOT / "config" / "employment_mapping.yaml"
 
+MANUFACTURING_IO_CODES = {
+    "311FT", "313TT", "315AL", "321", "322", "323", "324", "325", "326",
+    "327", "331", "332", "333", "334", "335", "3361MV", "3364OT", "337", "339",
+}
+
 
 class BEAEmploymentError(RuntimeError):
     """Raised when the FTE table or mapping cannot be parsed."""
@@ -135,10 +140,13 @@ def attach_employment(
     panel: pd.DataFrame,
     employment: pd.DataFrame,
     hours: pd.Series,
+    manufacturing_hours: pd.DataFrame | None = None,
 ) -> pd.DataFrame:
-    """Attach FTE-based hours and wage rates to the industry panel.
+    """Attach industry hours and wage rates to the panel.
 
-    ``hours`` is the macro total labour hours in billions (indexed by year).
+    ``hours`` is macro total labour hours in billions. If ``manufacturing_hours``
+    is supplied, hours-per-FTE is split into manufacturing and non-manufacturing
+    rates using BLS manufacturing totals.
     """
     out = panel.merge(
         employment.loc[:, ["year", "industry_code", "fte"]],
@@ -148,23 +156,52 @@ def attach_employment(
     )
 
     market_mask = ~out["industry_code"].astype(str).isin(NON_MARKET_CODES)
+    market = out.loc[market_mask]
     total_fte = (
-        out.loc[market_mask].dropna(subset=["fte"])
+        market.dropna(subset=["fte"])
         .groupby("year")["fte"]
         .sum()
     )
     hours_per_fte = (hours * 1e9) / (total_fte * 1e3)
 
-    out["hours_per_fte"] = out["year"].map(hours_per_fte)
+    if manufacturing_hours is not None:
+        manufacturing = manufacturing_hours.set_index("year")
+        mfg_mask = out["industry_code"].astype(str).isin(MANUFACTURING_IO_CODES)
+        mfg_fte = (
+            market.loc[market["industry_code"].astype(str).isin(MANUFACTURING_IO_CODES)]
+            .dropna(subset=["fte"])
+            .groupby("year")["fte"]
+            .sum()
+        )
+        nonmfg_fte = (total_fte - mfg_fte.reindex(total_fte.index).fillna(0.0)).clip(
+            lower=1.0
+        )
+        mfg_hours_bn = manufacturing["manufacturing_hours_bn"].reindex(total_fte.index)
+        mfg_hours_per_fte = (mfg_hours_bn * 1e9) / (mfg_fte.reindex(total_fte.index) * 1e3)
+        nonmfg_hours_per_fte = (
+            ((hours.reindex(total_fte.index) - mfg_hours_bn) * 1e9)
+            / (nonmfg_fte * 1e3)
+        )
+        mfg_rate = out["year"].map(mfg_hours_per_fte)
+        nonmfg_rate = out["year"].map(nonmfg_hours_per_fte)
+        common_rate = out["year"].map(hours_per_fte)
+        out["hours_per_fte"] = np.where(
+            mfg_mask,
+            mfg_rate.fillna(common_rate),
+            nonmfg_rate.fillna(common_rate),
+        )
+        source = np.where(mfg_mask & mfg_rate.notna(), "bls_mfg", "fte")
+    else:
+        out["hours_per_fte"] = out["year"].map(hours_per_fte)
+        source = np.full(len(out), "fte", dtype=object)
+
     has_fte = out["fte"].notna()
     out["labour_hours"] = np.where(
         market_mask & has_fte,
         out["fte"] * 1000.0 * out["hours_per_fte"],
         np.nan,
     )
-    out["hours_source"] = np.where(
-        market_mask & has_fte, "fte", "missing"
-    )
+    out["hours_source"] = np.where(market_mask & has_fte, source, "missing")
 
     if "V" in out.columns:
         out["wage_rate_i"] = out["V"] * 1e6 / out["labour_hours"]

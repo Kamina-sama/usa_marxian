@@ -62,9 +62,10 @@ fixed-cost stock files. `A_t` is the annual current-price Use matrix.
   change. A constant-price `A_t` is the next refinement.
 - **Utilization** is an output-capital ratio, not the FRB capacity-utilization
   series. FRB utilization is available only for manufacturing aggregates.
-- **Labour hours** are built from Table 6.5D full-time equivalents scaled by
-  the aggregate hours-per-FTE. A common annual hours-per-FTE is still assumed;
-  true industry-specific hours would require BLS CES hours.
+- **Labour hours** are built from Table 6.5D full-time equivalents. Manufacturing
+  hours-per-FTE is calibrated to BLS CES manufacturing totals; other industries
+  use the aggregate hours-per-FTE. True industry-specific hours would require
+  BLS CES detail, which is not available for all 71 industries.
 - **Wages** now include an industry wage rate `wage_rate_i = V_i / hours_i`, but
   the aggregate wage is still used for the macro wage rule.
 - **Depreciation** is BEA fixed-asset depreciation, not the NIPA CFC allocation

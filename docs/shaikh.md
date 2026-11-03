@@ -70,7 +70,8 @@ are well fitted; relative prices are not.
 
 Implemented:
 
-- labour values via the Leontief inverse, with FTE-based industry hours;
+- labour values via the Leontief inverse, with FTE hours split by BLS
+  manufacturing totals;
 - the endogenous-`r` cost-plus iteration;
 - a toy cross-dual price/output adjustment;
 - a first stock-flow cross-dual simulation.

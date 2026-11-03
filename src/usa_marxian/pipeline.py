@@ -37,6 +37,7 @@ from .data.bea_employment import (
 )
 from .data.bea_inventory_detail import load_industry_inventories_detail
 from .data.bea_io import build_industry_panel, load_use_matrices
+from .data.bls_industry import fetch_manufacturing_hours
 from .data.build import build_accounts, build_raw_panel, validate_accounts
 from .data.census_ecn import load_regulating_data
 from .data.quality import write_quality
@@ -367,7 +368,25 @@ def run_industries(
             employment = load_industry_employment(
                 config.settings.raw_dir, force=refresh
             )
-            panel = attach_employment(panel, employment, macro_hours)
+            manufacturing_hours = None
+            if config.api.bls_api_key:
+                try:
+                    manufacturing_hours = fetch_manufacturing_hours(
+                        config.api.bls_api_key,
+                        start_year=max(2005, int(macro_hours.index.min())),
+                        end_year=int(macro_hours.index.max()),
+                    )
+                except Exception as exc:
+                    warnings.warn(
+                        f"BLS manufacturing hours unavailable: {exc}",
+                        stacklevel=2,
+                    )
+            panel = attach_employment(
+                panel,
+                employment,
+                macro_hours,
+                manufacturing_hours=manufacturing_hours,
+            )
         except Exception as exc:
             warnings.warn(
                 f"Industry employment unavailable, hours stay compensation-allocated: {exc}",

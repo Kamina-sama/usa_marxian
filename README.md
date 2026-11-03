@@ -470,8 +470,8 @@ The project builds three price benchmarks from the same BEA Use table:
 Moseley's benchmark uses the stock of advanced capital and `R = S/M`; Sraffa and
 Shaikh use the flow cost matrix and `r = S/K`. They are different capital
 concepts, not two estimates of one parameter. `A_t` is the **deflated** annual
-Use matrix (2017 dollars), and labour values now use measured FTE-based hours
-rather than compensation-allocated hours.
+Use matrix (2017 dollars), and labour values now use FTE hours split by BLS
+manufacturing totals rather than compensation-allocated hours.
 
 Fit on the same 65 market industries, 2005-2023:
 
@@ -665,7 +665,7 @@ output/            tables, figures, JSON reports (gitignored)
   deflated annual `A_t`.
 - **Sraffa prices of production** — the fixed point `p = (1+r)(pA+wl)`, plus the
   Shaikh endogenous-`r` iteration and a toy cross-dual simulation.
-- **State space** — `p, q, k, I, u, w, l, A_t`, with FTE-based industry hours and
+- **State space** — `p, q, k, I, u, w, l, A_t`, with FTE/BLS industry hours and
   industry wage rates, feeding a first stock-flow cross-dual model.
 - **Regulating capitals** — a concentration-based `PP_reg` proxy (Census, key-gated).
 
@@ -682,8 +682,8 @@ output/            tables, figures, JSON reports (gitignored)
    demand; add consumption, investment demand, government and net exports.
 5. **Estimation and inference** — the stock-flow parameters are point-calibrated;
    add bootstrap uncertainty, out-of-sample validation and identifiability checks.
-6. **Industry-specific hours** — replace the common hours-per-FTE assumption with
-   BLS CES hours by industry.
+6. **Industry-specific hours** — manufacturing now uses BLS CES totals; extend
+   BLS CES detail to the remaining industries where series exist.
 7. **Structural-break econometrics** — Bai-Perron multiple breaks, rolling
    regressions, and regime-dependent profit-rate trends.
 8. **Cross-country comparison** — the World Bank endpoint is documented; the same
