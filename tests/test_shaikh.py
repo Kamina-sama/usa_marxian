@@ -6,7 +6,13 @@ import numpy as np
 import pandas as pd
 
 from usa_marxian.analysis.compare import compare_benchmarks
-from usa_marxian.model.shaikh import labour_values, prices_of_production
+from usa_marxian.model.shaikh import (
+    cross_dual_gravitation,
+    iterative_prices,
+    iterative_prices_endogenous,
+    labour_values,
+    prices_of_production,
+)
 
 
 def _matrix() -> pd.DataFrame:
@@ -36,6 +42,35 @@ def test_prices_of_production_are_positive_and_normalisable():
     total = float((prices * output).sum())
     normalised = prices * (float(output.sum()) / total)
     assert np.isclose(float((normalised * output).sum()), float(output.sum()))
+
+
+def test_iterative_prices_converges_to_direct_solution():
+    matrix = _matrix()
+    direct = prices_of_production(matrix, _labour(), 0.20)
+    iterative = iterative_prices(matrix, _labour(), 0.20)
+    assert iterative.converged
+    assert iterative.iterations > 1
+    direct = direct / direct.sum()
+    assert np.allclose(iterative.prices, direct, atol=1e-8)
+
+
+def test_endogenous_iteration_converges():
+    matrix = _matrix()
+    output = pd.Series({"A": 100.0, "B": 80.0})
+    result = iterative_prices_endogenous(matrix, _labour(), output)
+    assert result.converged
+    assert np.isfinite(result.profit_rate)
+    assert result.profit_rate > -1
+    assert (result.prices > 0).all()
+
+
+def test_cross_dual_produces_a_history():
+    matrix = _matrix()
+    output = pd.Series({"A": 100.0, "B": 80.0})
+    result = cross_dual_gravitation(matrix, _labour(), output, steps=50)
+    assert len(result.history) == 50
+    assert np.isfinite(result.r_dispersion_start)
+    assert np.isfinite(result.r_dispersion_end)
 
 
 def test_compare_benchmarks_prefers_closer_benchmark():

@@ -474,6 +474,8 @@ Fit on the same 65 market industries, 1998-2023:
   **1.043**, within 25% **88.8%**, mean gap **-7.2%**.
 - **Shaikh `PP_S`**: MAE **15.9%**, RMSE **20.1%**, corr **0.977**, slope
   **0.954**, within 25% **80.7%**, mean gap **-1.0%**.
+- **Shaikh iterated `PP_S_iter`**: MAE **15.9%**, RMSE **20.1%**, corr
+  **0.979**, slope **0.954**, within 25% **80.5%**, mean gap **-1.1%**.
 - **Shaikh direct prices**: MAE **18.5%**, RMSE **24.2%**, corr **0.954**,
   slope **0.939**, within 25% **69.1%**, mean gap **-0.1%**.
 
@@ -483,9 +485,21 @@ Gravitation comparison:
   (p=0.015), PP adjustment `+0.105` (p=0.035), 1y forecast RMSE 0.213.
 - **Shaikh `PP_S`**: mean gap 16.8%, half-life 3.2y, output adjustment
   `-0.216` (p=0.005), PP adjustment `-0.019` (p=0.742), 1y forecast RMSE 0.255.
+- **Shaikh iterated `PP_S_iter`**: mean gap 16.8%, half-life 3.4y, output
+  adjustment `-0.204` (p=0.008), PP adjustment `-0.017` (p=0.778), 1y forecast
+  RMSE 0.255.
 - **Shaikh direct prices**: mean gap 19.7%, half-life 3.2y, output adjustment
   `-0.173` (p=0.003), 1y forecast RMSE 0.298.
 - Naive forecast RMSE: **0.120**.
+
+The explicit Shaikh iteration starts from labour values, recomputes the profit
+rate each round, and converges in **27-28 rounds** with a residual below
+`1e-10`. The model-implied rate averages **33.9%** against an observed **30.3%**
+(2023: **35.7%** vs **33.8%**). Iterated prices are nearly identical to the
+Sraffian fixed point, so the iteration adds convergence diagnostics, not a
+different center. A toy cross-dual simulation also equalises rates, reducing
+the weighted dispersion from **0.142** to approximately zero in about **194**
+steps.
 
 There is no single winner. **Moseley fits typical industry errors and forecasts
 better.** **Shaikh has lower aggregate bias and cleaner one-way gravitation**:
@@ -511,7 +525,7 @@ After `analyze`:
 After `industries`:
 
 - `data/processed/industries.csv`, `industries_shaikh.csv`,
-  `industry_capital.csv`, `industry_fixed_assets.csv`,
+  `shaikh_iterations.csv`, `industry_capital.csv`, `industry_fixed_assets.csv`,
   `industry_government_housing.csv`, `industry_inventories.csv`
 - `output/industries.json`
 - `output/tables/industry_summary.csv`, `industry_latest.csv`,

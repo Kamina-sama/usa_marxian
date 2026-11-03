@@ -477,6 +477,26 @@ def run_industries(
             shaikh.gravitation.to_csv(
                 tables / "benchmark_gravitation.csv", index=False
             )
+            iteration_columns = [
+                "year",
+                "r_observed",
+                "r_model",
+                "iterations",
+                "iteration_residual",
+                "iteration_converged",
+                "cross_dual_converged",
+                "cross_dual_steps",
+                "cross_dual_dispersion_start",
+                "cross_dual_dispersion_end",
+            ]
+            available = [
+                column
+                for column in iteration_columns
+                if column in shaikh.shaikh.panel.columns
+            ]
+            shaikh.shaikh.panel.loc[:, available].drop_duplicates(
+                subset=["year"]
+            ).to_csv(processed / "shaikh_iterations.csv", index=False)
             with (config.settings.output_dir / "shaikh.json").open(
                 "w", encoding="utf-8"
             ) as handle:

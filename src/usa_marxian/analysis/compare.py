@@ -13,6 +13,7 @@ from .gravitation import deviation_summary, error_correction, forecast_evaluatio
 BENCHMARK_LABELS = {
     "PP": "Moseley PP (stock capital)",
     "PP_S": "Shaikh prices of production (flow capital)",
+    "PP_S_iter": "Shaikh iterated prices (endogenous r)",
     "P_V": "Shaikh direct prices (labour values)",
 }
 
@@ -60,7 +61,7 @@ def compare_benchmarks(panel: pd.DataFrame) -> pd.DataFrame:
     frame = panel.loc[panel["is_market"]].copy() if "is_market" in panel.columns else panel
     common = [
         column
-        for column in ("PP_market", "PP_S", "P_V", "GO")
+        for column in ("PP_market", "PP_S", "PP_S_iter", "P_V", "GO")
         if column in frame.columns
     ]
     if common:
@@ -140,6 +141,9 @@ def run_shaikh_comparison(
                 shaikh.panel, "PP_S", "Shaikh prices of production (flow capital)"
             ),
             _benchmark_gravitation(
+                shaikh.panel, "PP_S_iter", "Shaikh iterated prices (endogenous r)"
+            ),
+            _benchmark_gravitation(
                 shaikh.panel, "P_V", "Shaikh direct prices (labour values)"
             ),
         ]
@@ -164,11 +168,9 @@ def run_shaikh_comparison(
         comparison=comparison,
         gravitation=gravitation,
         summary={
-            "base_year": int(base_year),
-            "n_industries": int(shaikh.matrix.shape[0]),
+            **shaikh.summary,
             "latest_year": latest_year,
             "latest_market": latest_rows,
             "gravitation": gravitation.to_dict(orient="records"),
-            "profit_rate": "sum(S)/sum(K), current year",
         },
     )

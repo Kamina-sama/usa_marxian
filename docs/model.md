@@ -406,4 +406,18 @@ Moseley fits typical industry errors better; Shaikh has lower aggregate bias and
 a slope closer to one. In the error-correction test, Shaikh's benchmark has
 cleaner one-way gravitation: `β_GO = -0.216` (p=0.005) and `β_PP = -0.019`
 (p=0.742), whereas Moseley's PP also adjusts toward output (`β_PP = +0.105`).
-Neither beats a naive forecast. See `docs/shaikh.md`.
+Neither beats a naive forecast.
+
+The direct solve is the Sraffian fixed point. The project also runs the explicit
+Shaikh cost-plus iteration:
+
+```
+p_{k+1} = (1 + r_k)(p_k A + w l)
+r_k = (p_k y - (p_k A + w l)y) / ((p_k A + w l)y)
+```
+
+starting from labour values. It converges in 27-28 rounds, with a model-implied
+profit rate averaging 33.9% against an observed 30.3%. The iterated prices are
+almost identical to the fixed point (MAE 15.9%, corr 0.979). A toy cross-dual
+price/output simulation also reduces profit-rate dispersion from 0.142 to
+approximately zero. See `docs/shaikh.md`.

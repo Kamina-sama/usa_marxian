@@ -49,12 +49,59 @@ The key difference from Moseley is the capital concept: Shaikh uses the flow
 cost matrix and a uniform profit rate on cost; Moseley uses the stock of
 advanced capital and `R = S/M`. The two are not nested.
 
+## Iterative process
+
+The direct solve is the Sraffian fixed point. The project also runs the
+cost-plus iteration explicitly.
+
+**Fixed-`r` iteration**
+
+```
+p_{k+1} = (1+r)(p_k A + w l)
+```
+
+with `r` fixed at the observed aggregate rate. It converges to the same ray as
+the direct solve; it is a numerical check, not a different benchmark.
+
+**Endogenous-`r` iteration**
+
+```
+c_k = p_k A + w l
+r_k = (p_k y - c_k y) / (c_k y)
+p_{k+1} = (1 + r_k) c_k
+```
+
+starting from labour values `p_0 = lambda`. This is the Shaikh-style cost-plus
+process: the profit rate is recomputed from the price vector each round. On the
+current data it converges in **27-28 rounds** (mean 26.7, all years converged)
+with a residual below `1e-10`.
+
+The model-implied rate averages **33.9%**, against an observed **30.3%**; for
+2023 it is **35.7%** against **33.8%**. The iterated prices are very close to
+the Sraffian fixed point: MAE **15.9%**, correlation **0.979**.
+
+**Cross-dual simulation**
+
+A minimal price/output adjustment is also simulated:
+
+```
+p_i' = p_i exp(-alpha (r_i - r_bar))
+q_i' = q_i exp( beta  (r_i - r_bar))
+```
+
+Prices fall in high-profit industries (entry), output rises. Starting from
+labour values, the weighted dispersion of profit rates falls from **0.142** to
+approximately **zero** over about **194 steps**. This is a toy version of
+turbulent gravitation, not a fully specified Shaikh model, but it does show the
+adjustment mechanism converging toward equalised rates.
+
 ## Fit, 1998-2023, 65 market industries
 
 | Benchmark | MAE | RMSE | corr | slope | within 25% | mean gap |
 |---|---:|---:|---:|---:|---:|---:|
 | Moseley `PP` | 13.7% | 22.9% | 0.983 | 1.043 | 88.8% | -7.2% |
 | Shaikh `PP_S` | 15.9% | 20.1% | 0.977 | 0.954 | 80.7% | -1.0% |
+| Shaikh iterated `PP_S_iter` | 15.9% | 20.1% | 0.979 | 0.954 | 80.5% | -1.1% |
 | Shaikh `P_V` | 18.5% | 24.2% | 0.954 | 0.939 | 69.1% | -0.1% |
 
 Reading:
@@ -72,6 +119,7 @@ Reading:
 |---|---:|---:|---:|---:|---:|
 | Moseley `PP` | 12.4% | 2.2y | -0.163 (p=0.015) | +0.105 (p=0.035) | 0.213 |
 | Shaikh `PP_S` | 16.8% | 3.2y | -0.216 (p=0.005) | -0.019 (p=0.742) | 0.255 |
+| Shaikh iterated `PP_S_iter` | 16.8% | 3.4y | -0.204 (p=0.008) | -0.017 (p=0.778) | 0.255 |
 | Shaikh `P_V` | 19.7% | 3.2y | -0.173 (p=0.003) | +0.020 (p=0.655) | 0.298 |
 
 Naive forecast RMSE is 0.120.
@@ -95,6 +143,12 @@ There is no single winner.
   **Shaikh fits better**.
 - If "fit" means the labour theory of value directly, **both direct prices and
   Shaikh's flow-price benchmark do worse than Moseley's stock-based benchmark**.
+
+The fixed point and the endogenous-r iteration are almost the same empirically:
+MAE 15.9%, correlation 0.979. The iteration adds convergence diagnostics and a
+model-implied profit rate, not a different price center. The cross-dual
+simulation does equalise rates, but it is a toy process and is not used in the
+fit comparison.
 
 The most defensible summary: Moseley's benchmark is empirically closer to
 observed gross output; Shaikh's benchmark is theoretically cleaner as a center
