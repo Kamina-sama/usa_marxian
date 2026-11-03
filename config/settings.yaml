@@ -1,0 +1,24 @@
+# Global pipeline settings.
+frequency: annual          # only annual is implemented for the core model
+start_year: 1948
+end_year: null             # null = latest available year
+base_year: 2017            # benchmark year for index-based hours
+
+# How total labour hours L are measured:
+#   indexed - Nonfarm business hours index scaled to the NIPA 2017 benchmark
+#             (long history, current; the default)
+#   nipa    - NIPA table 6.9 hours worked (total economy, series ends in 2022)
+#   ces     - BLS/FRED employment x average weekly hours x 52 (private only,
+#             but the FRED weekly-hours series only starts in 2006)
+hours_method: indexed
+
+# Include private inventories in the advanced capital stock M.
+include_inventories: true
+
+# Re-download a cached raw series after this many days.
+cache_max_age_days: 30
+
+# Relative to the project root.
+raw_dir: data/raw
+processed_dir: data/processed
+output_dir: output

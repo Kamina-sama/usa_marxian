@@ -1,0 +1,150 @@
+# Catalog of raw series used to build the Marxian accounts.
+#
+# Every series here is available from FRED's keyless CSV endpoint
+# (https://fred.stlouisfed.org/graph/fredgraph.csv?id=SERIES_ID).
+# `provider` is kept explicit so BLS/BEA series can be added later.
+#
+# scale: multiplier applied at load time.
+#   - monetary series are converted to BILLIONS of current US dollars
+#   - hours series are converted to BILLIONS of hours
+# agg: how sub-annual observations are collapsed to an annual value.
+#   - mean: flows / rates / seasonally adjusted annual rates
+#   - last: end-of-year stock levels
+#   - sum:  within-year totals (not used by default)
+
+roles:
+  gdp:
+    label: Gross domestic product, current prices
+    provider: fred
+    series_id: GDPA
+    units: billions_usd
+    frequency: annual
+    agg: mean
+    scale: 1.0
+    notes: >
+      BEA NIPA Table 1.1.5, line 1. Annual value. This plays the role of the
+      total value-price P when constant capital is measured as depreciation
+      only (P = CFC + NDP).
+
+  cfc:
+    label: Consumption of fixed capital
+    provider: fred
+    series_id: COFC
+    units: billions_usd
+    frequency: quarterly
+    agg: mean
+    scale: 1.0
+    notes: >
+      Quarterly values are seasonally adjusted annual rates, so the annual mean
+      is the annual total. This is the narrow measure of consumed constant
+      capital C in the value-added accounting layer.
+
+  gdp_deflator:
+    label: Gross domestic product, implicit price deflator
+    provider: fred
+    series_id: GDPDEF
+    units: index_2017_100
+    frequency: quarterly
+    agg: mean
+    scale: 1.0
+    notes: >
+      BEA NIPA Table 1.1.9. Used to express the MELT and other monetary
+      variables in constant 2017 dollars.
+
+  compensation:
+    label: Compensation of employees, paid
+    provider: fred
+    series_id: A033RC1A027NBEA
+    units: billions_usd
+    frequency: annual
+    agg: mean
+    scale: 1.0
+    notes: >
+      BEA NIPA Table 1.10. This is the empirical counterpart of variable
+      capital V (the annual wage bill), not of the capital stock.
+
+  net_operating_surplus:
+    label: Net operating surplus, private enterprises
+    provider: fred
+    series_id: GDINOSA
+    units: billions_usd
+    frequency: annual
+    agg: mean
+    scale: 1.0
+    notes: >
+      Used as a cross-check on S = NDP - compensation. Total surplus-value also
+      includes taxes on production and imports, so this series is smaller
+      than S.
+
+  capital_stock:
+    label: Current-cost net stock of private nonresidential fixed assets
+    provider: fred
+    series_id: K1NTOTL1ES000
+    units: millions_usd
+    frequency: annual
+    agg: last
+    scale: 0.001
+    notes: >
+      BEA fixed-assets accounts. Converted to billions. This is the fixed
+      component of the advanced capital stock M.
+
+  inventories:
+    label: Net stock of private inventories
+    provider: fred
+    series_id: K100071A027NBEA
+    units: billions_usd
+    frequency: annual
+    agg: last
+    scale: 1.0
+    optional: true
+    notes: >
+      BEA produced-assets accounts. Approximate measure of the circulating
+      constant capital tied up in inventories. Set include_inventories=false
+      in settings.yaml to exclude.
+
+  employment:
+    label: All employees, total private
+    provider: fred
+    series_id: CEU0500000001
+    units: thousands_persons
+    frequency: monthly
+    agg: mean
+    scale: 1.0
+    notes: >
+      BLS Current Employment Statistics. Used only when hours_method=ces.
+
+  weekly_hours:
+    label: Average weekly hours of all employees, total private
+    provider: fred
+    series_id: AWHAETP
+    units: hours_per_week
+    frequency: monthly
+    agg: mean
+    scale: 1.0
+    notes: >
+      BLS Current Employment Statistics. Used only when hours_method=ces.
+
+  hours_nipa:
+    label: Hours worked by full-time and part-time employees
+    provider: fred
+    series_id: B4701C0A222NBEA
+    units: millions_hours
+    frequency: annual
+    agg: mean
+    scale: 0.001
+    optional: true
+    notes: >
+      BEA NIPA Table 6.9. Total-economy measure but the series currently ends
+      in 2022, so it cannot be the default for a current sample.
+
+  hours_index:
+    label: Nonfarm business sector, hours worked for all workers
+    provider: fred
+    series_id: HOANBS
+    units: index_2017_100
+    frequency: quarterly
+    agg: mean
+    scale: 1.0
+    notes: >
+      BLS Productivity and Costs. Used only when hours_method=indexed; scaled
+      to the NIPA 2017 total-hours benchmark.
