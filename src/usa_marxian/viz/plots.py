@@ -124,17 +124,20 @@ def plot_gravitation_forecast(metrics: pd.DataFrame, path: Path) -> Path:
 
 
 def plot_pp_vs_go(latest: pd.DataFrame, path: Path) -> Path:
-    frame = latest.loc[(latest["GO"] > 0) & (latest["PP"] > 0)].copy()
+    column = "PP_market" if "PP_market" in latest.columns else "PP"
+    frame = latest.loc[(latest["GO"] > 0) & (latest[column] > 0)].copy()
+    if "is_market" in frame.columns:
+        frame = frame.loc[frame["is_market"]]
     fig, ax = plt.subplots(figsize=(6.5, 6))
-    ax.scatter(frame["PP"], frame["GO"], s=18, alpha=0.7, color="#1f4e79")
-    low = min(frame["PP"].min(), frame["GO"].min())
-    high = max(frame["PP"].max(), frame["GO"].max())
+    ax.scatter(frame[column], frame["GO"], s=18, alpha=0.7, color="#1f4e79")
+    low = min(frame[column].min(), frame["GO"].min())
+    high = max(frame[column].max(), frame["GO"].max())
     ax.plot([low, high], [low, high], color="#8b1a1a", linestyle="--", linewidth=1.2)
     ax.set_xscale("log")
     ax.set_yscale("log")
     ax.set_title(
         "Prices of production vs gross output, "
-        f"{int(frame['year'].iloc[0])} (M_i = K_i proxy)"
+        f"{int(frame['year'].iloc[0])} (market industries, actual M_i)"
     )
     ax.set_xlabel("PP_i = K_i + R M_i, log scale")
     ax.set_ylabel("Observed gross output, log scale")

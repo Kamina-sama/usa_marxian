@@ -143,6 +143,37 @@ changes and are not used. The mapping from IO industry codes to sectors lives in
 The price series start in 2005, so real industry accounts cover 2005-2023 while
 the nominal and CFC-adjusted accounts cover 1998-2023.
 
+## BEA fixed assets (industry capital stocks)
+
+Keyless detail workbook:
+
+```
+https://apps.bea.gov/national/FA2004/Details/xls/detailnonres_stk1.xlsx
+```
+
+It contains current-cost net stocks of private nonresidential fixed assets for
+74 detailed industries, 1925-present, in millions of dollars. Each industry
+sheet has three top-level totals (equipment, structures, intellectual property
+products); their sum is the industry capital stock.
+
+`config/industry_capital.yaml` maps the 74 detailed industries to the 65 IO
+summary industries that have private nonresidential capital. Government units
+and housing have no counterpart and fall back to the cost proxy, flagged in
+`capital_source`.
+
+Validation on the current vintage: the summed industry stocks are 34,948 bn in
+2023 against the macro aggregate `K1NTOTL1ES000` of 34,771 bn, a 0.51% gap.
+
+The same page also publishes investment, depreciation and fixed-cost stock
+files if you want to extend the module:
+
+- `detailnonres_inv1.xlsx` — investment
+- `detailnonres_dep1.xlsx` — depreciation
+- `detailnonres_stk2.xlsx` — fixed-cost (2017-dollar) net stock
+
+Consumption of fixed capital by industry comes from NIPA Section 6 tables
+6.13D and 6.22D, as described in `docs/industry.md`.
+
 ## World Bank (not used by default)
 
 Keyless JSON API, useful for long-run cross-country comparisons:
@@ -153,9 +184,10 @@ https://api.worldbank.org/v2/country/USA/indicator/NY.GDP.MKTP.CD?format=json
 
 ## Reproducibility
 
-Downloads are cached as CSV under `data/raw/<provider>/<series_id>.csv`.
-`cache_max_age_days` in `config/settings.yaml` controls staleness (default 30
-days). Delete the cache to force a fresh download:
+Downloads are cached under `data/raw/<provider>/` (CSV for FRED series, XLSX
+for BEA IO and fixed-asset files). `cache_max_age_days` in
+`config/settings.yaml` controls staleness (default 30 days; industry files use
+at least 365 days). Delete the cache to force a fresh download:
 
 ```bash
 rm -rf data/raw

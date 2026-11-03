@@ -18,6 +18,7 @@ from .analysis.gravitation import run_gravitation
 from .analysis.ltv import LTVResult, estimate_ltv
 from .analysis.profit_check import property_income_check, property_income_summary
 from .config import ProjectConfig
+from .data.bea_assets import attach_capital_stock, capital_coverage, load_industry_capital
 from .data.bea_io import build_industry_panel
 from .data.build import build_accounts, build_raw_panel, validate_accounts
 from .data.quality import write_quality
@@ -266,14 +267,23 @@ def run_industries(
             stacklevel=2,
         )
 
-    enriched = add_industry_ratios(panel)
-    summary = year_summary(panel)
-    latest = latest_dispersion(panel)
-    report = industry_report(panel)
+    capital = load_industry_capital(
+        config.settings.raw_dir,
+        max_age_days=max(365, config.settings.cache_max_age_days),
+        force=refresh,
+    )
+    panel = attach_capital_stock(panel, capital, fallback="cost")
+
+    enriched = add_industry_ratios(panel, capital_proxy="fixed_assets")
+    summary = year_summary(panel, capital_proxy="fixed_assets")
+    latest = latest_dispersion(panel, capital_proxy="fixed_assets")
+    report = industry_report(panel, capital_proxy="fixed_assets")
     proxies = proxy_sensitivity(panel)
     report["proxy_sensitivity"] = proxies.to_dict(orient="records")
 
     reconciliation = None
+    coverage = None
+    macro_accounts = None
     accounts_path = config.settings.processed_dir / "accounts.csv"
     try:
         if accounts_path.exists():
@@ -282,6 +292,24 @@ def run_industries(
             macro_accounts = build_accounts(build_raw_panel(config), config.settings)
         reconciliation = industry_reconciliation(panel, macro_accounts)
         report["reconciliation"] = reconciliation.to_dict(orient="records")
+
+        macro_capital = (
+            macro_accounts["M_fixed_only"]
+            if "M_fixed_only" in macro_accounts.columns
+            else None
+        )
+        coverage = capital_coverage(panel, macro_capital)
+        latest_coverage = coverage.iloc[-1]
+        report["capital"] = {
+            "capital_proxy": "fixed_assets",
+            "fallback": "cost",
+            "n_actual": int(latest_coverage["n_actual"]),
+            "n_proxy": int(latest_coverage["n_proxy"]),
+            "total_M_assets_bn": float(latest_coverage["total_M_assets_bn"]),
+            "macro_M_bn": float(latest_coverage["macro_M_bn"]),
+            "gap_pct": float(latest_coverage["gap_pct"]),
+        }
+        report["capital_coverage"] = coverage.to_dict(orient="records")
     except Exception as exc:  # reconciliation is a check, not a prerequisite
         warnings.warn(
             f"Industry/macro reconciliation unavailable: {exc}",
@@ -292,7 +320,7 @@ def run_industries(
     gravitation_report = None
     if with_gravitation:
         try:
-            gravitation = run_gravitation(panel)
+            gravitation = run_gravitation(panel, capital_proxy="fixed_assets")
             gravitation_report = _gravitation_report(gravitation)
             report["gravitation"] = gravitation_report
         except Exception as exc:
@@ -304,6 +332,7 @@ def run_industries(
     if save:
         processed = config.settings.processed_dir
         enriched.to_csv(processed / "industries.csv", index=False)
+        capital.to_csv(processed / "industry_capital.csv", index=False)
         tables = config.settings.output_dir / "tables"
         tables.mkdir(parents=True, exist_ok=True)
         summary.to_csv(tables / "industry_summary.csv", index=False)
@@ -311,6 +340,8 @@ def run_industries(
         proxies.to_csv(tables / "industry_proxy_sensitivity.csv", index=False)
         if reconciliation is not None:
             reconciliation.to_csv(tables / "industry_reconciliation.csv", index=False)
+        if coverage is not None:
+            coverage.to_csv(tables / "industry_capital_coverage.csv", index=False)
         if gravitation is not None:
             deviation = gravitation["deviation"]
             pd.DataFrame(

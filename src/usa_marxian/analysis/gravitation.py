@@ -71,11 +71,18 @@ class AdjustmentResult:
 def prepare_gravitation_panel(
     panel: pd.DataFrame,
     *,
-    capital_proxy: CapitalProxy = "cost",
+    capital_proxy: CapitalProxy = "fixed_assets",
     surplus: SurplusBasis = "auto",
+    market_only: bool = True,
 ) -> pd.DataFrame:
-    """Build the industry deviation panel used by all tests."""
+    """Build the industry deviation panel used by all tests.
+
+    Government units and housing are excluded by default: their "prices" are
+    not market prices, and their capital stocks fall back to the cost proxy.
+    """
     frame = add_industry_ratios(panel, capital_proxy=capital_proxy, surplus=surplus)
+    if market_only and "is_market" in frame.columns:
+        frame = frame.loc[frame["is_market"]].copy()
     frame = frame.loc[(frame["GO"] > 0) & (frame["PP"] > 0)].copy()
     frame = frame.sort_values(["industry_code", "year"])
 
@@ -498,11 +505,15 @@ def _verdict(summary: dict, unit_root: dict, adjustment: dict) -> str:
 def run_gravitation(
     panel: pd.DataFrame,
     *,
+    capital_proxy: CapitalProxy = "fixed_assets",
+    market_only: bool = True,
     start_year: int = 2008,
     horizons: Iterable[int] = (1, 3, 5),
 ) -> dict:
     """Run the full gravitation battery and return tables plus a verdict."""
-    frame = prepare_gravitation_panel(panel)
+    frame = prepare_gravitation_panel(
+        panel, capital_proxy=capital_proxy, market_only=market_only
+    )
     summary = deviation_summary(frame)
     unit_root = panel_unit_root(frame)
     cointegration = cointegration_test(frame)

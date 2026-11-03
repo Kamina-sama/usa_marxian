@@ -122,6 +122,18 @@ def test_pp_formula_uses_selected_capital_proxy(industry_panel):
         )
 
 
+def test_fixed_assets_proxy_uses_supplied_stock(industry_panel):
+    panel = industry_panel.copy()
+    panel["M"] = (panel["C"] + panel["V"]) * 2.0
+    enriched = add_industry_ratios(panel, capital_proxy="fixed_assets")
+    for _, group in enriched.groupby("year"):
+        assert np.allclose(group["M_proxy"], group["M"])
+        assert np.allclose(
+            group["PP"],
+            group["K_net"] + group["R_benchmark"] * group["M_proxy"],
+        )
+
+
 def test_proxy_sensitivity(industry_panel):
     table = proxy_sensitivity(industry_panel)
     assert set(table["capital_proxy"]) == {"cost", "output", "value_added"}

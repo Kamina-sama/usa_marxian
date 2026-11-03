@@ -231,7 +231,7 @@ def cmd_industries(args: argparse.Namespace) -> int:
             cv=latest["rate_weighted_cv_market"],
             p=latest["rate_p90_p10_market"],
             mae=latest["mae_pct_PP_market"],
-            corr=latest["corr_PP"],
+            corr=latest["corr_PP_market"],
         )
     )
     print(

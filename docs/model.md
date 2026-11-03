@@ -280,10 +280,14 @@ PP_i = K_i + R M_i,        R = sum(S_i) / sum(M_i)
 PP_V_i = V_i (1 + sum(S) / sum(V))
 ```
 
-`M_i` is not in the Use table. The proxy is explicit: `cost` (`M_i = K_i`,
-default), `output` (`M_i = GO_i`), or `value_added` (`M_i = N_i`). The old
-`K_i(1+R)` expression is only the cost-proxy special case. `PP_V` is a
-labour-only markup benchmark.
+`M_i` is the actual BEA current-cost net stock of private nonresidential fixed
+assets. The 74 detailed fixed-asset industries map to 65 of the 71 IO
+industries; government units and housing fall back to `K_i` and are flagged.
+Inventories are not allocated by industry, so `M_i` is fixed assets only.
+
+Older proxies remain available for sensitivity: `cost` (`M_i = K_i`), `output`
+(`M_i = GO_i`), and `value_added` (`M_i = N_i`). The old `K_i(1+R)` expression is
+only the cost-proxy special case. `PP_V` is a labour-only markup benchmark.
 
 Because the Use table is an accounting identity, `C_i + N_i = GO_i` exactly.
 A "value price vs. observed price" test at this level would therefore be
@@ -330,8 +334,9 @@ Reconciliation for 2023:
 - industry net value added minus NDP: the same -105.2 bn;
 - industry net surplus-value minus macro `S`: -80.3 bn (0.9%).
 
-What is still approximate: industry capital stocks (`M_i`), the within-sector
-CFC allocation, and the absence of an intermediate-input deflator.
+What is still approximate: the within-sector CFC allocation, the absence of
+industry inventories in `M_i`, the cost-proxy fallback for government and
+housing, and the absence of an intermediate-input deflator.
 
 ## 10. Predictive and gravitation tests
 
@@ -350,6 +355,7 @@ should be temporary, and market gross output should adjust toward `PP` when
 ```
 
 and with expanding-window out-of-sample forecasts of `GO` at 1, 3 and 5 years.
-The results are in `docs/gravitation.md`. In the current panel the gap closes,
-but the adjustment runs from `PP` toward `GO`, not from `GO` toward `PP`, and
-`PP` does not beat a naive random-walk forecast.
+The results are in `docs/gravitation.md`. With actual capital stocks the gap
+closes through both channels: `β_GO = -0.154` (p=0.015) and `β_PP = +0.108`
+(p=0.012). `PP` still does not beat a naive random-walk forecast, so the
+evidence is best described as slow, weak gravitation without predictive power.

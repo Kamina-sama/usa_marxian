@@ -18,6 +18,10 @@ Additional sources:
   `https://apps.bea.gov/national/Release/XLS/Survey/Section6All_xls.xlsx`
   Tables 6.13D and 6.22D give noncorporate and corporate capital consumption
   allowances by industry.
+- BEA fixed-asset detail (keyless):
+  `https://apps.bea.gov/national/FA2004/Details/xls/detailnonres_stk1.xlsx`
+  Current-cost net stock of private nonresidential fixed assets by detailed
+  industry, 1925-present.
 - FRED broad-sector chain-type price indexes from the GDP-by-Industry release:
   `VAPI*` for value added and `GOPI*` for gross output, 2017=100.
 
@@ -73,11 +77,21 @@ Moseley's general formula is:
 PP_i = K_i + R M_i,        R = sum(S_i) / sum(M_i)
 ```
 
-`M_i` is not in the Use table. The project makes the proxy explicit:
+`M_i` is the **actual BEA current-cost net stock of private nonresidential fixed
+assets**. The detailed file has 74 industries; `config/industry_capital.yaml`
+maps them to 65 of the 71 IO industries. Government units and housing have no
+private nonresidential stock and fall back to `K_i`, flagged as `cost_proxy`.
+
+Coverage in 2023: 65 of 71 industries actual; actual stock totals 34,948 bn
+against the macro aggregate 34,771 bn, a 0.51% gap. Inventories are not
+allocated by industry, so `M_i` is fixed assets only.
+
+Older proxies remain available for sensitivity:
 
 | Proxy | `M_i` | Meaning |
 |---|---|---|
-| `cost` | `K_i` | default; the old `K_i(1+R)` is this special case |
+| `fixed_assets` | BEA stock | default |
+| `cost` | `K_i` | the old `K_i(1+R)` special case |
 | `output` | `GO_i` | capital proportional to gross output |
 | `value_added` | `N_i` | capital proportional to value added |
 
@@ -111,24 +125,30 @@ market-industry subset, which is the headline sample.
 
 ## Results, 1998-2023, net basis
 
-- Market-industry surplus-value rate on cost: 23.8% in 2023; full sample 22.6%.
+- Market general rate of profit `R = S/M`: 22.4% in 2023; full sample 22.6%.
+- Market surplus-value rate on cost `S/K`: 23.8%.
 - Market weighted CV of `r_i`: 0.609 in 2023 (sample mean 0.703); p90/p10 6.10.
 - Full-sample CV: 2.109 in 2023 (sample mean 2.296), dominated by housing and
   government.
-- MAE of `PP` vs gross output: 13.3% full, 10.4% market-only.
+- MAE of `PP` vs gross output: 16.9% full, 14.2% market-only.
 - MAE of `PP_V` vs gross output: 53.1%.
-- Correlation of `PP` with gross output: 0.894.
-- Share within 25% of `PP`: 90.2% full, 97.3% market-only.
-- Proxy sensitivity (full-sample MAE): cost 13.3%, output 11.0%, value-added
-  9.0%.
+- Correlation of `PP` with gross output: 0.881 full, 0.977 market-only.
+- Share within 25% of `PP`: 82.9% full, 88.8% market-only.
+- Proxy sensitivity, full-sample MAE: fixed assets 16.9%, cost 13.3%, output
+  11.0%, value-added 9.0%. Market-only MAE: 14.2%, 10.5%, 8.7%, 7.1%.
 - Sector-deflated real growth, 2005-2023: value added 1.80%/yr, gross output
   1.67%/yr.
 
-Interpretation: the equalised-profit benchmark tracks gross output much better
-than a labour-only markup, but industry surplus-value rates are far from
-equalised. The result is consistent with competition plus persistent
-industry-specific rents, adjustment costs, and measurement error in the capital
-proxy. It is not a decisive test of the transformation procedure.
+Interpretation: actual capital stocks fit **worse on average error** than the
+cost proxy, though the market cross-sectional correlation is high (0.977). That
+is informative: with `M_i = K_i`, `PP_i` is mechanically close to `GO_i`, so the
+old fit was partly built in. Actual capital stocks expose the profit-rate
+dispersion, especially regulated utilities and capital-intensive industries.
+The equalised-profit benchmark still tracks gross output much better than a
+labour-only markup, but industry surplus-value rates are far from equalised.
+The result is consistent with competition plus persistent industry-specific
+rents and adjustment costs. It is not a decisive test of the transformation
+procedure.
 
 ## Predictive tests
 
@@ -136,14 +156,16 @@ The industry panel is also used to test whether prices of production are
 centers of gravitation for market gross output. That analysis has its own
 document: `docs/gravitation.md`.
 
-Short version: deviations have a mean absolute value of 13.7% and a half-life
-of about 2.4 years, but the error-correction adjustment runs from PP toward
-market output rather than the reverse, and PP does not beat a random walk in
-out-of-sample forecasts.
+Short version: on the 65 market industries, deviations have a mean absolute
+value of 13.0% and a half-life of about 2.2 years. The error-correction evidence
+supports slow, two-way gravitation: market output adjusts toward PP (β=-0.163,
+p=0.013) and PP also adjusts toward market output (β=+0.103, p=0.020). PP still
+does not beat a random walk in out-of-sample forecasts.
 
 ## Next steps
 
-- Replace `M_i = K_i` with BEA fixed-asset stocks by industry.
+- Allocate industry inventories to `M_i` so it matches the macro capital
+  concept.
 - Build a sector intermediate-input deflator for real cost prices and profit
   rates.
 - Use Make and Use tables to compute labour values via the Leontief inverse.

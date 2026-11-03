@@ -145,10 +145,26 @@ def add_industry_ratios(
 
     out["R_benchmark"] = totals[value_column] / totals["M_proxy"]
     out["PP"] = out[cost_column] + out["R_benchmark"] * out["M_proxy"]
+
+    # Market-only benchmark: the full sample includes government and housing,
+    # whose capital stocks fall back to K. Using the full-sample R for the
+    # market comparison would contaminate it with those proxies.
+    market = out.loc[out["is_market"]]
+    market_totals = market.groupby("year")[[value_column, "M_proxy"]].sum()
+    market_rate = market_totals[value_column] / market_totals["M_proxy"]
+    out["R_benchmark_market"] = out["year"].map(market_rate)
+    out["PP_market"] = (
+        out[cost_column] + out["R_benchmark_market"] * out["M_proxy"]
+    )
+
     out["PP_V"] = out["V"] * (1.0 + totals[value_column] / totals["V"])
     out["r"] = out[value_column] / out[cost_column]
     out["gap_PP"] = out["GO"] - out["PP"]
     out["abs_gap_pct_PP"] = (out["gap_PP"].abs() / out["GO"]).replace(
+        [np.inf, -np.inf], np.nan
+    )
+    out["gap_PP_market"] = out["GO"] - out["PP_market"]
+    out["abs_gap_pct_PP_market"] = (out["gap_PP_market"].abs() / out["GO"]).replace(
         [np.inf, -np.inf], np.nan
     )
     out["gap_PP_V"] = out["GO"] - out["PP_V"]
@@ -200,7 +216,9 @@ def year_summary(
     enriched = add_industry_ratios(panel, capital_proxy=capital_proxy, surplus=surplus)
     rows = []
     for year, group in enriched.groupby("year", sort=True):
-        group = group.loc[(group["K_net"] > 0) & (group["GO"] > 0)].copy()
+        group = group.loc[
+            (group["K_net"] > 0) & (group["GO"] > 0) & (group["PP"].notna())
+        ].copy()
         if group.empty:
             continue
         basis = str(group["surplus_basis"].iloc[0])
@@ -219,15 +237,18 @@ def year_summary(
             market_weights = market[cost_column].to_numpy(dtype=float)
             market_rates = market["r"].to_numpy(dtype=float)
             market_cv = _weighted_cv(market_rates, market_weights)
-            market_mae = 100.0 * float(market["abs_gap_pct_PP"].mean())
-            market_share = float((market["abs_gap_pct_PP"] <= 0.25).mean())
+            market_mae = 100.0 * float(market["abs_gap_pct_PP_market"].mean())
+            market_share = float((market["abs_gap_pct_PP_market"] <= 0.25).mean())
             market_rate = float(
-                market[value_column].sum() / market[cost_column].sum()
+                market[value_column].sum() / market["M_proxy"].sum()
             )
+            market_corr = float(market["GO"].corr(market["PP_market"]))
+            market_slope = _fit_log_slope(market["GO"], market["PP_market"])
             market_p10 = _weighted_quantile(market_rates, market_weights, 0.10)
             market_p90 = _weighted_quantile(market_rates, market_weights, 0.90)
         else:
             market_cv = market_mae = market_share = market_rate = float("nan")
+            market_corr = market_slope = float("nan")
             market_p10 = market_p90 = float("nan")
 
         row = {
@@ -260,12 +281,18 @@ def year_summary(
             ),
             "rate_weighted_cv_market": market_cv,
             "mae_pct_PP_market": market_mae,
+            "corr_PP_market": market_corr,
+            "slope_PP_market": market_slope,
             "share_within_25pct_PP_market": market_share,
             "total_GO": float(group["GO"].sum()),
             "total_N": float(group["N"].sum()),
             "total_N_net": float(group["N_net"].sum()),
             "total_S": float(group[value_column].sum()),
             "total_K": float(group[cost_column].sum()),
+            "total_M": float(group["M_proxy"].sum()),
+            "total_M_assets": (
+                float(group["M_assets"].sum()) if "M_assets" in group.columns else np.nan
+            ),
             "total_CFC": float(group["CFC"].sum()),
         }
         if "N_real" in group.columns:
@@ -380,7 +407,11 @@ def proxy_sensitivity(
 ) -> pd.DataFrame:
     """Compare price-of-production fit across capital-stock proxies."""
     rows = []
-    for proxy in ("cost", "output", "value_added"):
+    proxies = []
+    if "M" in panel.columns:
+        proxies.append("fixed_assets")
+    proxies += ["cost", "output", "value_added"]
+    for proxy in proxies:
         summary = year_summary(panel, capital_proxy=proxy, surplus=surplus)
         rows.append(
             {
@@ -389,6 +420,7 @@ def proxy_sensitivity(
                 "mae_pct_PP": float(summary["mae_pct_PP"].mean()),
                 "mae_pct_PP_market": float(summary["mae_pct_PP_market"].mean()),
                 "corr_PP": float(summary["corr_PP"].mean()),
+                "corr_PP_market": float(summary["corr_PP_market"].mean()),
                 "slope_PP": float(summary["slope_PP"].mean()),
                 "share_within_25pct_PP": float(summary["share_within_25pct_PP"].mean()),
             }
@@ -419,9 +451,14 @@ def latest_dispersion(
         "GO",
         "r",
         "M_proxy",
+        "M_assets",
+        "capital_source",
+        "R_benchmark_market",
         "PP",
+        "PP_market",
         "PP_V",
         "abs_gap_pct_PP",
+        "abs_gap_pct_PP_market",
         "is_market",
     ]
     if "N_real" in latest.columns:
