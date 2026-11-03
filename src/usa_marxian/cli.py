@@ -245,6 +245,16 @@ def cmd_industries(args: argparse.Namespace) -> int:
         with_gravitation=not args.no_gravitation,
     )
     report = result.report
+    state = report.get("state_space")
+    if state:
+        print(
+            "State space: {n} industries x {y} years; "
+            "p, q, k, I, u, w, l and {m} annual matrices".format(
+                n=state["n_industries"],
+                y=state["n_years"],
+                m=state["n_matrices"],
+            )
+        )
     latest = report["latest"]
     means = report["sample_means"]
     print(

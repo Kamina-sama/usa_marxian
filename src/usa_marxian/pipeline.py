@@ -24,6 +24,7 @@ from .data.bea_assets import (
     capital_coverage,
     load_government_housing_capital,
     load_industry_capital,
+    load_industry_capital_detail,
 )
 from .data.bea_inventory_detail import load_industry_inventories_detail
 from .data.bea_io import build_industry_panel, load_use_matrices
@@ -46,6 +47,7 @@ from .model.industries import (
 )
 from .model.melt import MeltSummary, melt_summary
 from .model.robustness import run_specifications, specification_ranges
+from .model.state_space import build_state_space
 from .viz.plots import (
     plot_composition,
     plot_distribution,
@@ -424,6 +426,28 @@ def run_industries(
             stacklevel=2,
         )
 
+    state_space = None
+    if use_matrices is not None and macro_accounts is not None:
+        try:
+            capital_detail = load_industry_capital_detail(
+                config.settings.raw_dir,
+                max_age_days=max(365, config.settings.cache_max_age_days),
+                force=refresh,
+            )
+            state_space = build_state_space(
+                enriched,
+                use_matrices,
+                macro_accounts,
+                capital_detail,
+                base_year=2017,
+            )
+            report["state_space"] = state_space.summary
+        except Exception as exc:
+            warnings.warn(
+                f"State-space dataset unavailable: {exc}",
+                stacklevel=2,
+            )
+
     shaikh = None
     if use_matrices is not None and macro_accounts is not None:
         try:
@@ -467,6 +491,18 @@ def run_industries(
             reconciliation.to_csv(tables / "industry_reconciliation.csv", index=False)
         if coverage is not None:
             coverage.to_csv(tables / "industry_capital_coverage.csv", index=False)
+        if state_space is not None:
+            state_space.state.to_csv(processed / "state_space.csv", index=False)
+            state_space.matrices.to_csv(
+                processed / "technical_matrices.csv", index=False
+            )
+            state_space.macro.to_csv(
+                processed / "state_space_macro.csv", index=False
+            )
+            with (processed / "state_space.json").open(
+                "w", encoding="utf-8"
+            ) as handle:
+                json.dump(_json_safe(state_space.summary), handle, indent=2)
         if shaikh is not None:
             shaikh.shaikh.panel.to_csv(
                 processed / "industries_shaikh.csv", index=False

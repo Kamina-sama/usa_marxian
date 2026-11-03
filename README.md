@@ -106,8 +106,9 @@ No key is needed by default:
   1997-2023.
 - **BEA NIPA Section 6** workbook for corporate and noncorporate capital
   consumption by industry.
-- **BEA fixed-asset detail** for current-cost net stocks of private
-  nonresidential fixed assets by industry.
+- **BEA fixed-asset detail** for current-cost and fixed-cost net stocks,
+  investment and depreciation of private nonresidential fixed assets by
+  industry.
 - **BEA Fixed Assets Sections 7 and 5** for government and owner-occupied
   residential capital stocks.
 - **BEA NIPA Section 5** workbook for private inventory stocks by broad
@@ -510,6 +511,35 @@ Both fail the random-walk forecast benchmark. Labour values alone fit worst.
 
 The full comparison is in `docs/shaikh.md`.
 
+## State space for real competition
+
+The project now writes the measurement layer for a stock-flow cross-dual model:
+**65 market industries**, 2005-2023 for the complete state table, with 26 annual
+input-output matrices (1998-2023).
+
+The state table contains:
+
+- `price` — gross-output price index, 2017 = 1
+- `quantity` — real gross output, millions of 2017 dollars
+- `capital` — real net fixed capital stock, millions of 2017 dollars
+- `investment` — real gross investment
+- `depreciation` — real depreciation
+- `utilization` — output-capital ratio, normalised to 1 in 2017
+- `wage_rate` — aggregate money wage, dollars per hour
+- `labour_hours`, `labour_coefficient`, `labour_coefficient_real`
+- `capital_current`, `capital_real`
+
+`technical_matrices.csv` stores the long annual matrix
+`A_t[c,j] = U_t[c,j] / GO_t[j]`.
+
+This is deliberately a **measurement dataset**, not a behavioural model yet.
+It supplies every variable needed for a stock-flow cross-dual system except
+demand and the adjustment parameters. The main remaining limitations are
+current-price `A_t`, broad-sector deflators, an output-capital utilization
+proxy, and industry hours allocated by compensation.
+
+See `docs/state_space.md`.
+
 ## Outputs
 
 After `analyze`:
@@ -526,8 +556,10 @@ After `analyze`:
 After `industries`:
 
 - `data/processed/industries.csv`, `industries_shaikh.csv`,
-  `shaikh_iterations.csv`, `industry_capital.csv`, `industry_fixed_assets.csv`,
-  `industry_government_housing.csv`, `industry_inventories.csv`
+  `shaikh_iterations.csv`, `state_space.csv`, `technical_matrices.csv`,
+  `state_space_macro.csv`, `state_space.json`, `industry_capital.csv`,
+  `industry_fixed_assets.csv`, `industry_government_housing.csv`,
+  `industry_inventories.csv`
 - `output/industries.json`
 - `output/tables/industry_summary.csv`, `industry_latest.csv`,
   `industry_proxy_sensitivity.csv`, `industry_reconciliation.csv`,
@@ -550,13 +582,13 @@ config/            settings.yaml, series.yaml, sectors.yaml, industry_capital.ya
 src/usa_marxian/
   config.py        typed config + series catalog
   data/            FRED, BLS, BEA, BEA IO, sector deflators, cache, quality
-  model/           MELT, equalities, robustness, industries, Shaikh
+  model/           MELT, equalities, robustness, industries, Shaikh, state space
   analysis/        LTV, diagnostics, property check, gravitation, comparison
   viz/             plots
   pipeline.py      macro and industry pipelines
   cli.py           `usa-marxian` command
 tests/             offline unit tests
-docs/              model derivation, data sources, industry notes, Shaikh comparison
+docs/              model derivation, data sources, industry notes, Shaikh comparison, state space
 notebooks/         exploratory notebooks
 data/raw           cached downloads (gitignored)
 data/processed     panels, accounts, quality reports (gitignored)

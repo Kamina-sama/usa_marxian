@@ -29,8 +29,15 @@ import yaml
 
 from ..config import PROJECT_ROOT
 
-FA_DETAIL_URL = "https://apps.bea.gov/national/FA2004/Details/xls/detailnonres_stk1.xlsx"
-FA_DETAIL_FILENAME = "detailnonres_stk1.xlsx"
+FA_DETAIL_BASE_URL = "https://apps.bea.gov/national/FA2004/Details/xls"
+DETAIL_FILES = {
+    "stock_current": "detailnonres_stk1.xlsx",
+    "stock_real": "detailnonres_stk2.xlsx",
+    "investment": "detailnonres_inv1.xlsx",
+    "depreciation": "detailnonres_dep1.xlsx",
+}
+FA_DETAIL_FILENAME = DETAIL_FILES["stock_current"]
+FA_DETAIL_URL = f"{FA_DETAIL_BASE_URL}/{FA_DETAIL_FILENAME}"
 GOV_FA_URL = "https://apps.bea.gov/national/FixedAssets/Release/XLS/Section7All_xls.xlsx"
 GOV_FA_FILENAME = "Section7All_xls.xlsx"
 RES_FA_URL = "https://apps.bea.gov/national/FixedAssets/Release/XLS/Section5All_xls.xlsx"
@@ -75,19 +82,24 @@ def load_capital_config(path: Path = CAPITAL_CONFIG_PATH) -> dict:
 def download_detail(
     raw_dir: Path,
     *,
+    kind: str = "stock_current",
     max_age_days: int = 365,
     force: bool = False,
     timeout: float = 120.0,
 ) -> Path:
-    """Download the fixed-asset detail workbook and return its path."""
-    path = raw_dir / "bea" / FA_DETAIL_FILENAME
+    """Download one fixed-asset detail workbook and return its path."""
+    if kind not in DETAIL_FILES:
+        raise ValueError(f"Unknown fixed-asset detail kind: {kind}")
+    filename = DETAIL_FILES[kind]
+    url = f"{FA_DETAIL_BASE_URL}/{filename}"
+    path = raw_dir / "bea" / filename
     path.parent.mkdir(parents=True, exist_ok=True)
     if path.exists() and not force:
         age_days = (datetime.now().timestamp() - path.stat().st_mtime) / 86_400
         if age_days < max_age_days:
             return path
 
-    response = requests.get(FA_DETAIL_URL, headers=DEFAULT_HEADERS, timeout=timeout)
+    response = requests.get(url, headers=DEFAULT_HEADERS, timeout=timeout)
     response.raise_for_status()
     if not response.content.startswith(b"PK"):
         raise BEAAssetsError("BEA fixed-assets download did not return an xlsx file")
@@ -96,25 +108,27 @@ def download_detail(
     tmp.replace(path)
 
     metadata = {
-        "source_url": FA_DETAIL_URL,
+        "source_url": url,
+        "kind": kind,
         "downloaded_at_utc": datetime.now(timezone.utc).isoformat(timespec="seconds"),
         "bytes": int(path.stat().st_size),
     }
-    (path.parent / "detailnonres_stk1.json").write_text(
+    (path.parent / filename.replace(".xlsx", ".json")).write_text(
         json.dumps(metadata, indent=2), encoding="utf-8"
     )
     return path
 
 
-def parse_fixed_assets(
+def parse_detail_file(
     path: Path,
     *,
+    value_name: str = "value",
     years: range = range(1997, 2026),
 ) -> pd.DataFrame:
-    """Parse current-cost net stocks by detailed fixed-asset industry.
+    """Parse one fixed-asset detail workbook.
 
     Returns a long frame with columns ``year``, ``fa_code``, ``fa_name`` and
-    ``M`` (millions of current dollars).
+    ``value_name``.
     """
     wanted = set(years)
     workbook = openpyxl.load_workbook(path, read_only=True, data_only=True)
@@ -153,6 +167,8 @@ def parse_fixed_assets(
                 and row[1] is not None
                 and " ".join(str(row[1]).split()).upper() in TOTAL_LABELS
             ]
+            if len(total_rows) == 0:
+                continue  # auxiliary sheet, not an industry
             if len(total_rows) != 3:
                 raise BEAAssetsError(
                     f"{sheet_name}: expected 3 total asset rows, found {len(total_rows)}"
@@ -167,7 +183,7 @@ def parse_fixed_assets(
                         "year": int(year),
                         "fa_code": fa_code,
                         "fa_name": fa_name,
-                        "M": total,
+                        value_name: total,
                     }
                 )
     finally:
@@ -176,6 +192,15 @@ def parse_fixed_assets(
     if not records:
         raise BEAAssetsError("No fixed-asset observations parsed")
     return pd.DataFrame(records)
+
+
+def parse_fixed_assets(
+    path: Path,
+    *,
+    years: range = range(1997, 2026),
+) -> pd.DataFrame:
+    """Backward-compatible parser for current-cost net stocks."""
+    return parse_detail_file(path, value_name="M", years=years)
 
 
 def load_industry_capital(
@@ -203,6 +228,53 @@ def load_industry_capital(
         .sort_values(["year", "industry_code"])
     )
     return capital
+
+
+def load_industry_capital_detail(
+    raw_dir: Path,
+    *,
+    max_age_days: int = 365,
+    force: bool = False,
+    years: range = range(1997, 2026),
+    config_path: Path = CAPITAL_CONFIG_PATH,
+) -> pd.DataFrame:
+    """Return current and constant-price stocks, investment and depreciation.
+
+    Columns: ``year, industry_code, M_current, M_real, I_current, D_current``.
+    Values are millions of dollars; ``M_real`` is in 2017 dollars.
+    """
+    config = load_capital_config(config_path)
+    mapping = {str(key): str(value) for key, value in config["fa_to_io"].items()}
+    column_by_kind = {
+        "stock_current": "M_current",
+        "stock_real": "M_real",
+        "investment": "I_current",
+        "depreciation": "D_current",
+    }
+
+    merged = None
+    for kind, column in column_by_kind.items():
+        path = download_detail(
+            raw_dir, kind=kind, max_age_days=max_age_days, force=force
+        )
+        detail = parse_detail_file(path, value_name=column, years=years)
+        detail["industry_code"] = detail["fa_code"].map(mapping)
+        unmapped = sorted(
+            detail.loc[detail["industry_code"].isna(), "fa_code"].unique()
+        )
+        if unmapped:
+            raise BEAAssetsError(f"Unmapped fixed-asset industries: {unmapped}")
+        grouped = (
+            detail.groupby(["year", "industry_code"], as_index=False)[column]
+            .sum()
+        )
+        merged = grouped if merged is None else merged.merge(
+            grouped, on=["year", "industry_code"], how="outer"
+        )
+
+    if merged is None:
+        raise BEAAssetsError("No fixed-asset detail observations parsed")
+    return merged.sort_values(["year", "industry_code"]).reset_index(drop=True)
 
 
 def download_fixed_assets_section(
