@@ -26,6 +26,11 @@ from .data.bea_assets import (
     load_industry_capital,
     load_industry_capital_detail,
 )
+from .data.bea_employment import (
+    attach_employment,
+    employment_coverage,
+    load_industry_employment,
+)
 from .data.bea_inventory_detail import load_industry_inventories_detail
 from .data.bea_io import build_industry_panel, load_use_matrices
 from .data.build import build_accounts, build_raw_panel, validate_accounts
@@ -347,6 +352,22 @@ def run_industries(
         special=special_capital,
         fallback="cost",
     )
+
+    # Measured industry employment and wage rates (Table 6.5D FTE).
+    accounts_path = config.settings.processed_dir / "accounts.csv"
+    if accounts_path.exists():
+        try:
+            macro_hours = pd.read_csv(accounts_path, index_col="year")["L"]
+            employment = load_industry_employment(
+                config.settings.raw_dir, force=refresh
+            )
+            panel = attach_employment(panel, employment, macro_hours)
+        except Exception as exc:
+            warnings.warn(
+                f"Industry employment unavailable, hours stay compensation-allocated: {exc}",
+                stacklevel=2,
+            )
+
     capital_table = panel.loc[
         :,
         [
@@ -361,10 +382,46 @@ def run_industries(
         ],
     ].copy()
 
+    employment_table = None
+    employment_cov = None
+    if "labour_hours" in panel.columns:
+        employment_table = panel.loc[
+            :,
+            [
+                "year",
+                "industry_code",
+                "fte",
+                "hours_per_fte",
+                "labour_hours",
+                "wage_rate_i",
+                "hours_source",
+            ],
+        ].copy()
+        accounts_path_for_hours = config.settings.processed_dir / "accounts.csv"
+        hours_series = (
+            pd.read_csv(accounts_path_for_hours, index_col="year")["L"]
+            if accounts_path_for_hours.exists()
+            else None
+        )
+        employment_cov = employment_coverage(panel, hours_series)
+        latest_emp = employment_cov.iloc[-1]
+        employment_summary = {
+            "hours_source": "fte",
+            "n_industries": int(latest_emp["n_industries"]),
+            "n_fte": int(latest_emp["n_fte"]),
+            "total_hours_bn": float(latest_emp["hours_bn"]),
+            "macro_hours_bn": float(latest_emp.get("macro_hours_bn", float("nan"))),
+            "gap_pct": float(latest_emp.get("gap_pct", float("nan"))),
+        }
+        employment_coverage_records = employment_cov.to_dict(orient="records")
+
     enriched = add_industry_ratios(panel, capital_proxy="fixed_assets")
     summary = year_summary(panel, capital_proxy="fixed_assets")
     latest_table = latest_dispersion(panel, capital_proxy="fixed_assets")
     report = industry_report(panel, capital_proxy="fixed_assets")
+    if employment_table is not None:
+        report["employment"] = employment_summary
+        report["employment_coverage"] = employment_coverage_records
     proxies = proxy_sensitivity(panel)
     report["proxy_sensitivity"] = proxies.to_dict(orient="records")
 
@@ -497,9 +554,17 @@ def run_industries(
         capital.to_csv(processed / "industry_fixed_assets.csv", index=False)
         special_capital.to_csv(processed / "industry_government_housing.csv", index=False)
         inventories.to_csv(processed / "industry_inventories.csv", index=False)
-        capital_table.to_csv(processed / "industry_capital.csv", index=False)
         tables = config.settings.output_dir / "tables"
         tables.mkdir(parents=True, exist_ok=True)
+        capital_table.to_csv(processed / "industry_capital.csv", index=False)
+        if employment_table is not None:
+            employment_table.to_csv(
+                processed / "industry_employment.csv", index=False
+            )
+            if employment_cov is not None:
+                employment_cov.to_csv(
+                    tables / "industry_employment_coverage.csv", index=False
+                )
         summary.to_csv(tables / "industry_summary.csv", index=False)
         latest_table.to_csv(tables / "industry_latest.csv", index=False)
         proxies.to_csv(tables / "industry_proxy_sensitivity.csv", index=False)

@@ -21,8 +21,9 @@ Relative prices are independent of `w`; the scale is fixed by normalising
   to the same ray and is kept as a numerical check.
 
 `A` is the **deflated** annual Use matrix (2017 dollars), and `l` is direct
-labour per 2017 dollar of output. The labour values `lambda = l (I - A)^-1` are
-classical direct prices.
+labour per 2017 dollar of output. Industry labour hours are measured from BEA
+Table 6.5D full-time-equivalent employees scaled to macro hours; the labour
+values `lambda = l (I - A)^-1` are classical direct prices.
 
 ## Why this is not "Shaikh"
 
@@ -38,7 +39,7 @@ fixed point once is Sraffa.
 | Moseley `PP` | 13.7% | 23.0% | 0.983 | 1.046 | 88.5% | -7.4% |
 | Sraffa `PP_Sraffa` | 16.8% | 20.5% | 0.971 | 0.982 | 77.2% | -2.4% |
 | Shaikh iterated `PP_Shaikh` | 17.2% | 21.3% | 0.973 | 0.985 | 76.9% | -3.1% |
-| Direct prices (labour values) | 18.6% | 23.6% | 0.954 | 0.963 | 69.2% | -1.3% |
+| Direct prices (labour values) | 37.2% | 48.8% | 0.887 | 0.893 | 42.1% | -8.0% |
 
 Sraffa's benchmark has lower RMSE, smaller mean bias and a slope closer to one
 than Moseley's. It does worse on typical absolute error and rank correlation.
@@ -50,7 +51,7 @@ than Moseley's. It does worse on typical absolute error and rank correlation.
 | Moseley `PP` | 12.4% | 1.7y | -0.240 (p=0.008) | +0.098 (p=0.164) | 0.213 |
 | Sraffa `PP_Sraffa` | 17.1% | 2.2y | +0.068 (p=0.195) | +0.341 (p<0.001) | 0.253 |
 | Shaikh iterated `PP_Shaikh` | 17.3% | 2.4y | +0.078 (p=0.083) | +0.333 (p<0.001) | 0.254 |
-| Direct prices (labour values) | 19.3% | 2.2y | +0.013 (p=0.815) | +0.286 (p<0.001) | 0.285 |
+| Direct prices (labour values) | 35.7% | 2.7y | +0.032 (p=0.456) | +0.256 (p<0.001) | 0.460 |
 
 Naive forecast RMSE is 0.120.
 
@@ -66,7 +67,9 @@ random-walk forecast.
   slope closer to one) but shows no clean gravitation.
 - **Shaikh's iteration** converges to essentially the same center as Sraffa, so
   it does not change the fit conclusion; it adds a model-implied profit rate.
-- **Direct labour values** fit worst.
+- **Direct labour values** fit worst by a wide margin. Once labour hours are
+  measured (FTE) rather than allocated by compensation, labour values are a
+  poor empirical price predictor.
 
 The Sraffian fixed point is a useful aggregate benchmark, not a center of
 gravitation in this panel.

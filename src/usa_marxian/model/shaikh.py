@@ -496,7 +496,10 @@ def build_shaikh_benchmarks(
         if wage_rate <= 0:
             continue
 
-        labour_hours = wage_bill * 1e6 / wage_rate
+        if "labour_hours" in group.columns and group["labour_hours"].notna().all():
+            labour_hours = group["labour_hours"].astype(float)
+        else:
+            labour_hours = wage_bill * 1e6 / wage_rate
         direct_labour = labour_hours / (output_real * 1e6)
         labour_cost = wage_bill / output_real
 

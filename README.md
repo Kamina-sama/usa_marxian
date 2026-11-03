@@ -470,7 +470,8 @@ The project builds three price benchmarks from the same BEA Use table:
 Moseley's benchmark uses the stock of advanced capital and `R = S/M`; Sraffa and
 Shaikh use the flow cost matrix and `r = S/K`. They are different capital
 concepts, not two estimates of one parameter. `A_t` is the **deflated** annual
-Use matrix (2017 dollars).
+Use matrix (2017 dollars), and labour values now use measured FTE-based hours
+rather than compensation-allocated hours.
 
 Fit on the same 65 market industries, 2005-2023:
 
@@ -480,8 +481,8 @@ Fit on the same 65 market industries, 2005-2023:
   **0.982**, within 25% **77.2%**, mean gap **-2.4%**.
 - **Shaikh iterated `PP_Shaikh`**: MAE **17.2%**, RMSE **21.3%**, corr
   **0.973**, slope **0.985**, within 25% **76.9%**, mean gap **-3.1%**.
-- **Direct prices (labour values)**: MAE **18.6%**, RMSE **23.6%**, corr
-  **0.954**, slope **0.963**, within 25% **69.2%**, mean gap **-1.3%**.
+- **Direct prices (labour values)**: MAE **37.2%**, RMSE **48.8%**, corr
+  **0.887**, slope **0.893**, within 25% **42.1%**, mean gap **-8.0%**.
 
 Gravitation comparison:
 
@@ -492,8 +493,8 @@ Gravitation comparison:
 - **Shaikh iterated `PP_Shaikh`**: mean gap 17.3%, half-life 2.4y, output
   adjustment `+0.078` (p=0.083), PP adjustment `+0.333` (p<0.001), 1y forecast
   RMSE 0.254.
-- **Direct prices**: mean gap 19.3%, half-life 2.2y, output adjustment `+0.013`
-  (p=0.815), 1y forecast RMSE 0.285.
+- **Direct prices**: mean gap 35.7%, half-life 2.7y, output adjustment `+0.032`
+  (p=0.456), 1y forecast RMSE 0.460.
 - Naive forecast RMSE: **0.120**.
 
 The Sraffian fixed point is a static center: it fits the aggregate level well
@@ -526,7 +527,8 @@ The state table contains:
 - `depreciation` — real depreciation
 - `utilization` — output-capital ratio, normalised to 1 in 2017
 - `wage_rate` — aggregate money wage, dollars per hour
-- `labour_hours`, `labour_coefficient`, `labour_coefficient_real`
+- `wage_rate_i` — industry money wage, dollars per hour
+- `fte`, `labour_hours`, `labour_coefficient`, `labour_coefficient_real`
 - `capital_current`, `capital_real`
 
 `technical_matrices.csv` stores the long annual matrix
@@ -589,7 +591,8 @@ After `analyze`:
 After `industries`:
 
 - `data/processed/industries.csv`, `industries_shaikh.csv`,
-  `shaikh_iterations.csv`, `state_space.csv`, `technical_matrices.csv`,
+  `shaikh_iterations.csv`, `industry_employment.csv`,
+  `industry_employment_coverage.csv`, `state_space.csv`, `technical_matrices.csv`,
   `technical_matrices_real.csv`, `state_space_macro.csv`, `state_space.json`,
   `industry_capital.csv`,
   `industry_fixed_assets.csv`, `industry_government_housing.csv`,

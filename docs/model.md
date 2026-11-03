@@ -394,14 +394,16 @@ p_t = (1 + r_t)(p_t A_t + w l_t)
 `r` is the real aggregate surplus-value rate on flow capital,
 `sum(S_real)/sum(K_real)`. Relative prices are independent of `w`; the scale is
 fixed by normalising to total real output, and the resulting benchmarks are
-reflated to nominal for comparison with observed gross output.
+reflated to nominal for comparison with observed gross output. Direct labour
+coefficients use FTE-based industry hours rather than compensation-allocated
+hours.
 
 The comparison is on 65 market industries, 2005-2023:
 
 - Moseley: MAE 13.7%, RMSE 23.0%, corr 0.983, slope 1.046, mean gap -7.4%.
 - Sraffa: MAE 16.8%, RMSE 20.5%, corr 0.971, slope 0.982, mean gap -2.4%.
 - Shaikh iterated: MAE 17.2%, RMSE 21.3%, corr 0.973, mean gap -3.1%.
-- Direct labour values: MAE 18.6%, RMSE 23.6%, corr 0.954, mean gap -1.3%.
+- Direct labour values: MAE 37.2%, RMSE 48.8%, corr 0.887, mean gap -8.0%.
 
 Moseley fits typical industry errors better; Sraffa has lower aggregate bias, a
 slope closer to one, and lower RMSE. With constant-price `A_t`, Sraffa's clean

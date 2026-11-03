@@ -26,7 +26,9 @@ indexes start then. The annual matrices themselves cover 1998-2023.
 | `depreciation` | real depreciation, millions of 2017 dollars | BEA `detailnonres_dep1` deflated similarly |
 | `utilization` | output-capital ratio, normalised to 1 in 2017 | `quantity / capital` |
 | `wage_rate` | aggregate money wage, dollars per hour | macro `V / L` |
-| `labour_hours` | industry labour hours, millions | `V / wage_rate` |
+| `wage_rate_i` | industry money wage, dollars per hour | `V_i / labour_hours_i` |
+| `fte` | full-time equivalent employees, thousands | BEA Table 6.5D |
+| `labour_hours` | industry labour hours | `fte * 1000 * hours_per_fte` |
 | `labour_coefficient` | hours per current dollar of output | `labour_hours / (GO * 1e6)` |
 | `labour_coefficient_real` | hours per 2017 dollar of output | `labour_hours / (quantity * 1e6)` |
 | `capital_current` | current-cost net fixed capital stock, millions | BEA `detailnonres_stk1` |
@@ -60,10 +62,11 @@ fixed-cost stock files. `A_t` is the annual current-price Use matrix.
   change. A constant-price `A_t` is the next refinement.
 - **Utilization** is an output-capital ratio, not the FRB capacity-utilization
   series. FRB utilization is available only for manufacturing aggregates.
-- **Labour hours** are allocated across industries in proportion to
-  compensation. Industry-specific hours would require BLS/CES data.
-- **Wages** are the aggregate wage rate; industry wage differentials are not
-  modelled.
+- **Labour hours** are built from Table 6.5D full-time equivalents scaled by
+  the aggregate hours-per-FTE. A common annual hours-per-FTE is still assumed;
+  true industry-specific hours would require BLS CES hours.
+- **Wages** now include an industry wage rate `wage_rate_i = V_i / hours_i`, but
+  the aggregate wage is still used for the macro wage rule.
 - **Depreciation** is BEA fixed-asset depreciation, not the NIPA CFC allocation
   used in the industry accounts.
 

@@ -1,0 +1,73 @@
+# Mapping from BEA NIPA Table 6.5D full-time-equivalent employee lines to
+# the 71 IO summary industry codes. Names are normalised (footnotes stripped,
+# whitespace collapsed). Owner-occupied housing (HS) has no employees and is
+# excluded; government lines map to the non-market IO codes for completeness
+# but are not used in the market-industry state space.
+fte_to_io:
+  Farms: 111CA
+  Forestry, fishing, and related activities: 113FF
+  Oil and gas extraction: "211"
+  Mining, except oil and gas: "212"
+  Support activities for mining: "213"
+  Utilities: "22"
+  Construction: "23"
+  Wood products: "321"
+  Nonmetallic mineral products: "327"
+  Primary metals: "331"
+  Fabricated metal products: "332"
+  Machinery: "333"
+  Computer and electronic products: "334"
+  Electrical equipment, appliances, and components: "335"
+  Motor vehicles, bodies and trailers, and parts: 3361MV
+  Other transportation equipment: 3364OT
+  Furniture and related products: "337"
+  Miscellaneous manufacturing: "339"
+  Food and beverage and tobacco products: 311FT
+  Textile mills and textile product mills: 313TT
+  Apparel and leather and allied products: 315AL
+  Paper products: "322"
+  Printing and related support activities: "323"
+  Petroleum and coal products: "324"
+  Chemical products: "325"
+  Plastics and rubber products: "326"
+  Wholesale trade: "42"
+  Motor vehicle and parts dealers: "441"
+  Food and beverage stores: "445"
+  General merchandise stores: "452"
+  Other retail: 4A0
+  Air transportation: "481"
+  Rail transportation: "482"
+  Water transportation: "483"
+  Truck transportation: "484"
+  Transit and ground passenger transportation: "485"
+  Pipeline transportation: "486"
+  Other transportation and support activities: 487OS
+  Warehousing and storage: "493"
+  Publishing industries (includes software): "511"
+  Motion picture and sound recording industries: "512"
+  Broadcasting and telecommunications: "513"
+  Information and data processing services: "514"
+  Federal Reserve banks, credit intermediation, and related activities: 521CI
+  Securities, commodity contracts, and investments: "523"
+  Insurance carriers and related activities: "524"
+  Funds, trusts, and other financial vehicles: "525"
+  Real estate: ORE
+  Rental and leasing services and lessors of intangible assets: 532RL
+  Legal services: "5411"
+  Computer systems design and related services: "5415"
+  Miscellaneous professional, scientific, and technical services: 5412OP
+  Management of companies and enterprises: "55"
+  Administrative and support services: "561"
+  Waste management and remediation services: "562"
+  Educational services: "61"
+  Ambulatory health care services: "621"
+  Hospitals: "622"
+  Nursing and residential care facilities: "623"
+  Social assistance: "624"
+  Performing arts, spectator sports, museums, and related activities: 711AS
+  Amusements, gambling, and recreation industries: "713"
+  Accommodation: "721"
+  Food services and drinking places: "722"
+  Other services, except government: "81"
+  Federal: GFGD
+  State and local: GSLG

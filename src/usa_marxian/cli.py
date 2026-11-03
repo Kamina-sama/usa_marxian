@@ -315,6 +315,16 @@ def cmd_industries(args: argparse.Namespace) -> int:
             share=means["share_within_25pct_PP_market"],
         )
     )
+    emp = report.get("employment")
+    if emp:
+        print(
+            "Employment: {n} industries FTE-based hours; total {h:.1f} bn; "
+            "reconciliation gap {g:.2e}%".format(
+                n=emp["n_industries"],
+                h=emp["total_hours_bn"],
+                g=emp["gap_pct"],
+            )
+        )
     real = report.get("real")
     if real:
         print(

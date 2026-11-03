@@ -199,6 +199,25 @@ Table 5.1 gives residential fixed assets. Owner-occupied residential stock is
 used for the housing IO industry; tenant-occupied stock is not added because the
 other-real-estate industry already has actual nonresidential fixed assets.
 
+## BEA industry employment (Table 6.5D)
+
+The Section 6 workbook (`Section6All_xls.xlsx`) also contains Table 6.5D,
+full-time equivalent employees by industry, 1998 forward. The project maps its
+detailed lines to the 71 IO industries via `config/employment_mapping.yaml`,
+scales FTE by the aggregate hours-per-FTE to obtain industry labour hours, and
+divides the Use table's compensation by those hours to obtain industry wage
+rates.
+
+```
+hours_per_fte_t = L_t / (sum of market FTE_t)
+labour_hours_i = FTE_i * 1000 * hours_per_fte_t
+wage_rate_i    = V_i / labour_hours_i
+```
+
+Government and owner-occupied housing have no private market employment and are
+excluded from the market calibration. The remaining assumption is a common
+annual hours-per-FTE across industries.
+
 ## BEA private inventories (industry stocks)
 
 Keyless NIPA Section 5 workbook:

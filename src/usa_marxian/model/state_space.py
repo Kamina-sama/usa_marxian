@@ -39,9 +39,12 @@ STATE_COLUMNS = [
     "depreciation",
     "utilization",
     "wage_rate",
+    "wage_rate_i",
+    "fte",
     "labour_hours",
     "labour_coefficient",
     "labour_coefficient_real",
+    "hours_source",
     "GO",
     "V",
     "capital_current",
@@ -145,7 +148,11 @@ def build_state_space(
     macro = accounts.loc[:, [column for column in ("L", "V", "N", "S") if column in accounts]].copy()
     macro["wage_rate"] = macro["V"] / macro["L"]
     data["wage_rate"] = data["year"].map(macro["wage_rate"])
-    data["labour_hours"] = data["V"] * 1e6 / data["wage_rate"]
+    if "labour_hours" not in data.columns:
+        data["labour_hours"] = data["V"] * 1e6 / data["wage_rate"]
+        data["hours_source"] = "compensation"
+    if "wage_rate_i" not in data.columns:
+        data["wage_rate_i"] = data["V"] / data["labour_hours"]
     data["labour_coefficient"] = data["labour_hours"] / (data["GO"] * 1e6)
     data["labour_coefficient_real"] = data["labour_hours"] / (
         data["quantity"] * 1e6
@@ -162,6 +169,7 @@ def build_state_space(
         "depreciation",
         "utilization",
         "wage_rate",
+        "labour_hours",
         "labour_coefficient",
         "labour_coefficient_real",
     ]
