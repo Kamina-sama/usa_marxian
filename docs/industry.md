@@ -130,6 +130,17 @@ equalised. The result is consistent with competition plus persistent
 industry-specific rents, adjustment costs, and measurement error in the capital
 proxy. It is not a decisive test of the transformation procedure.
 
+## Predictive tests
+
+The industry panel is also used to test whether prices of production are
+centers of gravitation for market gross output. That analysis has its own
+document: `docs/gravitation.md`.
+
+Short version: deviations have a mean absolute value of 13.7% and a half-life
+of about 2.4 years, but the error-correction adjustment runs from PP toward
+market output rather than the reverse, and PP does not beat a random walk in
+out-of-sample forecasts.
+
 ## Next steps
 
 - Replace `M_i = K_i` with BEA fixed-asset stocks by industry.

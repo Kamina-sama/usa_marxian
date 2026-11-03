@@ -14,6 +14,7 @@ import pandas as pd
 
 from .analysis.descriptives import summary_table
 from .analysis.diagnostics import diagnostics_table
+from .analysis.gravitation import run_gravitation
 from .analysis.ltv import LTVResult, estimate_ltv
 from .analysis.profit_check import property_income_check, property_income_summary
 from .config import ProjectConfig
@@ -35,6 +36,8 @@ from .model.robustness import run_specifications, specification_ranges
 from .viz.plots import (
     plot_composition,
     plot_distribution,
+    plot_gravitation_deviation,
+    plot_gravitation_forecast,
     plot_industry_dispersion,
     plot_melt,
     plot_pp_vs_go,
@@ -215,12 +218,31 @@ def run(
     )
 
 
+def _gravitation_report(gravitation: dict) -> dict[str, Any]:
+    deviation = {
+        key: value
+        for key, value in gravitation["deviation"].items()
+        if not isinstance(value, pd.DataFrame)
+    }
+    return {
+        "sample": gravitation["sample"],
+        "deviation": deviation,
+        "unit_root": gravitation["unit_root"],
+        "cointegration": gravitation["cointegration"],
+        "error_correction": gravitation["error_correction"],
+        "forecast_metrics": gravitation["forecast_metrics"].to_dict(orient="records"),
+        "forecast_comparisons": gravitation["forecast_comparisons"].to_dict(orient="records"),
+        "verdict": gravitation["verdict"],
+    }
+
+
 def run_industries(
     config: ProjectConfig | None = None,
     *,
     save: bool = True,
     make_plots: bool = True,
     refresh: bool = False,
+    with_gravitation: bool = True,
 ) -> IndustryResult:
     """Build and analyse the BEA summary-level industry accounts."""
     config = config or ProjectConfig.load()
@@ -266,6 +288,19 @@ def run_industries(
             stacklevel=2,
         )
 
+    gravitation = None
+    gravitation_report = None
+    if with_gravitation:
+        try:
+            gravitation = run_gravitation(panel)
+            gravitation_report = _gravitation_report(gravitation)
+            report["gravitation"] = gravitation_report
+        except Exception as exc:
+            warnings.warn(
+                f"Gravitation tests unavailable: {exc}",
+                stacklevel=2,
+            )
+
     if save:
         processed = config.settings.processed_dir
         enriched.to_csv(processed / "industries.csv", index=False)
@@ -276,6 +311,32 @@ def run_industries(
         proxies.to_csv(tables / "industry_proxy_sensitivity.csv", index=False)
         if reconciliation is not None:
             reconciliation.to_csv(tables / "industry_reconciliation.csv", index=False)
+        if gravitation is not None:
+            deviation = gravitation["deviation"]
+            pd.DataFrame(
+                [
+                    {"metric": key, "value": value}
+                    for key, value in deviation.items()
+                    if not isinstance(value, pd.DataFrame)
+                ]
+            ).to_csv(tables / "gravitation_summary.csv", index=False)
+            deviation["by_year"].to_csv(tables / "gravitation_by_year.csv", index=False)
+            pd.DataFrame(
+                [
+                    {"model": name, **values}
+                    for name, values in gravitation["error_correction"].items()
+                ]
+            ).to_csv(tables / "gravitation_ecm.csv", index=False)
+            gravitation["forecast_metrics"].to_csv(
+                tables / "gravitation_forecast_metrics.csv", index=False
+            )
+            gravitation["forecast_comparisons"].to_csv(
+                tables / "gravitation_forecast_comparisons.csv", index=False
+            )
+            with (config.settings.output_dir / "gravitation.json").open(
+                "w", encoding="utf-8"
+            ) as handle:
+                json.dump(_json_safe(gravitation_report), handle, indent=2)
         with (config.settings.output_dir / "industries.json").open("w", encoding="utf-8") as handle:
             json.dump(_json_safe(report), handle, indent=2)
 
@@ -283,6 +344,15 @@ def run_industries(
         figures = config.settings.output_dir / "figures"
         plot_industry_dispersion(summary, figures / "industry_dispersion.png")
         plot_pp_vs_go(latest, figures / "pp_vs_go.png")
+        if gravitation is not None:
+            plot_gravitation_deviation(
+                gravitation["deviation"]["by_year"],
+                figures / "gravitation_deviation.png",
+            )
+            plot_gravitation_forecast(
+                gravitation["forecast_metrics"],
+                figures / "gravitation_forecast.png",
+            )
 
     return IndustryResult(panel=panel, summary=summary, latest=latest, report=report)
 

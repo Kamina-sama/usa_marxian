@@ -332,3 +332,24 @@ Reconciliation for 2023:
 
 What is still approximate: industry capital stocks (`M_i`), the within-sector
 CFC allocation, and the absence of an intermediate-input deflator.
+
+## 10. Predictive and gravitation tests
+
+If prices of production are centers of gravitation, the deviation
+
+```
+d_it = log(GO_it / PP_it)
+```
+
+should be temporary, and market gross output should adjust toward `PP` when
+`d` is non-zero. The project tests this with panel error correction:
+
+```
+Δ log GO_it = α_i + γ_t + β_GO d_i,t-1 + ε_it
+Δ log PP_it = α_i + γ_t + β_PP d_i,t-1 + ε_it
+```
+
+and with expanding-window out-of-sample forecasts of `GO` at 1, 3 and 5 years.
+The results are in `docs/gravitation.md`. In the current panel the gap closes,
+but the adjustment runs from `PP` toward `GO`, not from `GO` toward `PP`, and
+`PP` does not beat a naive random-walk forecast.

@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "usa-marxian"
-version = "0.2.1"
+version = "0.3.0"
 description = "Empirical framework for Moseley's macro-monetary interpretation of Marx's theory, applied to US data"
 readme = "README.md"
 requires-python = ">=3.10"
@@ -22,6 +22,7 @@ dependencies = [
     "matplotlib>=3.8",
     "scipy>=1.11",
     "statsmodels>=0.14",
+    "linearmodels>=7.0",
     "pyarrow>=15.0",
     "openpyxl>=3.1",
     "tqdm>=4.66",

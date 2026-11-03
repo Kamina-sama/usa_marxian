@@ -14,6 +14,8 @@ from __future__ import annotations
 import argparse
 import sys
 
+import pandas as pd
+
 from .config import ProjectConfig
 from .data.build import build_raw_panel, report_series_map
 from .pipeline import run, run_industries
@@ -163,6 +165,42 @@ def cmd_analyze(args: argparse.Namespace) -> int:
     return 0
 
 
+def _print_gravitation(gravitation: dict) -> None:
+    if not gravitation:
+        return
+    deviation = gravitation["deviation"]
+    adjustment = gravitation["error_correction"]
+    half_life = deviation["ar1_half_life_years"]
+    half_life_text = f"{half_life:.1f}" if half_life is not None else "n/a"
+    print("Gravitation tests")
+    print(
+        "  deviations: mean abs {mean:.1%}; within 25% = {band:.1%}; "
+        "autocorrelation {ac:.2f}; half-life {hl} years".format(
+            mean=deviation["mean_abs_d"],
+            band=deviation["share_within_25pct"],
+            ac=deviation["autocorrelation_lag1"],
+            hl=half_life_text,
+        )
+    )
+    print(
+        "  ECM: GO adjusts to PP with beta={go:+.3f} (p={gop:.3f}); "
+        "PP adjusts to GO with beta={pp:+.3f} (p={ppp:.3f})".format(
+            go=adjustment["delta_log_GO"]["beta"],
+            gop=adjustment["delta_log_GO"]["p_value"],
+            pp=adjustment["delta_log_PP"]["beta"],
+            ppp=adjustment["delta_log_PP"]["p_value"],
+        )
+    )
+    metrics = pd.DataFrame(gravitation["forecast_metrics"])
+    for horizon in sorted(metrics["horizon"].unique()):
+        rows = metrics.loc[metrics["horizon"] == horizon].sort_values("rmse_log")
+        values = ", ".join(
+            f"{row.model} {row.rmse_log:.3f}" for row in rows.itertuples(index=False)
+        )
+        print(f"  forecast log RMSE, {int(horizon)}y: {values}")
+    print(f"  verdict: {gravitation['verdict']}")
+
+
 def cmd_industries(args: argparse.Namespace) -> int:
     config = _load(args)
     result = run_industries(
@@ -170,6 +208,7 @@ def cmd_industries(args: argparse.Namespace) -> int:
         save=True,
         make_plots=not args.no_plots,
         refresh=args.refresh,
+        with_gravitation=not args.no_gravitation,
     )
     report = result.report
     latest = report["latest"]
@@ -241,6 +280,9 @@ def cmd_industries(args: argparse.Namespace) -> int:
                     corr=row["corr_PP"],
                 )
             )
+    print()
+    _print_gravitation(result.report.get("gravitation"))
+    print()
     print(f"Panel:  {config.settings.processed_dir / 'industries.csv'}")
     print(f"Tables: {config.settings.output_dir / 'tables'}")
     return 0
@@ -276,12 +318,14 @@ def build_parser() -> argparse.ArgumentParser:
 
     industries = sub.add_parser("industries", help="build and analyse BEA industry accounts")
     industries.add_argument("--no-plots", action="store_true")
+    industries.add_argument("--no-gravitation", action="store_true")
     industries.add_argument("--refresh", action="store_true", help="re-download the IO archive")
 
     all_cmd = sub.add_parser("all", help="macro analysis + industry analysis")
     all_cmd.add_argument("--no-plots", action="store_true")
     all_cmd.add_argument("--no-robustness", action="store_true")
     all_cmd.add_argument("--no-diagnostics", action="store_true")
+    all_cmd.add_argument("--no-gravitation", action="store_true")
     all_cmd.add_argument("--refresh", action="store_true")
 
     return parser

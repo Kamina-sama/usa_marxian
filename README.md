@@ -43,7 +43,7 @@ used at both levels of abstraction.
 The core equations are accounting identities. Given `m := N/L`, `N = mL` is
 true by definition. A "test" that total profit equals total surplus-value is
 only informative if profit and surplus-value are measured independently. The
-project therefore separates four kinds of work:
+project therefore separates five kinds of work:
 
 1. **Construction** — build `C, V, S, N, L, M, m, R` consistently from NIPA and
    fixed-asset data. The code checks the identities.
@@ -53,8 +53,10 @@ project therefore separates four kinds of work:
 4. **Robustness** — do the conclusions survive alternative value-added,
    capital-stock, hours and MELT definitions? Do they survive unit-root,
    break and specification diagnostics?
+5. **Predictive and gravitation tests** — panel error-correction and
+   out-of-sample forecasts of market gross output.
 
-The project implements all four. It still does not identify individual labour
+The project implements all five. It still does not identify individual labour
 values, and the industry capital-stock proxy is crude. Treat the output as
 measurement and evidence, not proof.
 
@@ -79,7 +81,7 @@ Run:
 .venv/bin/usa-marxian info          # model, layers and series map
 .venv/bin/usa-marxian fetch         # download raw series (cached)
 .venv/bin/usa-marxian analyze       # macro accounts + robustness + diagnostics
-.venv/bin/usa-marxian industries    # BEA IO industry accounts
+.venv/bin/usa-marxian industries    # BEA IO industry accounts + gravitation tests
 .venv/bin/usa-marxian all           # both
 .venv/bin/pytest                    # offline tests
 ```
@@ -329,6 +331,52 @@ the summary Use table has no intermediate-input deflator. The nominal
 prices-of-production comparison remains the correct one for the value-theory
 question.
 
+## Predictive power and gravitation
+
+A "center of gravitation" is a value that market prices are pulled toward over
+time. The project tests three separate claims on the 71-industry panel:
+
+1. deviations `d = log(GO / PP)` are temporary, not permanent;
+2. when market output is above `PP`, future market output grows more slowly
+   (or `PP` rises), closing the gap;
+3. `PP` predicts future market output better than a naive forecast.
+
+**Deviations are persistent but not permanent.** Mean absolute deviation is
+**13.7%** (gross-output weighted 19.7%); 90.5% of observations are within ±25%.
+Lag-1 autocorrelation is **0.987**, and the estimated half-life of a deviation
+is **2.4 years**. Panel ADF rejects a unit root in the Fisher sense
+(p<0.001), but only 17% of industries reject individually.
+
+**The adjustment runs the wrong way for gravitation.** Panel error-correction
+with industry and year effects gives:
+
+- market output adjustment: `β = +0.078` (p=0.188), wrong sign and insignificant;
+- price-of-production adjustment: `β = +0.333` (p<0.001).
+
+So the gap closes, but mainly because `PP` moves toward market output, not
+because market output moves toward `PP`. Some of this is mechanical: `PP` is
+built from current costs and the current general profit rate.
+
+**PP does not forecast better than a random walk.** Pooled out-of-sample log
+RMSE, 2008-2023:
+
+- 1 year: naive 0.116, AR(1) 0.115, ECM 0.116, PP **0.249**
+- 3 years: naive 0.196, AR(1) 0.167, ECM 0.168, PP **0.297**
+- 5 years: naive 0.252, AR(1) 0.192, ECM 0.192, PP **0.345**
+
+The PP forecast is worse than naive at every horizon; the bootstrap confidence
+interval for the RMSE difference excludes zero. The ECM adds essentially nothing
+over AR(1).
+
+**Verdict:** in this panel and with these proxies, prices of production are a
+good *contemporaneous accounting benchmark*, but they are not centers of
+gravitation of future market gross output. This is a negative result for the
+strong gravitation claim, not a refutation of the theory. The main limitations
+are the value-based output measure, the `M_i = K_i` capital proxy, annual data,
+and only 26 years per industry.
+
+The full derivation, tables and caveats are in `docs/gravitation.md`.
+
 ## Outputs
 
 After `analyze`:
@@ -348,7 +396,12 @@ After `industries`:
 - `output/industries.json`
 - `output/tables/industry_summary.csv`, `industry_latest.csv`,
   `industry_proxy_sensitivity.csv`, `industry_reconciliation.csv`
-- `output/figures/industry_dispersion.png`, `pp_vs_go.png`
+- `output/tables/gravitation_summary.csv`, `gravitation_by_year.csv`,
+  `gravitation_ecm.csv`, `gravitation_forecast_metrics.csv`,
+  `gravitation_forecast_comparisons.csv`
+- `output/gravitation.json`
+- `output/figures/industry_dispersion.png`, `pp_vs_go.png`,
+  `gravitation_deviation.png`, `gravitation_forecast.png`
 
 ## Project layout
 
@@ -358,7 +411,7 @@ src/usa_marxian/
   config.py        typed config + series catalog
   data/            FRED, BLS, BEA, BEA IO, sector deflators, cache, quality
   model/           MELT, equalities, robustness, industries
-  analysis/        LTV, diagnostics, property check, descriptives
+  analysis/        LTV, diagnostics, property check, gravitation, descriptives
   viz/             plots
   pipeline.py      macro and industry pipelines
   cli.py           `usa-marxian` command

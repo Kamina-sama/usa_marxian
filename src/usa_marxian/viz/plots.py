@@ -93,6 +93,36 @@ def plot_industry_dispersion(summary: pd.DataFrame, path: Path) -> Path:
     return _finish(fig, path)
 
 
+def plot_gravitation_deviation(by_year: pd.DataFrame, path: Path) -> Path:
+    fig, ax1 = plt.subplots(figsize=(9, 4.5))
+    ax1.plot(by_year["year"], by_year["mean_abs_d"], color="#8b1a1a", linewidth=1.9)
+    ax1.set_xlabel("Year")
+    ax1.set_ylabel("Mean absolute deviation")
+    ax2 = ax1.twinx()
+    ax2.plot(
+        by_year["year"],
+        100 * by_year["share_within_25pct"],
+        color="#1f4e79",
+        linewidth=1.6,
+        linestyle="--",
+    )
+    ax2.set_ylabel("% within 25%")
+    ax1.set_title("Deviation of gross output from prices of production")
+    return _finish(fig, path)
+
+
+def plot_gravitation_forecast(metrics: pd.DataFrame, path: Path) -> Path:
+    fig, ax = plt.subplots(figsize=(9, 4.5))
+    for model, group in metrics.groupby("model"):
+        group = group.sort_values("horizon")
+        ax.plot(group["horizon"], group["rmse_log"], marker="o", linewidth=1.8, label=model)
+    ax.set_xlabel("Forecast horizon (years)")
+    ax.set_ylabel("Log RMSE (lower is better)")
+    ax.set_title("Out-of-sample forecasts of gross output")
+    ax.legend(frameon=False)
+    return _finish(fig, path)
+
+
 def plot_pp_vs_go(latest: pd.DataFrame, path: Path) -> Path:
     frame = latest.loc[(latest["GO"] > 0) & (latest["PP"] > 0)].copy()
     fig, ax = plt.subplots(figsize=(6.5, 6))

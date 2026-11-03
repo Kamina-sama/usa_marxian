@@ -5,6 +5,8 @@ from __future__ import annotations
 from .plots import (
     plot_composition,
     plot_distribution,
+    plot_gravitation_deviation,
+    plot_gravitation_forecast,
     plot_industry_dispersion,
     plot_melt,
     plot_pp_vs_go,
@@ -15,6 +17,8 @@ from .plots import (
 __all__ = [
     "plot_composition",
     "plot_distribution",
+    "plot_gravitation_deviation",
+    "plot_gravitation_forecast",
     "plot_industry_dispersion",
     "plot_melt",
     "plot_pp_vs_go",
