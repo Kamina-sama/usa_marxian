@@ -26,6 +26,7 @@ PRICE_TABLES = {
     "go_price": "18",
     "va_price": "11",
     "input_price": "23",
+    "go_quantity": "16",
 }
 DEFAULT_HEADERS = {"User-Agent": "usa-marxian/0.1 (research project)"}
 
@@ -162,12 +163,23 @@ def attach_industry_prices(
         validate="many_to_one",
     )
 
-    for column in ("go_price", "va_price", "input_price"):
+    for column in ("go_price", "va_price", "input_price", "go_quantity"):
         bea_column = f"{column}_bea"
         if bea_column not in out.columns:
             continue
         out[column] = out[bea_column].where(out[bea_column].notna(), out[column])
         out = out.drop(columns=[bea_column])
+
+    if "go_quantity" in out.columns:
+        base = (
+            out.loc[out["year"] == 2017]
+            .set_index("industry_code")["GO"]
+            .astype(float)
+        )
+        out["quantity"] = (
+            out["industry_code"].map(base) * out["go_quantity"] / 100.0
+        )
+        out["price_obs"] = out["GO"] / out["quantity"]
 
     out["price_source"] = "bea_gdpbyindustry"
     missing = out[["go_price", "va_price", "input_price"]].isna().any(axis=1)

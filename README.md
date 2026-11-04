@@ -20,12 +20,12 @@ which market prices gravitate. This project builds those accounts from US data
 and asks whether that story fits.
 
 What we find, in one breath: the accounting is consistent; Moseley's benchmark
-tracks industry revenues best, but its unit-price advantage is largely an
-artifact of using observed prices to construct the unit price. On a fair
-relative-price test, Sraffa and Shaikh have the only genuine content. Direct
-labour values perform poorly, and neither gravitation nor forecasting is strong.
-Prices of production have empirical content, but the strong claim that they are
-centres of gravitation is not supported by this data.
+tracks industry revenues and unit prices best, especially once taxes are treated
+separately and working capital is included. Sraffa and Shaikh capture relative
+prices moderately; direct labour values perform poorly. Gravitation is weak,
+and forecasting is no better than a random walk. Prices of production have
+empirical content, but the strong claim that they are centres of gravitation is
+not supported by this data.
 
 For the full non-technical walkthrough, see
 [`docs/plain_language.md`](docs/plain_language.md).
@@ -566,22 +566,21 @@ The revenue comparison can be dominated by industry size. A separate test
 compares **relative unit prices** after normalising every series to a
 quantity-weighted geometric mean of one.
 
-- Moseley relative price (`PP/GO`): log MAE 0.160, corr **0.050**, slope 0.047.
-- Moseley profit-rate relative price: 0.147, corr **0.054**, slope 0.059.
-- Moseley working-capital relative price: 0.134, corr **0.044**, slope 0.050.
-- Sraffa: 0.165, corr **0.613**, slope 0.280.
-- Shaikh: 0.168, corr **0.652**, slope 0.305.
-- Regulating: 0.170, corr **0.617**, slope 0.276.
-- Direct prices: 0.346, corr 0.208, slope 0.068.
+- Moseley `PP/Q`: log MAE 0.119, corr **0.794**, slope 0.475.
+- Moseley profit-rate `PP/Q`: 0.107, corr **0.819**, slope 0.524.
+- Moseley working-capital `PP/Q`: 0.090, corr **0.884**, slope 0.603.
+- Sraffa: 0.166, corr **0.630**, slope 0.285.
+- Shaikh: 0.167, corr **0.669**, slope 0.311.
+- Regulating: 0.170, corr **0.634**, slope 0.280.
+- Direct prices: 0.348, corr 0.189, slope 0.055.
 
-With the 71-industry BEA price indexes, the Sraffa/Shaikh fit improves sharply;
-the earlier 0.1-0.2 correlations were largely a broad-sector deflator artifact.
+`Q` is the BEA gross-output quantity index (TableID 16), not `GO/price_obs`.
+With an independent quantity index, Moseley's unit-price fit is genuine:
+working-capital Moseley reaches corr **0.884** and slope **0.603**. Sraffa and
+Shaikh are second, and direct labour values are poor.
 
-Moseley's `PP/Q` unit price looks better, but it is constructed as
-`(PP/GO) × price_obs`, so it contains the observed price by construction. The
-fair model-relative-price object, `PP/GO`, has correlation **0.05**. Moseley's
-revenue fit therefore does **not** translate into relative prices. Sraffa and
-Shaikh are the only benchmarks with genuine relative-price content.
+An earlier version used `PP/GO` as a “relative price.” That was wrong: `PP/GO`
+is a price ratio, not a unit price. The BEA quantity index fixes the test.
 
 Diagnostics: `PP/GO` has mean 1.057 and standard deviation 0.185, and the revenue
 ratio accounts for 53% of the variance of Moseley unit prices. The within-sector

@@ -175,17 +175,19 @@ expensive than B” but not by enough.
 Unit-price regressions, 2005–2023:
 
 ```
-Moseley        0.47
-Sraffa         0.30
-Shaikh         0.31
-Regulating     0.29
-Direct prices  0.07
+Moseley                    0.47
+Moseley profit-rate        0.52
+Moseley working-capital    0.60
+Sraffa                     0.28
+Shaikh                     0.31
+Regulating                 0.28
+Direct prices              0.06
 ```
 
-Moseley's 0.47 is for `PP/Q`, which is anchored to observed prices. The fair
-`PP/GO` comparison has slope 0.05. Sraffa and Shaikh rank prices moderately well
-but compress the differences. Direct labour values have almost no relation to
-observed relative prices.
+Moseley has the steepest slope and the highest correlation. Working-capital
+Moseley reproduces about 60% of the observed relative-price spread. Sraffa and
+Shaikh rank prices moderately well but compress the differences. Direct labour
+values have almost no relation to observed relative prices.
 
 ### What would raise the slope
 

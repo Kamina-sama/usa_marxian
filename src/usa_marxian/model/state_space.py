@@ -135,8 +135,11 @@ def build_state_space(
             f"{missing_rows.head().to_dict(orient='records')}"
         )
 
-    data["price"] = data["go_price"] / 100.0
-    data["quantity"] = data["GO"] / data["price"]
+    if "quantity" in data.columns and data["quantity"].notna().all():
+        data["quantity"] = data["quantity"].astype(float)
+    else:
+        data["quantity"] = data["GO"] / (data["go_price"] / 100.0)
+    data["price"] = data["GO"] / data["quantity"]
     data["capital"] = data["capital_real"]
     data["capital_deflator"] = data["capital_current"] / data["capital_real"]
     data["investment"] = data["investment_current"] / data["capital_deflator"]

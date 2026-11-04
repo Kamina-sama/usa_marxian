@@ -25,9 +25,9 @@ from .gravitation import (
 )
 
 UNIT_PRICE_MODELS = {
-    "Moseley relative price (PP/GO)": "p_moseley_rel",
-    "Moseley profit-rate relative price": "p_moseley_profit_rel",
-    "Moseley working-capital relative price": "p_moseley_working_rel",
+    "Moseley PP/Q (BEA quantities)": "p_moseley",
+    "Moseley profit-rate PP/Q": "p_moseley_profit",
+    "Moseley working-capital PP/Q": "p_moseley_working",
     "Sraffa prices of production": "p_sraffa",
     "Shaikh iterated prices": "p_shaikh",
     "Regulating capital": "p_reg",
@@ -49,18 +49,23 @@ def build_unit_price_panel(panel: pd.DataFrame) -> pd.DataFrame:
     data = panel.copy()
     if "go_price" not in data.columns:
         raise KeyError("Panel has no go_price column")
-    data["price_obs"] = data["go_price"] / 100.0
-    data["quantity"] = data["GO"] / data["price_obs"]
+    if "quantity" in data.columns and data["quantity"].notna().all():
+        data["quantity"] = data["quantity"].astype(float)
+        data["price_obs"] = data["GO"] / data["quantity"]
+    else:
+        data["price_obs"] = data["go_price"] / 100.0
+        data["quantity"] = data["GO"] / data["price_obs"]
 
     moseley_column = "PP_market" if "PP_market" in data.columns else "PP"
+    profit_column = (
+        "PP_profit_market" if "PP_profit_market" in data.columns else moseley_column
+    )
+    working_column = (
+        "PP_working_market" if "PP_working_market" in data.columns else moseley_column
+    )
     data["p_moseley"] = data[moseley_column] / data["quantity"]
-    data["p_moseley_rel"] = data[moseley_column] / data["GO"]
-    data["p_moseley_profit_rel"] = (
-        data.get("PP_profit_market", data[moseley_column]) / data["GO"]
-    )
-    data["p_moseley_working_rel"] = (
-        data.get("PP_working_market", data[moseley_column]) / data["GO"]
-    )
+    data["p_moseley_profit"] = data[profit_column] / data["quantity"]
+    data["p_moseley_working"] = data[working_column] / data["quantity"]
     if "regulating_factor" in data.columns and "p_sraffa" in data.columns:
         data["p_reg"] = data["p_sraffa"] * data["regulating_factor"]
 

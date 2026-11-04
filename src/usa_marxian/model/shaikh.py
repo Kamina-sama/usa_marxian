@@ -272,9 +272,13 @@ def build_shaikh_benchmarks(
         ):
             continue
 
-        price = group["go_price"].astype(float) / 100.0
         output = group["GO"].astype(float)
-        output_real = output / price
+        if "quantity" in group.columns and group["quantity"].notna().all():
+            output_real = group["quantity"].astype(float)
+            price = output / output_real
+        else:
+            price = group["go_price"].astype(float) / 100.0
+            output_real = output / price
         wage_bill = group["V"].astype(float)
         total_hours = float(hours.loc[year]) * 1e9
         if total_hours <= 0:

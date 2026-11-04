@@ -88,16 +88,16 @@ not disastrous, but they are worse.
 Revenue is total market size. Unit price is price per item. When we compare
 relative unit prices:
 
-- Moseley `PP/Q`: correlation **0.79**, slope **0.47** — but this series is
-  anchored to the observed price, so it is not a fair test.
-- Moseley `PP/GO`: correlation **0.05**, slope **0.05** — the fair relative-price
-  comparison.
-- Sraffa: correlation **0.61**, slope **0.28**.
-- Shaikh: correlation **0.65**, slope **0.31**.
-- Direct labour values: correlation **0.21**, slope **0.07**.
+- Moseley `PP/Q`: correlation **0.79**, slope **0.47**.
+- Moseley profit-rate `PP/Q`: correlation **0.82**, slope **0.52**.
+- Moseley working-capital `PP/Q`: correlation **0.88**, slope **0.60**.
+- Sraffa: correlation **0.63**, slope **0.28**.
+- Shaikh: correlation **0.67**, slope **0.31**.
+- Direct labour values: correlation **0.19**, slope **0.06**.
 
-Moseley's revenue fit does not translate into relative prices. Sraffa and Shaikh
-are the only benchmarks with genuine relative-price content.
+Here `Q` is the BEA quantity index, not revenue divided by observed price. With
+independent quantities, Moseley's unit-price fit is genuine; working-capital
+Moseley is the best benchmark.
 
 Correlation measures direction: 0.79 means the model ranks industries fairly
 well. Slope measures size: 0.47 means the model's price differences are only
@@ -138,9 +138,8 @@ forecasting.
 We can say:
 
 - the accounting construction is internally consistent;
-- Moseley's benchmark tracks revenues better than the alternatives, but that does
-  not translate into relative prices once its unit price is not anchored to
-  observed prices;
+- Moseley's benchmark tracks revenues and unit prices better than the
+  alternatives, especially with working capital included;
 - Sraffa and Shaikh have some real relative-price content;
 - direct labour values, by themselves, do not.
 

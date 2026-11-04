@@ -153,6 +153,7 @@ The BEA API dataset `GDPbyIndustry` (requires `BEA_API_KEY`) provides the
 accounts:
 
 - **TableID 18** — gross output price index
+- **TableID 16** — gross output quantity index
 - **TableID 11** — value added price index
 - **TableID 23** — intermediate inputs price index
 
