@@ -526,6 +526,27 @@ regulating capitals.
 
 See `docs/sraffa.md` and `docs/shaikh.md`.
 
+### Unit-price test
+
+The revenue comparison can be dominated by industry size. A separate test
+compares **relative unit prices** after normalising every series to a
+quantity-weighted geometric mean of one.
+
+- Moseley: log MAE 0.122, corr 0.504, slope 0.212.
+- Sraffa: 0.170, 0.109, 0.037.
+- Shaikh: 0.171, 0.180, 0.063.
+- Regulating: 0.173, 0.127, 0.042.
+- Direct prices: 0.359, -0.086, -0.012.
+
+The revenue fit weakens sharply. Moseley is clearly best (corr 0.50, MAE 0.12),
+but its slope is still only 0.21. Sraffa, Shaikh and regulating prices have
+correlations of 0.11-0.18 and slopes near 0.05. The main caveat is that observed
+prices are broad-sector GOPI deflators: only about 18 distinct values across 65
+industries, so within-sector relative prices are not identified. The test is
+coarse, but it does not support a strong unit-price LTV.
+
+See `docs/unit_prices.md`.
+
 ## State space for real competition
 
 The project now writes the measurement layer for a stock-flow cross-dual model:
@@ -605,7 +626,7 @@ After `analyze`:
 After `industries`:
 
 - `data/processed/industries.csv`, `industries_shaikh.csv`,
-  `shaikh_iterations.csv`, `industry_employment.csv`,
+  `shaikh_iterations.csv`, `unit_prices.csv`, `industry_employment.csv`,
   `industry_employment_coverage.csv`, `state_space.csv`, `technical_matrices.csv`,
   `technical_matrices_real.csv`, `state_space_macro.csv`, `state_space.json`,
   `industry_capital.csv`,
@@ -623,7 +644,10 @@ After `industries`:
   `gravitation_long_run_ecm.csv`, `gravitation_long_run_forecast_metrics.csv`,
   `gravitation_long_run_forecast_comparisons.csv`
 - `output/tables/stock_flow_metrics.csv`, `stock_flow_trajectories.csv`
-- `output/gravitation.json`, `output/shaikh.json`, `output/stock_flow.json`
+- `output/tables/unit_price_comparison.csv`, `unit_price_by_year.csv`,
+  `unit_price_gravitation.csv`
+- `output/gravitation.json`, `output/shaikh.json`, `output/stock_flow.json`,
+  `output/unit_prices.json`
 - `output/figures/industry_dispersion.png`, `pp_vs_go.png`,
   `gravitation_deviation.png`, `gravitation_forecast.png`
 
@@ -640,7 +664,7 @@ src/usa_marxian/
   pipeline.py      macro and industry pipelines
   cli.py           `usa-marxian` command
 tests/             offline unit tests
-docs/              model derivation, data sources, industry notes, Sraffa, Shaikh, state space, stock flow
+docs/              model derivation, data sources, industry notes, Sraffa, Shaikh, state space, stock flow, unit prices
 notebooks/         exploratory notebooks
 data/raw           cached downloads (gitignored)
 data/processed     panels, accounts, quality reports (gitignored)

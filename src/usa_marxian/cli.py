@@ -356,6 +356,14 @@ def cmd_industries(args: argparse.Namespace) -> int:
                 f"1y RMSE {row['forecast_pp_1y']:.3f} vs naive "
                 f"{row['forecast_naive_1y']:.3f}"
             )
+    unit = report.get("unit_prices", {}).get("comparison", [])
+    if unit:
+        print("Unit prices (relative, normalised):")
+        for row in unit:
+            print(
+                f"  {row['benchmark']:<38} log MAE {row['log_mae']:.3f}  "
+                f"corr {row['corr']:.3f}  slope {row['slope']:.3f}"
+            )
     long_run = report.get("gravitation", {}).get("long_run")
     if long_run:
         dev = long_run["deviation"]

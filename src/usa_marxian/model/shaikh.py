@@ -564,6 +564,9 @@ def build_shaikh_benchmarks(
                     "PP_Shaikh": float(
                         iterated_price.loc[code] * output_real.loc[code] * price.loc[code]
                     ),
+                    "p_sraffa": float(production_price.loc[code]),
+                    "p_shaikh": float(iterated_price.loc[code]),
+                    "p_v": float(value_price.loc[code]),
                     "r_observed": float(profit_rate),
                     "r_model": float(endogenous_iteration.profit_rate),
                     "iterations": int(endogenous_iteration.iterations),

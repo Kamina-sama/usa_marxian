@@ -22,6 +22,7 @@ from .analysis.diagnostics import diagnostics_table
 from .analysis.gravitation import run_gravitation
 from .analysis.ltv import LTVResult, estimate_ltv
 from .analysis.profit_check import property_income_check, property_income_summary
+from .analysis.unit_prices import compare_unit_prices
 from .config import ProjectConfig
 from .data.bea_assets import (
     attach_capital_stock,
@@ -595,6 +596,21 @@ def run_industries(
                 stacklevel=2,
             )
 
+    unit_prices = None
+    if shaikh is not None:
+        try:
+            unit_prices = compare_unit_prices(shaikh.shaikh.panel)
+            report["unit_prices"] = {
+                "latest_year": unit_prices["latest_year"],
+                "comparison": unit_prices["comparison"].to_dict(orient="records"),
+                "gravitation": unit_prices["gravitation"].to_dict(orient="records"),
+            }
+        except Exception as exc:
+            warnings.warn(
+                f"Unit-price comparison unavailable: {exc}",
+                stacklevel=2,
+            )
+
     gravitation = None
     gravitation_report = None
     if with_gravitation:
@@ -692,6 +708,34 @@ def run_industries(
                 "w", encoding="utf-8"
             ) as handle:
                 json.dump(_json_safe(shaikh.summary), handle, indent=2)
+            if unit_prices is not None:
+                unit_prices["panel"].to_csv(
+                    processed / "unit_prices.csv", index=False
+                )
+                unit_prices["comparison"].to_csv(
+                    tables / "unit_price_comparison.csv", index=False
+                )
+                unit_prices["by_year"].to_csv(
+                    tables / "unit_price_by_year.csv", index=False
+                )
+                unit_prices["gravitation"].to_csv(
+                    tables / "unit_price_gravitation.csv", index=False
+                )
+                with (config.settings.output_dir / "unit_prices.json").open(
+                    "w", encoding="utf-8"
+                ) as handle:
+                    json.dump(
+                        _json_safe(
+                            {
+                                "summary": unit_prices["summary"],
+                                "latest": unit_prices["latest"].to_dict(
+                                    orient="records"
+                                ),
+                            }
+                        ),
+                        handle,
+                        indent=2,
+                    )
         if gravitation is not None:
             deviation = gravitation["deviation"]
             pd.DataFrame(
