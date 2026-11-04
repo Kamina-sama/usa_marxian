@@ -32,8 +32,11 @@ Additional sources:
 - BEA NIPA underlying detail (keyless iTable core API):
   `https://apps.bea.gov/iTable/core/data/app/GetStep`
   Table 1BUC gives detailed manufacturing and retail inventories.
-- FRED broad-sector chain-type price indexes from the GDP-by-Industry release:
-  `VAPI*` for value added and `GOPI*` for gross output, 2017=100.
+- BEA GDP-by-Industry tables (requires a free `BEA_API_KEY`) for the
+  71-industry value-added, gross-output, intermediate-inputs and quantity
+  indexes. The keyless fallback is the FRED broad-sector chain-type price
+  indexes from the same release: `VAPI*` for value added and `GOPI*` for gross
+  output, 2017=100.
 
 ## Extracted fields
 
@@ -95,7 +98,7 @@ PP_i = K_i + R M_i,        R = sum(S_i) / sum(M_i)
   federal defense/nondefense, state/local general government, state/local
   government enterprises, and owner-occupied residential stock;
 - year-end private **inventory stocks**: manufacturing and retail from BEA
-  Table 1BUC at detailed NAICS level (23 IO industries, 54.5% of inventory
+  Table 1BUC at detailed NAICS level (23 IO industries, 53.7% of inventory
   value); farm, mining/utilities/construction, wholesale and “other” from NIPA
   Table 5.8.5B, allocated within the broad group by gross output.
 
@@ -120,34 +123,38 @@ and observed gross output, not the aggregate identity.
 
 ## Sector deflation
 
-Value added, compensation and gross output are deflated with broad-sector
-chain-type price indexes:
+Value added, compensation and gross output are deflated with the BEA
+GDP-by-Industry 71-industry chain-type price indexes:
 
 ```
-N_real_i = N_net_i / (VAPI_sector / 100)
-V_real_i = V_i / (VAPI_sector / 100)
-GO_real_i = GO_i / (GOPI_sector / 100)
+N_real_i = N_net_i / (VAPI_i / 100)
+V_real_i = V_i / (VAPI_i / 100)
+GO_real_i = GO_i / (GOPI_i / 100)
 S_real_i = N_real_i - V_real_i
 ```
 
-Intermediate consumption uses a supplier-weighted input deflator:
+Intermediate consumption uses the separate intermediate-inputs index
+(TableID 23; `INPI` in the BEA release):
 
 ```
-w_ci = U_ci(2017) / sum_c U_ci(2017)
-input_price_it = sum_c w_ci * GOPI_sector(c),t
-C_real_i = C_i / (input_price_i / 100)
+C_real_i = C_i / (INPI_i / 100)
 K_real_i = C_real_i + V_real_i
 r_real_i = S_real_i / K_real_i
 R_real_i = S_real_i / M_real_i
 ```
 
-The 2017 Use table supplies the weights; each commodity's price is proxied by
-its broad sector's gross-output deflator. Capital is deflated by the industry's
-own gross-output index. On 2023 the real market profit rate is 20.1% vs 20.2%
-nominal, and real dispersion is 0.659 vs 0.609.
+All three are industry-level indexes, so no supplier weighting is required.
+Capital is deflated by the industry's own gross-output index.
 
-Caveats: fixed 2017 weights, broad-sector commodity price proxies, and a
-gross-output proxy for the capital-goods deflator.
+Without a `BEA_API_KEY` the project falls back to broad-sector FRED `VAPI*` /
+`GOPI*` indexes, and `C_i` is then deflated by a supplier-weighted proxy built
+from 2017 Use-table input shares and the supplying sectors' gross-output
+deflators.
+
+On 2023 the real market profit rate is 20.2% vs 20.2% nominal, and real
+dispersion is 0.665 vs 0.609. Caveats: capital is deflated by a gross-output
+proxy, and the deflated `A_t` uses supplying-industry gross-output indexes
+rather than commodity prices.
 
 ## Structural outliers
 
@@ -166,17 +173,17 @@ market-industry subset, which is the headline sample.
 - MAE of `PP` vs gross output: 12.6% full, 13.7% market-only.
 - MAE of the long-run `PP*`: 16.8% full, 15.8% market-only.
 - MAE of `PP_V` vs gross output: 53.1%.
-- Correlation of `PP` with gross output: 0.941 full, 0.983 market-only.
+- Correlation of `PP` with gross output: 0.941 full, 0.982 market-only.
 - Share within 25% of `PP`: 86.9% full, 88.8% market-only.
 - Proxy sensitivity, full-sample MAE: fixed assets + inventories 12.6%, cost
   13.3%, output 11.0%, value-added 9.0%. Market-only MAE: 13.7%, 10.5%, 8.7%,
   7.1%.
-- Sector-deflated real growth, 2005-2023: value added 1.80%/yr, gross output
-  1.67%/yr.
+- Sector-deflated real growth, 2005-2023: value added 1.79%/yr, gross output
+  1.66%/yr.
 
 Interpretation: in the market sample, actual capital stocks still fit **worse on
 average error** than the cost proxy, though the cross-sectional correlation is
-high (0.983). The full-sample numbers move because government and housing
+high (0.982). The full-sample numbers move because government and housing
 capital are now actual and very large relative to their surplus-value. That
 is informative: with `M_i = K_i`, `PP_i` is mechanically close to `GO_i`, so the
 old fit was partly built in. Actual capital stocks expose the profit-rate

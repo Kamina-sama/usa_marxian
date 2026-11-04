@@ -51,19 +51,20 @@ Sample: 65 market industries, 1998-2023, 1,690 observations.
 - AR(1) persistence coefficient (industry and year effects): **0.732**;
   implied half-life of a deviation: **2.2 years**.
 - The mean absolute deviation has a tiny positive trend (+0.06 percentage
-  points per year, p=0.087), not statistically distinguishable from zero.
+  points per year, p=0.037): statistically detectable but economically
+  negligible.
 
 Panel ADF results are mixed. The Fisher combination rejects a unit root
-(p<0.001), but only **12%** of industries reject individually and the median
-industry p-value is 0.34. The panel test is helped by having 65 industries; the
+(p<0.001), but only **14%** of industries reject individually and the median
+industry p-value is 0.33. The panel test is helped by having 65 industries; the
 typical industry series is too short (26 annual observations) to be decisive on
 its own.
 
 Engle-Granger cointegration between `log GO` and `log PP` gives the same
-pattern: Fisher p<0.001, but only 17% of industries reject individually.
+pattern: Fisher p<0.001, but only 14% of industries reject individually.
 
 **Reading:** deviations are persistent but not permanent. The half-life is about
-2.3 years, so a shock is mostly gone in five years. That is consistent with slow
+2.2 years, so a shock is mostly gone in five years. That is consistent with slow
 gravitation, but the evidence is not strong at the individual-industry level.
 
 ## Test 2: which variable does the adjusting?
@@ -143,8 +144,9 @@ Pooled log RMSE (lower is better):
   difference is also tiny.
 
 **Reading:** PP has no incremental predictive power for future gross output in
-this panel. The contemporaneous fit is moderate (14-17% MAE), but that is a
-different question from gravitation.
+this panel. The contemporaneous fit is moderate (13.7% mean absolute error over
+the market sample, 14.6% in 2023), but that is a different question from
+gravitation.
 
 ## Overall verdict
 

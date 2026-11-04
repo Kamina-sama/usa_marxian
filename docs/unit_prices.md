@@ -28,7 +28,7 @@ It is a **price ratio**, not a unit price. Its natural null is one, not a
 regression against the observed price. It is a useful revenue-ratio diagnostic,
 but it is not a unit-price test.
 
-## Fit, 2005-2023
+## Fit, 1998-2023, 60 market industries
 
 | Benchmark | log MAE | log RMSE | corr | slope | within 10% | within 25% |
 |---|---:|---:|---:|---:|---:|---:|
@@ -53,22 +53,26 @@ values perform poorly.
 
 | Benchmark | corr within | slope within |
 |---|---:|---:|
-| Moseley working-capital | 0.884 | 0.603 |
-| Moseley profit-rate | 0.819 | 0.524 |
-| Moseley base | 0.794 | 0.475 |
-| Sraffa | 0.630 | 0.285 |
-| Shaikh | 0.669 | 0.311 |
-| Direct prices | 0.189 | 0.055 |
+| Moseley | 0.774 | 0.608 |
+| Sraffa | 0.588 | 0.387 |
+| Shaikh | 0.606 | 0.420 |
+| Regulating | 0.586 | 0.378 |
+| Direct prices | 0.311 | 0.134 |
 
-The within-sector results track the full-sample results, so the fit is not just
-between-sector price levels.
+Every benchmark has a steeper slope within sectors than in the pooled sample,
+and the ranking is unchanged: Moseley leads (0.61), Sraffa and Shaikh follow
+(0.39 and 0.42), direct prices barely move (0.13). The fit is therefore not an
+artefact of between-sector price levels.
 
 ## Measurement error
 
 The value-added and gross-output deflators correlate at about 0.935 within
 sector-year cells. Under a classical errors-in-variables assumption the
-reliability is about `corr² ≈ 0.87`. Correcting the slopes would raise them by
-roughly 15%, not enough to change the ranking.
+reliability of the value-added deflator as a proxy is about **0.61** (the
+reverse-regression slope; `corr²` alone would suggest 0.87), so attenuation
+could account for up to about 40% of the shortfall in the slopes. Even dividing
+the reported slopes by that reliability leaves them well below one, and it does
+not change the ranking.
 
 ## Gravitation on unit-price deviations
 
@@ -79,9 +83,14 @@ d_it = log(price_obs_it / p_model_it)
 ```
 
 Panel error-correction and one-year forecasts are in
-`unit_price_gravitation.csv`. The qualitative result is the same as for
-revenues: Moseley is the only benchmark with a negative output-adjustment
-coefficient, but it is weak; Sraffa and Shaikh do not attract output.
+`unit_price_gravitation.csv`. On unit prices **every** benchmark now carries a
+negative output-adjustment coefficient, but only direct prices reach
+significance (`β_GO = -0.058`, p=0.035). The Moseley variants sit between
+`-0.10` and `-0.15` with p-values of 0.10-0.25; Sraffa and Shaikh at the plain
+fixed point are essentially zero (`-0.02` and `-0.00`), while their
+fixed-capital variants are negative and marginal (`-0.16`, p=0.095 and `-0.14`,
+p=0.106). No benchmark beats the naive one-year forecast (log RMSE 0.065); the
+Moseley variants are 0.14-0.18.
 
 ## Verdict
 

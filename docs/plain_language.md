@@ -78,7 +78,7 @@ Comparing industry revenues with the benchmark:
 - Moseley: average miss about **12%**.
 - Sraffa: about **19%**.
 - Shaikh: about **19%**.
-- Direct labour values: about **37%**.
+- Direct labour values: about **36%**.
 
 Moseley's benchmark is closest to observed revenues. The other benchmarks are
 not disastrous, but they are worse.

@@ -13,12 +13,12 @@ p_{k+1} = (1 + r_k) c_k
 ```
 
 starting from labour values and using the deflated annual `A_t`. It converges in
-**29 rounds on average** (maximum 34, all years converged) with a residual below
+**29 rounds on average** (maximum 33, all years converged) with a residual below
 `1e-10`.
 
-- Model-implied real profit rate: **38.7%** average vs **17.6%** observed real.
+- Model-implied real profit rate: **38.5%** average vs **17.6%** observed real.
 - The iterated prices are close to the Sraffian fixed point, but with the
-  improved price data they fit worse: MAE **19.3%**, correlation **0.956**.
+  improved price data they fit worse: MAE **19.3%**, correlation **0.955**.
   Iteration adds convergence diagnostics and an implied rate, not a better
   price center.
 
@@ -38,13 +38,13 @@ PP_reg_i      = PP_Sraffa_i * factor_i
 
 with `theta = 0.10`. The dispersion measure is the coefficient of variation of
 6-digit unit costs within each IO industry. This is a sub-industry proxy, not a
-firm-level distribution. Coverage is 60 of 65 market industries (1,140
+firm-level distribution. Coverage is 60 of 65 market industries (1,560
 observations); unmapped industries fall back to the Sraffa price.
 
-Live result: `PP_reg` MAE 18.3%, RMSE 27.3%, corr 0.957, mean gap +0.0% —
-slightly better than Sraffa's 18.6% MAE and essentially unbiased in aggregate.
-Gravitation remains wrong-signed: `β_GO = +0.113` (p=0.008), `β_PP = +0.282`,
-one-year forecast RMSE 0.263.
+Live result: `PP_reg` MAE 18.5%, RMSE 27.9%, corr 0.954, mean gap +0.3% —
+slightly better than Sraffa's 18.7% MAE and essentially unbiased in aggregate.
+Gravitation remains wrong-signed: `β_GO = +0.106` (p=0.014), `β_PP = +0.276`,
+one-year forecast RMSE 0.267.
 
 ## Fixed-capital iteration
 
@@ -56,7 +56,7 @@ p = (1+r)(pA + w l) + p (B o (r + Delta))
 r = [p q - pAq - wL - p Delta B q] / [pAq + wL + pBq]
 ```
 
-It converges to a model-implied rate of about **7.4%** and improves unit-price
+It converges to a model-implied rate of about **11.6%** and improves unit-price
 fit substantially:
 
 ```
@@ -66,7 +66,7 @@ unit MAE          0.167 -> 0.152
 ```
 
 Revenue MAE is roughly unchanged (19.3% to 19.6%), but RMSE worsens sharply
-(29.2% to 44.5%), so the improvement is in typical relative prices, not in the
+(29.5% to 44.5%), so the improvement is in typical relative prices, not in the
 tails. Gravitation remains wrong-signed (`beta_GO = +0.036`, p=0.034).
 
 ## Cross-dual gravitation
@@ -79,15 +79,15 @@ q_i' = q_i exp( beta  (r_i - r_bar))
 ```
 
 Starting from labour values, weighted profit-rate dispersion falls from **0.160**
-to approximately zero in about **207 steps**. This is a toy process; the full
+to approximately zero in about **205 steps**. This is a toy process; the full
 stock-flow version is in `docs/stock_flow.md`.
 
 ## Stock-flow model
 
 The state-space dataset (`p, q, k, I, u, w, l, A_t`) feeds a small stock-flow
 simulation with price, output, investment, capital and wage adjustment. Its
-current fit is: quantity RMSE 0.095, capital RMSE 0.375, investment RMSE high,
-price RMSE 0.302. Output is well fitted; capital and relative prices are not.
+current fit is: quantity RMSE 0.196, capital RMSE 0.352, investment RMSE 0.495,
+price RMSE 0.304. Output is well fitted; capital and relative prices are not.
 
 ## Where Shaikh is and is not implemented
 
@@ -96,14 +96,18 @@ Implemented:
 - labour values via the Leontief inverse, with FTE hours split by BLS
   manufacturing totals;
 - the endogenous-`r` cost-plus iteration;
+- a sub-industry regulating-capital proxy from Census 6-digit unit costs
+  (key-gated; see above);
 - a toy cross-dual price/output adjustment;
 - a first stock-flow cross-dual simulation.
 
 Not implemented:
 
-- regulating capitals (low-cost price leaders);
-- firm entry, exit and cost heterogeneity;
-- endogenous demand (consumption, investment demand, government, net exports);
+- firm-level regulating capitals and true cost heterogeneity (the Census proxy
+  is a concentration measure, not plant-level costs);
+- firm entry and exit;
+- endogenous consumption, government, export and import demand — investment is
+  simulated, the other final-demand components are exogenous;
 - wage bargaining or a Phillips curve;
 - financial constraints on investment;
 - estimation with standard errors.

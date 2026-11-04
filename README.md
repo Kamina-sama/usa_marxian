@@ -83,7 +83,7 @@ project therefore separates five kinds of work:
    out-of-sample forecasts of market gross output.
 
 The project implements all five. It still does not identify individual labour
-values, and about 11% of industry inventory value still uses broad-group
+values, and about 46% of industry inventory value still uses broad-group
 allocation. All 71 industries now use actual fixed assets, including government
 and housing. Treat the output as measurement and evidence, not proof.
 
@@ -143,10 +143,14 @@ No key is needed by default:
   manufacturing and retail inventories (Table 1BUC).
 - **FRED GDP-by-Industry price indexes** for broad-sector value-added and
   gross-output deflators.
+- **BEA GDP-by-Industry tables** (free key) for the 71-industry price and
+  quantity indexes behind the reported industry results.
 - **BLS** public API v1 for direct BLS series (v2 with a free key).
 
-Optional free keys unlock the official APIs and higher quotas. Copy
-`.env.example` to `.env`:
+Optional free keys unlock the official APIs and higher quotas. One of them
+changes results rather than quotas: without `BEA_API_KEY` the industry layer
+falls back to the broad-sector FRED indexes, which start in 2005, so the real
+accounts and the state space lose 1998-2004. Copy `.env.example` to `.env`:
 
 ```bash
 cp .env.example .env
@@ -195,8 +199,8 @@ employment x weekly hours, but the FRED weekly-hours series only starts in
 
 Results on the November 2026 vintage:
 
-- LTV slope on real new value: **1.54 to 2.25** across specifications; baseline
-  **2.24** (95% CI 2.08-2.40). The unit-slope restriction is rejected in every
+- LTV slope on real new value: **1.54 to 2.24** across specifications; baseline
+  **2.22** (95% CI 2.06-2.38). The unit-slope restriction is rejected in every
   specification.
 - Last-year profit rate: **12.9% to 26.6%**, depending mainly on whether
   capital is measured as nonresidential or total private fixed assets.
@@ -291,7 +295,7 @@ PP_i = K_i + R M_i,        R = sum(S_i) / sum(M_i)
   local general government, state and local government enterprises, and
   owner-occupied residential fixed assets;
 - **inventories** — year-end private inventory stocks. Manufacturing and retail
-  come from BEA Table 1BUC at detailed NAICS level (23 IO industries, **54.5%**
+  come from BEA Table 1BUC at detailed NAICS level (23 IO industries, **53.7%**
   of inventory value); farm, mining/utilities/construction, wholesale and
   “other” industries come from Table 5.8.5B and are allocated within the broad
   group.
@@ -332,7 +336,7 @@ Results, 1998-2023, net basis:
   market-only.
 - MAE of the long-run `PP*`: **16.8%** full, **15.8%** market-only.
 - MAE of the labour-only benchmark `PP_V`: **53.1%**.
-- Correlation of `PP` with gross output: **0.941** full, **0.983** market-only.
+- Correlation of `PP` with gross output: **0.941** full, **0.982** market-only.
 - Share of industries within 25% of `PP` (sample means): **86.9%** full,
   **88.8%** market-only.
 - Proxy sensitivity, full-sample MAE: fixed assets + inventories **12.6%**,
@@ -381,16 +385,15 @@ Reconciliation for 2023:
 ## Sector deflation
 
 The macro `melt_real` uses the GDP deflator, which is an aggregate value-added
-deflator. For industry accounts the project uses broad-sector chain-type price
-indexes from BEA's GDP-by-Industry release (via FRED):
+deflator. For industry accounts the project uses BEA's GDP-by-Industry
+71-industry chain-type price indexes:
 
-- value-added deflators for `N_i`, `V_i` and `S_i`;
-- gross-output deflators for `GO_i`;
-- a supplier-weighted intermediate-input deflator for `C_i`.
+- **TableID 11** value-added deflator for `N_i`, `V_i` and `S_i`;
+- **TableID 18** gross-output deflator for `GO_i`;
+- **TableID 23** intermediate-inputs deflator for `C_i`.
 
-The intermediate-input deflator uses the 2017 Use table to weight each
-industry's input bundle, and proxies each commodity's price with the
-gross-output deflator of its broad sector. Real accounts are then:
+Because all three are industry indexes, no supplier weights are needed. Real
+accounts are then:
 
 ```
 C_real = C / (input_price / 100)
@@ -400,14 +403,20 @@ r_real = S_real / K_real
 R_real = S_real / M_real
 ```
 
-On 2005-2023, real industry value added grew **1.80%/yr** and real gross output
-**1.67%/yr**. The real market profit rate is **20.1%** in 2023, essentially the
-same as the nominal **20.2%**; real dispersion is higher (weighted CV **0.659**
-vs **0.609**).
+Without a `BEA_API_KEY` the pipeline falls back to the broad-sector FRED `VAPI*`
+and `GOPI*` series, and `C_i` is then deflated by a supplier-weighted proxy: 2017
+Use-table input shares applied to the supplying sectors' gross-output deflators.
+That fallback starts in 2005.
 
-Caveats: the input weights are fixed at 2017, commodity prices are broad-sector
-proxies, and capital is deflated by the industry's own gross-output index. The
-nominal prices-of-production comparison remains the primary value-theory test.
+On 2005-2023, real industry value added grew **1.79%/yr** and real gross output
+**1.66%/yr** (1.95%/yr and 1.93%/yr over the longer 1998-2023 span). The real
+market profit rate is **20.2%** in 2023, essentially the same as the nominal
+**20.2%**; real dispersion is higher (weighted CV **0.665** vs **0.609**).
+
+Caveats: capital is deflated by the industry's own gross-output index, and the
+deflated `A_t` uses the gross-output indexes of the supplying industries rather
+than commodity prices. The nominal prices-of-production comparison remains the
+primary value-theory test.
 
 ## Predictive power and gravitation
 
@@ -507,20 +516,20 @@ Fit on the same 60 market industries, 1998-2023:
   corr **0.987**, slope **1.036**, within 25% **91.0%**, mean gap **-4.9%**.
 - **Moseley working-capital `PP`**: MAE **10.4%**, RMSE **13.2%**, corr
   **0.991**, slope **1.035**, within 25% **94.2%**, mean gap **-4.4%**.
-- **Sraffa `PP_Sraffa`**: MAE **18.7%**, RMSE **27.9%**, corr **0.959**, slope
-  **0.942**, within 25% **74.9%**, mean gap **-3.1%**.
+- **Sraffa `PP_Sraffa`**: MAE **18.7%**, RMSE **28.2%**, corr **0.957**, slope
+  **0.941**, within 25% **76.0%**, mean gap **-2.9%**.
 - **Sraffa with fixed capital**: MAE **17.5%**, RMSE **38.8%**, corr
   **0.913**, slope **0.971**, within 25% **84.7%**, mean gap **-6.4%**. Fixed
   capital improves typical errors and unit prices but worsens the RMSE tails.
-- **Shaikh iterated `PP_Shaikh`**: MAE **19.3%**, RMSE **29.2%**, corr
-  **0.956**, slope **0.945**, within 25% **74.1%**, mean gap **-3.5%**.
+- **Shaikh iterated `PP_Shaikh`**: MAE **19.3%**, RMSE **29.5%**, corr
+  **0.955**, slope **0.944**, within 25% **74.0%**, mean gap **-3.4%**.
 - **Shaikh with fixed capital**: MAE **19.6%**, RMSE **44.5%**, corr
   **0.888**, slope **0.966**, within 25% **80.6%**, mean gap **-7.1%**. Unit
   prices improve; revenue tails worsen.
-- **Regulating capital `PP_reg`**: MAE **18.5%**, RMSE **27.5%**, corr
-  **0.956**, slope **0.944**, within 25% **76.0%**, mean gap **+0.1%**.
-- **Direct prices (labour values)**: MAE **37.2%**, RMSE **48.9%**, corr
-  **0.888**, slope **0.871**, within 25% **42.9%**, mean gap **-9.3%**.
+- **Regulating capital `PP_reg`**: MAE **18.5%**, RMSE **27.9%**, corr
+  **0.954**, slope **0.942**, within 25% **76.3%**, mean gap **+0.3%**.
+- **Direct prices (labour values)**: MAE **36.5%**, RMSE **47.9%**, corr
+  **0.888**, slope **0.872**, within 25% **43.3%**, mean gap **-8.7%**.
 
 Gravitation comparison:
 
@@ -531,31 +540,31 @@ Gravitation comparison:
 - **Moseley working-capital**: mean gap 10.4%, half-life 2.0y, output
   adjustment `-0.091` (p=0.239), PP adjustment `+0.201` (p=0.004), 1y forecast
   RMSE 0.176.
-- **Sraffa `PP_Sraffa`**: mean gap 18.5%, half-life 4.0y, output adjustment
-  `+0.101` (p=0.009), PP adjustment `+0.259` (p<0.001), 1y forecast RMSE 0.253.
+- **Sraffa `PP_Sraffa`**: mean gap 18.4%, half-life 4.0y, output adjustment
+  `+0.097` (p=0.014), PP adjustment `+0.257` (p<0.001), 1y forecast RMSE 0.253.
 - **Sraffa with fixed capital**: mean gap 15.5%, half-life 5.1y, output
   adjustment `+0.044` (p=0.039), PP adjustment `+0.171` (p<0.001), 1y forecast
   RMSE 0.227. The wrong-signed output coefficient shrinks but remains positive.
-- **Shaikh iterated `PP_Shaikh`**: mean gap 18.6%, half-life 3.7y, output
-  adjustment `+0.100` (p=0.006), PP adjustment `+0.272` (p<0.001), 1y forecast
-  RMSE 0.252.
+- **Shaikh iterated `PP_Shaikh`**: mean gap 18.6%, half-life 3.6y, output
+  adjustment `+0.097` (p=0.007), PP adjustment `+0.271` (p<0.001), 1y forecast
+  RMSE 0.253.
 - **Shaikh with fixed capital**: mean gap 17.2%, half-life 5.3y, output
   adjustment `+0.036` (p=0.034), PP adjustment `+0.158` (p<0.001), 1y forecast
   RMSE 0.246. The wrong-signed output coefficient is smaller but remains
   positive.
-- **Regulating capital `PP_reg`**: mean gap 18.7%, half-life 3.7y, output
-  adjustment `+0.113` (p=0.008), PP adjustment `+0.282` (p<0.001), 1y forecast
-  RMSE 0.263.
-- **Direct prices**: mean gap 35.8%, half-life 4.5y, output adjustment `+0.083`
-  (p=0.015), 1y forecast RMSE 0.454.
+- **Regulating capital `PP_reg`**: mean gap 18.9%, half-life 3.7y, output
+  adjustment `+0.106` (p=0.014), PP adjustment `+0.276` (p<0.001), 1y forecast
+  RMSE 0.267.
+- **Direct prices**: mean gap 35.4%, half-life 4.4y, output adjustment `+0.081`
+  (p=0.020), 1y forecast RMSE 0.451.
 - Naive forecast RMSE: **0.120**.
 
 The Sraffian fixed point is a static center: it fits the aggregate level well
 (low RMSE, small bias, slope near one) but does not attract output — output does
 not adjust toward it, while it adjusts toward output. The Shaikh iteration
 starts from labour values, recomputes the profit rate each round, and converges
-in **29 rounds on average** (maximum 34) to essentially the Sraffian center; the
-model-implied real rate averages **35.9%** against **23.2%** observed. So the
+in **29 rounds on average** (maximum 33) to essentially the Sraffian center; the
+model-implied real rate averages **38.5%** against **17.6%** observed. So the
 iteration adds convergence diagnostics, not a different price benchmark. Direct
 labour values fit worst.
 
@@ -566,8 +575,8 @@ converges to Sraffa.** All three fail the random-walk forecast benchmark.
 A regulating-capital benchmark `PP_reg` is available when a `CENSUS_API_KEY` is
 set. It uses 6-digit Census unit costs: `factor = 1 - theta * (1 -
 unit_cost_min / unit_cost)`, with `theta = 0.10`, applied to the Sraffa price.
-With the live data it covers 60 of 65 market industries and gives MAE 16.1%,
-mean gap +0.5% — slightly better than Sraffa's 16.7% MAE and much better
+With the live data it covers 60 of 65 market industries and gives MAE 18.5%,
+mean gap +0.3% — slightly better than Sraffa's 18.7% MAE and much better
 aggregate calibration. It remains a sub-industry proxy, not plant-level
 regulating capitals.
 
@@ -598,9 +607,9 @@ An earlier version used `PP/GO` as a “relative price.” That was wrong: `PP/G
 is a price ratio, not a unit price. The BEA quantity index fixes the test.
 
 Diagnostics: `PP/GO` has mean 1.057 and standard deviation 0.185, and the revenue
-ratio accounts for 53% of the variance of Moseley unit prices. The within-sector
-test is now identified: Moseley's within-sector correlation is 0.786, Sraffa
-0.591, Shaikh 0.605. The value-added and gross-output deflators correlate at
+ratio accounts for 52% of the variance of Moseley unit prices. The within-sector
+test is now identified: Moseley's within-sector correlation is 0.774, Sraffa
+0.588, Shaikh 0.606. The value-added and gross-output deflators correlate at
 0.935, so measurement error can explain some but not most of the attenuation;
 even after a reliability correction the slopes remain well below one.
 
@@ -629,17 +638,17 @@ There are three different slopes in the project:
 1. **Price-fit slope** — `log observed price` on `log model price`; target 1.
    This is the unit-price table.
 2. **Revenue-fit slope** — `log GO` on `log PP`; target approximately 1 because
-   both are revenues. Moseley is 1.043, Sraffa 0.945.
+   both are revenues. Moseley is 1.043, Sraffa 0.941.
 3. **Error-correction beta** — the coefficient on the lagged price gap. This is
    not a price elasticity. Negative means the gap closes; positive means it
-   widens. These are the `β_GO = -0.163` or `+0.103` values in the gravitation
+   widens. These are the `β_GO = -0.163` or `+0.097` values in the gravitation
    tables.
 
 ## State space for real competition
 
 The project now writes the measurement layer for a stock-flow cross-dual model:
-**65 market industries**, 2005-2023 for the complete state table, with 26 annual
-current-price matrices (1998-2023) and 19 deflated real matrices (2005-2023).
+**65 market industries**, 1998-2023 for the complete state table, with 26 annual
+current-price matrices and 26 deflated real matrices.
 
 The state table contains:
 
@@ -660,8 +669,9 @@ The state table contains:
 This is deliberately a **measurement dataset**, not a behavioural model yet.
 It supplies every variable needed for a stock-flow cross-dual system except
 demand and the adjustment parameters. The main remaining limitations are
-current-price `A_t`, broad-sector deflators, an output-capital utilization
-proxy, and industry hours allocated by compensation.
+industry-level rather than commodity-level price indexes, an output-capital
+utilization proxy, and hours-per-FTE calibrated to BLS detail for manufacturing
+only.
 
 See `docs/state_space.md`.
 
@@ -693,12 +703,12 @@ statistical/other term (about 8% of output) that closes the observed base year.
 For a plain explanation of what “closing demand” means and why the fit changed,
 see [`docs/reading_the_model.md`](docs/reading_the_model.md).
 
-Fit, 2005-2023:
+Fit, 1999-2023 (63 simulated industries):
 
-- price: log RMSE **0.305**, correlation **0.297**
-- quantity: log RMSE **0.197**, correlation **0.983**
-- capital: log RMSE **0.356**, correlation **0.915**
-- investment: log RMSE **0.505**, correlation **0.796**
+- price: log RMSE **0.304**, correlation **0.319**
+- quantity: log RMSE **0.196**, correlation **0.983**
+- capital: log RMSE **0.352**, correlation **0.918**
+- investment: log RMSE **0.495**, correlation **0.801**
 
 Closing demand makes the model structural but worsens the fit relative to the
 exogenous-demand version (quantity 0.108, capital 0.237). Output and capital
@@ -779,8 +789,9 @@ output/            tables, figures, JSON reports (gitignored)
 - **Industry accounts** — 71 BEA Use-table industries; actual fixed assets,
   government and housing capital, detailed manufacturing/retail inventories,
   industry CFC, and net surplus-value.
-- **Sector deflators** — value-added, gross-output, and a supplier-weighted
-  intermediate-input deflator (2017 weights), plus real profit rates.
+- **Sector deflators** — 71-industry value-added, gross-output and
+  intermediate-input indexes (BEA TableIDs 11, 18 and 23), plus real profit
+  rates; the keyless fallback is a supplier-weighted broad-sector proxy.
 - **Property-income check** — `S = N - V` against independent NIPA property income.
 - **Gravitation tests** — deviation persistence, panel unit roots, panel error
   correction, and out-of-sample forecasts for current and long-run `PP`.
@@ -795,9 +806,10 @@ output/            tables, figures, JSON reports (gitignored)
 ### Remaining, in rough priority order
 
 1. **Residual inventory detail** — mining/utilities/construction and “other”
-   industries (about 11% of inventory value) still use broad-group allocation.
-2. **Commodity-level intermediate-input deflator** — replace broad-sector
-   supplier proxies and chain the Use-table weights over time.
+   industries (about 46% of inventory value) still use broad-group allocation.
+2. **Commodity-level intermediate-input deflator for the keyless path** — the
+   keyed build already uses BEA TableID 23; without `BEA_API_KEY` the input
+   deflator is still a supplier-weighted broad-sector proxy.
 3. **Plant-level cost heterogeneity** — the regulating-capital benchmark is a
    concentration proxy; true regulating capitals need Census microdata or ASM
    size-class cost distributions.

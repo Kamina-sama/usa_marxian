@@ -7,13 +7,15 @@ a long annual input-output matrix.
 ## Coverage
 
 - 65 market industries; government units and housing are excluded
-- 2005-2023 complete state data (19 years, 1,235 observations)
+- 1998-2023 complete state data (26 years, 1,690 observations)
 - 26 current-price annual matrices, 1998-2023
-- 19 deflated real matrices, 2005-2023
-- 86,518 non-zero current-price matrix entries; 63,261 real entries
+- 26 deflated real matrices, 1998-2023
+- 86,518 non-zero current-price matrix entries; 86,518 real entries
 
-Complete state data start in 2005 because the broad-sector GDP-by-Industry price
-indexes start then. The annual matrices themselves cover 1998-2023.
+Complete state data cover 1998-2023 because the BEA GDP-by-Industry
+71-industry indexes (TableID 18 for prices, TableID 16 for quantities) run over
+that whole span. An earlier version depended on the broad-sector FRED `GOPI*`
+series, which start in 2005 and truncated the state table accordingly.
 
 ## Variables
 
@@ -56,10 +58,13 @@ fixed-cost stock files. `A_t` is the annual current-price Use matrix.
 
 ## What is still approximate
 
-- **Prices and quantities** are based on broad-sector gross-output deflators,
-  not industry-level or commodity-level price indexes.
-- **`A_t` is in current prices.** It mixes technical change with relative-price
-  change. A constant-price `A_t` is the next refinement.
+- **Prices and quantities** use the 71-industry BEA GDP-by-Industry indexes, not
+  commodity-level price indexes. The deflated `A_t` uses each industry's
+  gross-output index (`A_real[c,j] = A_current[c,j] * p_j / p_c`), which is an
+  industry proxy rather than a commodity price.
+- **`A_t` is in current prices** in `technical_matrices.csv`; it mixes technical
+  change with relative-price change. The constant-price counterpart is written
+  as `technical_matrices_real.csv` and is what the stock-flow model uses.
 - **Utilization** is an output-capital ratio, not the FRB capacity-utilization
   series. FRB utilization is available only for manufacturing aggregates.
 - **Labour hours** are built from Table 6.5D full-time equivalents. Manufacturing

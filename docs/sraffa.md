@@ -32,35 +32,36 @@ distinctive claim is the **adjustment process** — real competition, capital
 flows, entry and turbulent gravitation (see `docs/shaikh.md`). Solving the
 fixed point once is Sraffa.
 
-## Fit, 2005-2023, 65 market industries
+## Fit, 1998-2023, 60 market industries
 
 | Benchmark | MAE | RMSE | corr | slope | within 25% | mean gap |
 |---|---:|---:|---:|---:|---:|---:|
 | Moseley `PP` | 12.4% | 19.4% | 0.983 | 1.043 | 89.5% | -5.7% |
-| Sraffa `PP_Sraffa` | 18.7% | 27.9% | 0.959 | 0.942 | 74.9% | -3.1% |
+| Sraffa `PP_Sraffa` | 18.7% | 28.2% | 0.957 | 0.941 | 76.0% | -2.9% |
 | Sraffa + fixed capital | 17.5% | 38.8% | 0.913 | 0.971 | 84.7% | -6.4% |
-| Shaikh iterated `PP_Shaikh` | 19.3% | 29.2% | 0.956 | 0.945 | 74.1% | -3.5% |
-| Direct prices (labour values) | 37.2% | 48.9% | 0.888 | 0.871 | 42.9% | -9.3% |
+| Shaikh iterated `PP_Shaikh` | 19.3% | 29.5% | 0.955 | 0.944 | 74.0% | -3.4% |
+| Direct prices (labour values) | 36.5% | 47.9% | 0.888 | 0.872 | 43.3% | -8.7% |
 
-Sraffa's benchmark has lower RMSE, smaller mean bias and a slope closer to one
-than Moseley's. It does worse on typical absolute error and rank correlation.
+Sraffa's benchmark carries the smaller aggregate bias than Moseley's
+(-2.9% vs -5.7%), but Moseley has the lower RMSE, the better typical absolute
+error, the higher rank correlation and the revenue slope closer to one.
 
 ## Gravitation, 1998-2023
 
 | Benchmark | mean abs gap | half-life | GO beta | PP beta | 1y forecast RMSE |
 |---|---:|---:|---:|---:|---:|
 | Moseley `PP` | 12.4% | 2.2y | -0.163 (p=0.015) | +0.105 (p=0.035) | 0.213 |
-| Sraffa `PP_Sraffa` | 18.2% | 3.9y | +0.103 (p=0.008) | +0.265 (p<0.001) | 0.250 |
-| Shaikh iterated `PP_Shaikh` | 18.6% | 3.7y | +0.100 (p=0.006) | +0.272 (p<0.001) | 0.252 |
-| Direct prices (labour values) | 35.8% | 4.5y | +0.083 (p=0.015) | +0.225 (p<0.001) | 0.454 |
+| Sraffa `PP_Sraffa` | 18.4% | 4.0y | +0.097 (p=0.014) | +0.257 (p<0.001) | 0.253 |
+| Shaikh iterated `PP_Shaikh` | 18.6% | 3.6y | +0.097 (p=0.007) | +0.271 (p<0.001) | 0.253 |
+| Direct prices (labour values) | 35.4% | 4.4y | +0.081 (p=0.020) | +0.226 (p<0.001) | 0.451 |
 
 Naive forecast RMSE is 0.120.
 
 With annual `A_t` in constant prices and 71-industry prices, Sraffa's benchmark
 does **not** attract market output. The output coefficient is positive and
-significant (`+0.103`, p=0.008): high relative output predicts higher future
+significant (`+0.097`, p=0.014): high relative output predicts higher future
 output, which is divergence, not gravitation. The model price adjusts toward the
-observed price (`+0.265`).
+observed price (`+0.257`).
 
 ## Verdict
 

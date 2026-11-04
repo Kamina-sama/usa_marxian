@@ -110,7 +110,7 @@ That is harder. Quantity and capital still track the data, but less tightly:
 
 ```
 old: quantity 0.108, capital 0.237
-new: quantity 0.197, capital 0.356
+new: quantity 0.196, capital 0.352
 ```
 
 That is the trade-off between a better accounting fit and a more structural
@@ -172,7 +172,7 @@ expensive than B” but not by enough.
 
 ### Current slopes
 
-Unit-price regressions, 2005–2023:
+Unit-price regressions, 1998-2023:
 
 ```
 Moseley                    0.47

@@ -110,10 +110,11 @@ Useful members in the same archive if you want to extend the module:
 
 The summary Use table provides intermediate consumption, compensation, taxes,
 gross operating surplus, value added and gross output. Its commodity-by-industry
-matrix is also used to build supplier-weighted intermediate-input deflators:
-2017 input shares applied to broad-sector gross-output price indexes. It does
-**not** provide industry capital stocks, consumption of fixed capital, or sector
-price indexes.
+matrix is used to build the supplier-weighted input deflator that serves as the
+keyless fallback: 2017 input shares applied to broad-sector gross-output price
+indexes. With a `BEA_API_KEY` the input deflator is instead the industry-level
+intermediate-inputs index (TableID 23). The Use table does **not** provide
+industry capital stocks, consumption of fixed capital, or sector price indexes.
 
 ## Industry CFC and price indexes
 
@@ -143,8 +144,10 @@ These are index levels. The similarly named `VAPIP*`/`GOPIP*` series are percent
 changes and are not used. The mapping from IO industry codes to sectors lives in
 `config/sectors.yaml`.
 
-The price series start in 2005, so real industry accounts cover 2005-2023 while
-the nominal and CFC-adjusted accounts cover 1998-2023.
+The FRED price series start in 2005. The 71-industry BEA indexes described below
+run from 1998, so with a `BEA_API_KEY` the real industry accounts and the state
+space cover 1998-2023 alongside the nominal and CFC-adjusted accounts; without
+one, the fallback keeps the real layer at 2005-2023.
 
 ## BEA GDP-by-Industry price indexes
 
@@ -161,6 +164,11 @@ The `Industry` parameter uses the same 71 IO codes as the Use tables, so no
 mapping is needed. Values are indexes with 2017 = 100. These replace the
 broad-sector FRED `GOPI*`/`VAPI*` series for industry-level work; the FRED series
 remain as fallbacks.
+
+The results quoted in `README.md` and `docs/` use these keyed tables. Without a
+key the pipeline falls back to the broad-sector FRED indexes: the nominal
+industry accounts and the benchmark comparison still run, but the real accounts
+and the state-space table start in 2005 instead of 1998.
 
 ## BEA fixed assets (industry capital stocks)
 
@@ -268,8 +276,8 @@ The remaining groups — farm, mining/utilities/construction, wholesale and
   gross output.
 
 On the current vintage total inventories are 3,805 bn in 2023, matching the
-macro inventory stock. Detailed manufacturing/retail data cover 54.5% of the
-total; the remaining 45.5% is broad-group allocation.
+macro inventory stock. Detailed manufacturing/retail data cover 53.7% of the
+total; the remaining 46.3% is broad-group allocation.
 
 ## Census Economic Census (regulating capitals, optional key)
 

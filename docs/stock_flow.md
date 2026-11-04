@@ -1,6 +1,7 @@
 # Stock-flow model
 
-The state-space dataset provides, for 65 market industries and 2005-2023:
+The state-space dataset provides, for 65 market industries and 1998-2023 (the
+simulation itself runs 1999-2023 on the 63 industries with a complete series):
 
 ```
 p_i  price index
@@ -62,13 +63,13 @@ w'   = w [1 + phi (U - 1)]
 One-year output adjustment is bounded to `[0.5 q, 2.0 q]` so a noisy demand
 component cannot drive an industry to extinction.
 
-## Fit, 2005-2023
+## Fit, 1999-2023
 
 ```
-price       log RMSE 0.305   corr 0.297
-quantity    log RMSE 0.197   corr 0.983
-capital     log RMSE 0.356   corr 0.915
-investment  log RMSE 0.505   corr 0.796
+price       log RMSE 0.304   corr 0.319
+quantity    log RMSE 0.196   corr 0.983
+capital     log RMSE 0.352   corr 0.918
+investment  log RMSE 0.495   corr 0.801
 ```
 
 For comparison, the earlier exogenous-final-demand version fitted quantity at

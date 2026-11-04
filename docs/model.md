@@ -215,7 +215,7 @@ The identities hold under every combination; only the measured magnitudes
 change. This matters most for the profit-rate denominator: private total fixed
 assets are roughly twice nonresidential assets, so the last-year profit rate
 ranges from about 12.9% to 26.6% across specifications. The LTV slope is much
-more stable, at 1.54-2.25.
+more stable, at 1.54-2.24.
 
 `nnp_factor` is a factor-cost measure: it excludes taxes on production. That is
 why its property-income ratio is about 1.32 rather than 1.01. It is a
@@ -311,12 +311,13 @@ cost, and government units are not capitalist enterprises. They remain in the
 full sample but are excluded from a market-industry robustness subset, because
 otherwise the dispersion statistic is dominated by structural outliers.
 
-Sector deflation uses broad-sector chain-type price indexes from the BEA
-GDP-by-Industry release (`VAPI*` for value added, `GOPI*` for gross output).
-Intermediate consumption uses a supplier-weighted input deflator: 2017 Use-table
-weights applied to the broad-sector gross-output deflators of the supplying
-commodities. Real intermediate consumption is not constructed as
-`GO_real - N_real`; the direct deflator avoids that invalid residual.
+Sector deflation uses the BEA GDP-by-Industry 71-industry chain-type price
+indexes: TableID 11 for value added, TableID 18 for gross output and TableID 23
+for intermediate inputs. Intermediate consumption is deflated directly with the
+intermediate-inputs index; it is not constructed as `GO_real - N_real`, which
+would be invalid. Without a `BEA_API_KEY` the fallback is the broad-sector FRED
+`VAPI*`/`GOPI*` series plus a supplier-weighted input deflator built from 2017
+Use-table shares.
 
 ## 9. Accounting audit
 
@@ -346,8 +347,8 @@ Reconciliation for 2023:
 
 What is still approximate: the within-sector CFC allocation, the broad
 inventory allocation for mining/utilities/construction and “other” industries,
-and the broad-sector commodity price proxies in the intermediate-input
-deflator.
+and the fact that the price indexes are industry-level rather than commodity
+level (TableID 23 for inputs, gross-output indexes for the deflated `A_t`).
 
 ## 10. Predictive and gravitation tests
 
@@ -382,7 +383,7 @@ without predictive power.
 ## 11. Sraffa's prices of production and Shaikh's process
 
 For comparison, the project builds Sraffian prices of production and classical
-labour values from **deflated** annual BEA Use matrices (2005-2023, 2017 dollars):
+labour values from **deflated** annual BEA Use matrices (1998-2023, 2017 dollars):
 
 ```
 A_t,ij = U_t,ij / GO_t,j          (deflated to 2017 dollars)
@@ -398,18 +399,19 @@ reflated to nominal for comparison with observed gross output. Direct labour
 coefficients use FTE-based industry hours rather than compensation-allocated
 hours.
 
-The comparison is on 65 market industries, 2005-2023:
+The comparison is on 60 market industries (the regulating-capital benchmark
+covers 60 of 65), 1998-2023:
 
-- Moseley: MAE 13.7%, RMSE 23.0%, corr 0.983, slope 1.046, mean gap -7.4%.
-- Sraffa: MAE 16.8%, RMSE 20.5%, corr 0.971, slope 0.982, mean gap -2.4%.
-- Shaikh iterated: MAE 17.2%, RMSE 21.3%, corr 0.973, mean gap -3.1%.
-- Direct labour values: MAE 37.2%, RMSE 48.8%, corr 0.887, mean gap -8.0%.
+- Moseley: MAE 12.4%, RMSE 19.4%, corr 0.983, slope 1.043, mean gap -5.7%.
+- Sraffa: MAE 18.7%, RMSE 28.2%, corr 0.957, slope 0.941, mean gap -2.9%.
+- Shaikh iterated: MAE 19.3%, RMSE 29.5%, corr 0.955, mean gap -3.4%.
+- Direct labour values: MAE 36.5%, RMSE 47.9%, corr 0.888, mean gap -8.7%.
 
-Moseley fits typical industry errors better; Sraffa has lower aggregate bias, a
-slope closer to one, and lower RMSE. With constant-price `A_t`, Sraffa's clean
-one-way gravitation still disappears: `β_GO = +0.068` (p=0.195) and
-`β_PP = +0.341` (p<0.001). The center adjusts toward the data, not the other
-way. Neither beats a naive forecast.
+Moseley fits typical industry errors better, has the lower RMSE and the revenue
+slope closest to one; Sraffa carries the smaller aggregate bias. With
+constant-price `A_t`, Sraffa's clean one-way gravitation still disappears:
+`β_GO = +0.097` (p=0.014) and `β_PP = +0.257` (p<0.001). The center adjusts
+toward the data, not the other way. Neither beats a naive forecast.
 
 The direct solve is the Sraffian fixed point. The project also runs the explicit
 Shaikh cost-plus iteration:
@@ -419,8 +421,8 @@ p_{k+1} = (1 + r_k)(p_k A + w l)
 r_k = (p_k y - (p_k A + w l)y) / ((p_k A + w l)y)
 ```
 
-starting from labour values. It converges in 29 rounds on average (maximum 34),
-with a model-implied real profit rate averaging 38.7% against an observed 17.6%.
-The iterated prices are almost identical to the fixed point (MAE 17.2%, corr
-0.973). A toy cross-dual price/output simulation reduces profit-rate dispersion
+starting from labour values. It converges in 29 rounds on average (maximum 33),
+with a model-implied real profit rate averaging 38.5% against an observed 17.6%.
+The iterated prices are almost identical to the fixed point (MAE 19.3%, corr
+0.955). A toy cross-dual price/output simulation reduces profit-rate dispersion
 from 0.160 to approximately zero. See `docs/sraffa.md` and `docs/shaikh.md`.
