@@ -1,0 +1,102 @@
+# Mapping from BEA fixed-asset detail codes to IO capital-good industries.
+# Equipment, structures and intellectual property products are grouped by the
+# industry that produces the capital good.
+
+asset_groups:
+  "334":
+    - EP1A
+    - EP1B
+    - EP1C
+    - EP1D
+    - EP1E
+    - EP1F
+    - EP1G
+    - EP1H
+    - EP20
+    - EP34
+    - EP35
+    - EP36
+    - RD21
+    - RD22
+    - RD23
+    - RD24
+    - RD25
+  "339":
+    - EP31
+    - EP12
+    - EO80
+    - RDOM
+  "325":
+    - EI11
+    - RD11
+    - RD12
+  "332":
+    - EI12
+  "333":
+    - EI21
+    - EI22
+    - EI30
+    - EI40
+    - EI50
+    - EO21
+    - EO22
+    - EO30
+    - EO40
+    - EO50
+    - EO60
+  "335":
+    - EI60
+    - EO71
+    - EO72
+  "3361MV":
+    - ET11
+    - ET12
+    - ET20
+    - RD31
+  "3364OT":
+    - ET30
+    - ET40
+    - ET50
+    - RD32
+  "337":
+    - EO11
+    - EO12
+  "23":
+    - SOO1
+    - SB31
+    - SB32
+    - SOO2
+    - SC03
+    - SC04
+    - SC01
+    - SOMO
+    - SC02
+    - SI00
+    - SU30
+    - SU60
+    - SU40
+    - SU50
+    - SU20
+    - SM01
+    - SM02
+    - SB10
+    - SB20
+    - SB41
+    - SB42
+    - SB43
+    - SB45
+    - SU11
+    - SU12
+    - SB44
+    - SB46
+    - SN00
+    - SO01
+    - SO02
+    - SO03
+    - SO04
+  "511":
+    - ENS1
+    - ENS2
+    - ENS3
+  "5412OP":
+    - RD70

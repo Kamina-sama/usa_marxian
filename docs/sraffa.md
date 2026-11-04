@@ -38,6 +38,7 @@ fixed point once is Sraffa.
 |---|---:|---:|---:|---:|---:|---:|
 | Moseley `PP` | 12.4% | 19.4% | 0.983 | 1.043 | 89.5% | -5.7% |
 | Sraffa `PP_Sraffa` | 18.7% | 27.9% | 0.959 | 0.942 | 74.9% | -3.1% |
+| Sraffa + fixed capital | 17.5% | 38.8% | 0.913 | 0.971 | 84.7% | -6.4% |
 | Shaikh iterated `PP_Shaikh` | 19.3% | 29.2% | 0.956 | 0.945 | 74.1% | -3.5% |
 | Direct prices (labour values) | 37.2% | 48.9% | 0.888 | 0.871 | 42.9% | -9.3% |
 

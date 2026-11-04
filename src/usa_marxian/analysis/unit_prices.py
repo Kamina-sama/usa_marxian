@@ -29,6 +29,7 @@ UNIT_PRICE_MODELS = {
     "Moseley profit-rate PP/Q": "p_moseley_profit",
     "Moseley working-capital PP/Q": "p_moseley_working",
     "Sraffa prices of production": "p_sraffa",
+    "Sraffa prices with fixed capital": "p_sraffa_fixed",
     "Shaikh iterated prices": "p_shaikh",
     "Regulating capital": "p_reg",
     "Direct prices (labour values)": "p_v",

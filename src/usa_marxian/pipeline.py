@@ -32,6 +32,7 @@ from .data.bea_assets import (
     load_industry_capital,
     load_industry_capital_detail,
 )
+from .data.bea_capital_matrix import build_capital_matrices
 from .data.bea_employment import (
     attach_employment,
     employment_coverage,
@@ -604,8 +605,26 @@ def run_industries(
     shaikh = None
     if use_matrices is not None and macro_accounts is not None:
         try:
+            capital_matrices = None
+            try:
+                capital_matrices = build_capital_matrices(
+                    enriched, config.settings.raw_dir, force=refresh
+                )
+                report["capital_matrix"] = {
+                    "years": len(capital_matrices),
+                    "capital_goods": int(next(iter(capital_matrices.values()))[0].shape[0]),
+                }
+            except Exception as exc:
+                warnings.warn(
+                    f"Fixed-capital matrix unavailable: {exc}",
+                    stacklevel=2,
+                )
             shaikh = run_shaikh_comparison(
-                enriched, use_matrices, macro_accounts, base_year=2017
+                enriched,
+                use_matrices,
+                macro_accounts,
+                base_year=2017,
+                capital_matrices=capital_matrices,
             )
             report["shaikh"] = shaikh.summary
             report["benchmark_comparison"] = shaikh.comparison.to_dict(orient="records")

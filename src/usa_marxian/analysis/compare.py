@@ -15,6 +15,7 @@ BENCHMARK_LABELS = {
     "PP_profit": "Moseley PP (profit rate, taxes separate)",
     "PP_working": "Moseley PP (M + working capital)",
     "PP_Sraffa": "Sraffa prices of production (flow capital)",
+    "PP_Sraffa_fixed": "Sraffa prices with fixed capital",
     "PP_Shaikh": "Shaikh iterated prices (endogenous r)",
     "PP_reg": "Regulating capital (low-cost firms)",
     "P_V": "Direct prices (labour values)",
@@ -69,6 +70,7 @@ def compare_benchmarks(panel: pd.DataFrame) -> pd.DataFrame:
             "PP_profit_market",
             "PP_working_market",
             "PP_Sraffa",
+            "PP_Sraffa_fixed",
             "PP_Shaikh",
             "PP_reg",
             "P_V",
@@ -157,10 +159,15 @@ def run_shaikh_comparison(
     accounts: pd.DataFrame,
     *,
     base_year: int = 2017,
+    capital_matrices=None,
 ) -> ComparisonResult:
     """Build Shaikh benchmarks and compare them with Moseley's PP."""
     shaikh = build_shaikh_benchmarks(
-        panel, use_matrices, accounts, base_year=base_year
+        panel,
+        use_matrices,
+        accounts,
+        base_year=base_year,
+        capital_matrices=capital_matrices,
     )
     comparison = compare_benchmarks(shaikh.panel)
     common_columns = [
@@ -170,6 +177,7 @@ def run_shaikh_comparison(
             "PP_profit_market",
             "PP_working_market",
             "PP_Sraffa",
+            "PP_Sraffa_fixed",
             "PP_Shaikh",
             "PP_reg",
             "P_V",
@@ -202,6 +210,12 @@ def run_shaikh_comparison(
             shaikh.panel,
             "PP_Sraffa",
             "Sraffa prices of production (flow capital)",
+            years=common_years,
+        ),
+        _benchmark_gravitation(
+            shaikh.panel,
+            "PP_Sraffa_fixed",
+            "Sraffa prices with fixed capital",
             years=common_years,
         ),
         _benchmark_gravitation(

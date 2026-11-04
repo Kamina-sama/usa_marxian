@@ -53,6 +53,7 @@ from .sraffa import (
     build_technical_matrices,
     iterative_prices,
     labour_values,
+    sraffa_prices_fixed_capital,
     sraffa_prices_of_production,
 )
 
@@ -246,6 +247,7 @@ def build_shaikh_benchmarks(
     accounts: pd.DataFrame,
     *,
     base_year: int = 2017,
+    capital_matrices: dict[int, tuple[pd.DataFrame, pd.DataFrame]] | None = None,
 ) -> ShaikhResult:
     """Build Sraffa/Shaikh value-price and price-of-production benchmarks."""
     matrices_current = build_technical_matrices(
@@ -352,6 +354,29 @@ def build_shaikh_benchmarks(
         production_price = _normalise(prices, output_real)
         iterated_price = _normalise(iterated_price, output_real)
 
+        fixed_price = None
+        fixed_rate = None
+        if capital_matrices is not None and int(year) in capital_matrices:
+            capital_matrix, depreciation = capital_matrices[int(year)]
+            fixed_rate = float(
+                gross_profit / (group["M"].astype(float).sum() + cost)
+            )
+            try:
+                fixed_prices = sraffa_prices_fixed_capital(
+                    matrix,
+                    capital_matrix,
+                    depreciation,
+                    labour_cost,
+                    fixed_rate,
+                )
+                if (fixed_prices > 0).all():
+                    fixed_price = _normalise(fixed_prices, output_real)
+            except ValueError as exc:
+                warnings.warn(
+                    f"Fixed-capital Sraffa skipped for {year}: {exc}",
+                    stacklevel=2,
+                )
+
         for code in matrix.index:
             records.append(
                 {
@@ -367,6 +392,15 @@ def build_shaikh_benchmarks(
                     "p_sraffa": float(production_price.loc[code]),
                     "p_shaikh": float(iterated_price.loc[code]),
                     "p_v": float(value_price.loc[code]),
+                    "PP_Sraffa_fixed": float(
+                        fixed_price.loc[code] * output_real.loc[code] * price.loc[code]
+                    )
+                    if fixed_price is not None
+                    else float("nan"),
+                    "p_sraffa_fixed": float(fixed_price.loc[code])
+                    if fixed_price is not None
+                    else float("nan"),
+                    "r_fixed": float(fixed_rate) if fixed_rate is not None else float("nan"),
                     "r_observed": float(profit_rate),
                     "r_model": float(endogenous_iteration.profit_rate),
                     "iterations": int(endogenous_iteration.iterations),

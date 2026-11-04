@@ -179,6 +179,49 @@ def prices_of_production(
     )
 
 
+def sraffa_prices_fixed_capital(
+    matrix: pd.DataFrame,
+    capital_matrix: pd.DataFrame,
+    depreciation: pd.DataFrame,
+    labour: pd.Series,
+    profit_rate: float,
+) -> pd.Series:
+    """Sraffian prices with fixed capital as a joint product.
+
+    The price system is
+
+        p [I - (1+r)A - B(rI + Delta)] = (1+r) w l
+
+    where ``B[g, j]`` is the real stock of capital good ``g`` per unit of output
+    of industry ``j`` and ``Delta[g, j]`` is its depreciation rate.
+    """
+    index = matrix.index
+    coefficients = (
+        matrix.reindex(index=index, columns=index).fillna(0.0).to_numpy(dtype=float)
+    )
+    capital = (
+        capital_matrix.reindex(index=index, columns=index)
+        .fillna(0.0)
+        .to_numpy(dtype=float)
+    )
+    delta = (
+        depreciation.reindex(index=index, columns=index)
+        .fillna(0.0)
+        .to_numpy(dtype=float)
+    )
+    identity = np.eye(len(index))
+    capital_charge = profit_rate * capital + capital * delta
+    system = identity - (1.0 + profit_rate) * coefficients - capital_charge
+    rhs = (1.0 + profit_rate) * labour.reindex(index).to_numpy(dtype=float)
+    try:
+        prices = np.linalg.solve(system.T, rhs)
+    except np.linalg.LinAlgError as exc:
+        raise ValueError(
+            f"Fixed-capital price system singular at r={profit_rate:.3f}"
+        ) from exc
+    return pd.Series(prices, index=index, name="price")
+
+
 @dataclass
 class IterationResult:
     prices: pd.Series

@@ -509,6 +509,9 @@ Fit on the same 60 market industries, 1998-2023:
   **0.991**, slope **1.035**, within 25% **94.2%**, mean gap **-4.4%**.
 - **Sraffa `PP_Sraffa`**: MAE **18.7%**, RMSE **27.9%**, corr **0.959**, slope
   **0.942**, within 25% **74.9%**, mean gap **-3.1%**.
+- **Sraffa with fixed capital**: MAE **17.5%**, RMSE **38.8%**, corr
+  **0.913**, slope **0.971**, within 25% **84.7%**, mean gap **-6.4%**. Fixed
+  capital improves typical errors and unit prices but worsens the RMSE tails.
 - **Shaikh iterated `PP_Shaikh`**: MAE **19.3%**, RMSE **29.2%**, corr
   **0.956**, slope **0.945**, within 25% **74.1%**, mean gap **-3.5%**.
 - **Regulating capital `PP_reg`**: MAE **18.5%**, RMSE **27.5%**, corr
@@ -527,6 +530,9 @@ Gravitation comparison:
   RMSE 0.176.
 - **Sraffa `PP_Sraffa`**: mean gap 18.5%, half-life 4.0y, output adjustment
   `+0.101` (p=0.009), PP adjustment `+0.259` (p<0.001), 1y forecast RMSE 0.253.
+- **Sraffa with fixed capital**: mean gap 15.5%, half-life 5.1y, output
+  adjustment `+0.044` (p=0.039), PP adjustment `+0.171` (p<0.001), 1y forecast
+  RMSE 0.227. The wrong-signed output coefficient shrinks but remains positive.
 - **Shaikh iterated `PP_Shaikh`**: mean gap 18.6%, half-life 3.7y, output
   adjustment `+0.100` (p=0.006), PP adjustment `+0.272` (p<0.001), 1y forecast
   RMSE 0.252.
@@ -570,6 +576,7 @@ quantity-weighted geometric mean of one.
 - Moseley profit-rate `PP/Q`: 0.107, corr **0.819**, slope 0.524.
 - Moseley working-capital `PP/Q`: 0.090, corr **0.884**, slope 0.603.
 - Sraffa: 0.166, corr **0.630**, slope 0.285.
+- Sraffa with fixed capital: 0.131, corr **0.831**, slope 0.443.
 - Shaikh: 0.167, corr **0.669**, slope 0.311.
 - Regulating: 0.170, corr **0.634**, slope 0.280.
 - Direct prices: 0.348, corr 0.189, slope 0.055.
