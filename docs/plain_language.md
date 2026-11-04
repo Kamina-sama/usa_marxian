@@ -6,6 +6,9 @@ technical details are in `README.md` and the other documents in `docs/`.
 For two terms that are easy to mix up — **closing the demand side** and **the
 unit-price slope** — see [`reading_the_model.md`](reading_the_model.md).
 
+If you would rather look at pictures than tables, [`figures.md`](figures.md)
+walks through the six findings plots and explains what each one shows.
+
 ## The question
 
 Marx argued that the value of goods comes from the labour used to produce them.

@@ -162,6 +162,31 @@ artefact of the chosen `N` and `L`; only its *dynamics* and its relation to
 other variables carry information. Moseley's own empirical work uses variants
 (NNP, NDP, net national income) and discusses the choice explicitly.
 
+The identity is stronger than "residual". With `P := N/N_real` and
+`q := N_real/L`:
+
+```
+m ≡ P · q          and therefore      melt_real ≡ q
+V / (m L) = V / N  the wage share, from which m cancels
+```
+
+Two consequences, and the second is a point in the interpretation's favour
+rather than against it.
+
+The "real MELT" *is* labour productivity, so any diagnostic run on it is a
+diagnostic on productivity. That is a measurement point: the quantity is not an
+independent monetary magnitude, and should not be described as if it were.
+
+But the fact that no distributional variable can move `m` — because `m` cancels
+out of the wage share algebraically — is precisely what the single-system
+reading asserts. Value is measured in money; the MELT is a monetary aggregate
+determined before the division of new value into wages and surplus. An earlier
+draft of this section treated the same identity as a failed test of "MELT
+independence from distribution". That was a bad design: it tested a proposition
+the framework makes true by construction, and reported the tautology as a
+negative result. `usa-marxian value-tests` now audits the identities and says so
+explicitly.
+
 ### Known measurement issues
 
 - **Mixed income.** Compensation of employees excludes proprietors' income,
@@ -426,3 +451,39 @@ with a model-implied real profit rate averaging 38.5% against an observed 17.6%.
 The iterated prices are almost identical to the fixed point (MAE 19.3%, corr
 0.955). A toy cross-dual price/output simulation reduces profit-rate dispersion
 from 0.160 to approximately zero. See `docs/sraffa.md` and `docs/shaikh.md`.
+
+## 12. Does `R` regulate industry rates?
+
+Everything above treats `R = S/M` as a regulating average. The price equation
+`PP_i = K_i + R·M_i` presupposes that competition pulls industry rates toward
+that average; without that, `R` is an arithmetic mean and the fit of the price
+equation can be produced by a common markup.
+
+`usa-marxian regulation` tests it on 65 market industries, 1998-2023.
+
+**Convergence.** Regressing the change in each industry's rate on its lagged gap
+to `R` gives β = **−0.292** (s.e. 0.073, p=0.0001), half-life 2.0 years. Taken at
+face value that is exactly the adjustment the theory predicts.
+
+**Identification.** It is not usable. With industry and year effects, the gap to
+`R` and the deviation from each industry's own mean differ only by a component
+that is additive in entity and time, so the effects absorb the difference. The
+two regressions return coefficients identical to ten decimal places
+(−0.2922 and −0.2922). The estimate therefore cannot distinguish regulation by
+`R` from ordinary mean reversion, and should not be reported as evidence of the
+former.
+
+**Dispersion.** A regulating rate should narrow the spread of rates over time.
+It does not: the unweighted CV trends **+0.46%/yr** and the interquartile range
+**+0.01 pp/yr**; the weighted CV is 0.609 and p90/p10 6.10 in 2023.
+
+**Mechanism.** The channel the theory names is capital mobility. Investment rates
+in the following year regress on the lagged gap to `R` with β = **+0.033**
+(p=0.125): positive, as predicted, but not distinguishable from zero. Capital
+does not visibly flow toward above-average profit rates.
+
+**Verdict.** The regulating claim is not supported. Combined with the flat
+dispersion, the good fit of `PP = K + R·M` is consistent with a common markup
+across industries rather than with capital mobility equalising rates. Moseley's
+accounting identities and his price equation survive this; the mechanism that is
+supposed to make the price equation more than a descriptive fit does not.

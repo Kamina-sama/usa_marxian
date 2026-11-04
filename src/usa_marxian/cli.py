@@ -441,7 +441,248 @@ def cmd_all(args: argparse.Namespace) -> int:
     if code != 0:
         return code
     print()
-    return cmd_industries(args)
+    code = cmd_industries(args)
+    if code != 0:
+        return code
+    if not args.no_plots:
+        print()
+        code = cmd_figures(args)
+    if code != 0:
+        return code
+    print()
+    code = cmd_value_tests(args)
+    if code != 0:
+        return code
+    print()
+    code = cmd_labour_power(args)
+    if code != 0:
+        return code
+    print()
+    return cmd_regulation(args)
+
+
+def cmd_figures(args: argparse.Namespace) -> int:
+    """Render the findings figures from artifacts already on disk."""
+    from .viz.findings import build_findings_figures
+
+    config = _load(args)
+    written = build_findings_figures(config)
+    print("Findings figures:")
+    for name, path in written.items():
+        print(f"  {name:<16} {path}")
+    print()
+    print("How to read them: docs/figures.md")
+    return 0
+
+
+def cmd_value_tests(args: argparse.Namespace) -> int:
+    """Run the value-theory tests (design B: MELT against distribution)."""
+    from .model.value_theory import (
+        load_inputs,
+        run_value_theory_tests,
+        write_outputs,
+    )
+
+    config = _load(args)
+    tables = config.settings.output_dir / "tables"
+    accounts, robustness = load_inputs(config.settings.processed_dir, tables)
+    result = run_value_theory_tests(accounts, robustness)
+    paths = write_outputs(result, config.settings.output_dir)
+
+    identities = result["identities"]
+    print(f"MELT identity audit, {identities['n_years']} years (max abs deviation)")
+    print(f"  m = N / L                      {identities['melt_from_N_over_L']:.1e}")
+    print(
+        "  m_real = real NDP per hour     "
+        f"{identities['real_melt_equals_productivity']:.1e}"
+    )
+    print(
+        "  m = P x q                      "
+        f"{identities['melt_equals_price_times_productivity']:.1e}"
+    )
+    print(
+        "  V / (m L) = wage share         "
+        f"{identities['wage_share_equals_V_over_mL']:.1e}"
+    )
+    print(
+        "  d log m - d log P - d log q    "
+        f"{identities['log_decomposition_residual']:.1e}"
+    )
+
+    distribution = result["distribution"]
+    print()
+    if distribution["degenerate"]:
+        print("Distribution test: VACUOUS")
+        print(
+            "  R2 = {r2:.6f}; max |residual| = {resid:.1e}; n = {n}".format(
+                r2=distribution["r2"],
+                resid=distribution["max_abs_residual"],
+                n=distribution["nobs"],
+            )
+        )
+        fit = ", ".join(
+            f"{name} {value:+.3f}"
+            for name, value in distribution["coefficients"].items()
+        )
+        print(f"  coefficients: {fit}")
+        print(
+            "  The wage-share coefficient is zero by construction, "
+            "not by evidence."
+        )
+    else:
+        print("Distribution test: identified")
+        print(f"  R2 = {distribution['r2']:.3f}; n = {distribution['nobs']}")
+        for name, value in distribution["coefficients"].items():
+            error = distribution["standard_errors"].get(name)
+            p_value = distribution["p_values"].get(name)
+            if error is None:
+                print(f"  {name:<8} {value:+.3f}")
+            else:
+                print(f"  {name:<8} {value:+.3f}  (se {error:.3f}, p={p_value:.3f})")
+
+    print()
+    print(f"MELT level by value-added concept (latest {accounts.index.max()})")
+    for row in result["concept_spread"]:
+        print(
+            f"  {row['concept']:<16} {row['latest']:7.2f}  "
+            f"{100 * row['log_trend_per_year']:5.2f}%/yr  "
+            f"{row['ratio_to_ndp_latest']:.2f}x NDP"
+        )
+
+    spread = result["measurement_spread"]
+    print()
+    print(
+        "Concept spread: {ratio:.2f}x in level, {lo:.2f}-{hi:.2f}%/yr in growth".format(
+            ratio=spread["concept_spread_ratio"],
+            lo=100 * spread["concept_trend_min"],
+            hi=100 * spread["concept_trend_max"],
+        )
+    )
+    if "spec_level_spread_ratio" in spread:
+        print(
+            "Hours/coverage spread: {ratio:.2f}x in level, "
+            "{lo:.2f}-{hi:.2f}%/yr in growth".format(
+                ratio=spread["spec_level_spread_ratio"],
+                lo=100 * spread["spec_trend_min"],
+                hi=100 * spread["spec_trend_max"],
+            )
+        )
+    print()
+    print(f"verdict: {result['verdict']}")
+    print()
+    print(f"JSON:   {paths['json']}")
+    print(f"Table:  {paths['concepts']}")
+    print("Docs:   docs/value_theory.md")
+    return 0
+
+
+def cmd_labour_power(args: argparse.Namespace) -> int:
+    """Build the value of labour power and test whether it is identified."""
+    from .model.value_of_labour_power import (
+        build_basket_panel,
+        run_volp_tests,
+        write_outputs,
+    )
+
+    config = _load(args)
+    panel = build_basket_panel(config.settings.processed_dir)
+    result = run_volp_tests(panel)
+    paths = write_outputs(panel, result, config.settings.output_dir)
+
+    sample = result["sample"]
+    print(
+        "Value of labour power, {start}-{end}; the basket covers {cov:.1%} of "
+        "personal consumption".format(
+            start=sample["start_year"],
+            end=sample["end_year"],
+            cov=sample["mean_coverage"],
+        )
+    )
+    coherence = result["coherence"]
+    print(
+        f"  Coherence sum(lambda F)/L  {coherence['first']:.3f} "
+        f"({coherence['first_year']}) -> {coherence['last']:.3f} "
+        f"({coherence['last_year']}), mean {coherence['mean']:.3f}"
+    )
+    labels = {
+        "lambda_actual": "Basket labour content (actual)",
+        "lambda_wage_financed": "Basket labour content (wage-financed)",
+        "wage_share": "Wage share V / N",
+        "wage_financed_ratio": "Wage-financed ratio to wage share",
+        "price_to_value_ratio": "Price / labour value of the basket",
+        "consumption_share_of_wage": "Consumption / wage bill",
+    }
+    for key, label in labels.items():
+        trend = result["trends"][key]
+        print(
+            f"  {label:<40} {trend['first']:.3f} -> {trend['last']:.3f}  "
+            f"{100 * trend['trend_per_year']:+.2f}%/yr "
+            f"(p={trend['trend_p_value']:.3f})"
+        )
+
+    print()
+    print("Price / labour value by final use:")
+    for name, value in result["price_value_by_category"].items():
+        print(f"  {name:<14} {value:.3f}")
+    print(
+        "  consumption below investment in "
+        f"{result['gradient_years_consumption_below_investment']} of "
+        f"{sample['n_years']} years"
+    )
+    print()
+    print(f"verdict: {result['verdict']}")
+    print()
+    print(f"JSON:   {paths['json']}")
+    print(f"Panel:  {paths['panel']}")
+    print("Docs:   docs/value_theory.md")
+    return 0
+
+
+def cmd_regulation(args: argparse.Namespace) -> int:
+    """Test whether the aggregate profit rate regulates industry rates."""
+    from .analysis.regulation import run_regulation_tests, write_outputs
+
+    config = _load(args)
+    processed = config.settings.processed_dir
+    panel = pd.read_csv(processed / "industries_shaikh.csv")
+    state_path = processed / "state_space.csv"
+    state = pd.read_csv(state_path) if state_path.exists() else None
+
+    result = run_regulation_tests(panel, state)
+    paths = write_outputs(panel, result, config.settings.output_dir)
+
+    sample = result["sample"]
+    print(
+        f"Profit-rate regulation, {sample['start_year']}-{sample['end_year']}, "
+        f"{sample['n_industries']} market industries"
+    )
+    trend = result["dispersion_trend"]
+    print(
+        f"  Dispersion of r_i        CV {100 * trend['cv']:+.2f}%/yr, "
+        f"IQR {100 * trend['iqr']:+.2f} pp/yr"
+    )
+    conv = result["convergence"]
+    print(
+        f"  Convergence to R         beta {conv['beta_toward_R']:+.4f} "
+        f"(p={conv['p_value']:.4f}), half-life {conv['half_life_years']:.1f}y"
+    )
+    print(
+        f"  ... but to own mean      beta {conv['beta_toward_own_mean']:+.4f} "
+        f"-> identified: {conv['identified']}"
+    )
+    print(f"  Persistence of |r - R|   {result['persistence']['beta']:.4f}")
+    mobility = result["capital_mobility"]
+    if mobility:
+        print(
+            f"  Capital mobility         {mobility['beta']:+.4f} "
+            f"(p={mobility['p_value']:.3f}) -> supported: {mobility['supported']}"
+        )
+    print()
+    print(f"verdict: {result['verdict']}")
+    print()
+    print(f"JSON:   {paths['json']}")
+    print(f"Table:  {paths['dispersion']}")
+    return 0
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -476,6 +717,28 @@ def build_parser() -> argparse.ArgumentParser:
     all_cmd.add_argument("--no-gravitation", action="store_true")
     all_cmd.add_argument("--refresh", action="store_true")
 
+    figures = sub.add_parser(
+        "figures", help="rebuild the findings figures from existing artifacts"
+    )
+    figures.add_argument(
+        "--no-plots", action="store_true", help="accepted for symmetry; unused"
+    )
+
+    sub.add_parser(
+        "value-tests",
+        help="test the MELT against distribution and audit its identities",
+    )
+
+    sub.add_parser(
+        "labour-power",
+        help="build the value of labour power and test whether it is identified",
+    )
+
+    sub.add_parser(
+        "regulation",
+        help="test whether the aggregate profit rate regulates industry rates",
+    )
+
     return parser
 
 
@@ -487,6 +750,10 @@ def main(argv: list[str] | None = None) -> int:
         "fetch": cmd_fetch,
         "analyze": cmd_analyze,
         "industries": cmd_industries,
+        "figures": cmd_figures,
+        "value-tests": cmd_value_tests,
+        "labour-power": cmd_labour_power,
+        "regulation": cmd_regulation,
         "all": cmd_all,
     }
     try:

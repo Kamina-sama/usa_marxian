@@ -1,6 +1,6 @@
 PY ?= .venv/bin/python
 
-.PHONY: install data analysis industries full all test lint notebooks clean-cache clean-output clean
+.PHONY: install data analysis industries figures value-tests labour-power regulation full all test lint notebooks clean-cache clean-output clean
 
 install:
 	@if command -v uv >/dev/null 2>&1; then \
@@ -21,7 +21,19 @@ analysis:
 industries:
 	$(PY) -m usa_marxian industries
 
-full: analysis industries
+figures:
+	$(PY) -m usa_marxian figures
+
+value-tests:
+	$(PY) -m usa_marxian value-tests
+
+labour-power:
+	$(PY) -m usa_marxian labour-power
+
+regulation:
+	$(PY) -m usa_marxian regulation
+
+full: analysis industries figures value-tests labour-power regulation
 
 all: data full
 

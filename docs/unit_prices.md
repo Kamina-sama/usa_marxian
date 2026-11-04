@@ -106,3 +106,7 @@ Moseley variants are 0.14-0.18.
 The honest summary: **Moseley’s stock-based benchmark has the strongest
 unit-price content in this dataset.** Sraffa and Shaikh are second, and direct
 labour values are not supported.
+
+Pictures: `output/figures/findings_unit_prices.png` shows the scatter behind
+this table, and `output/figures/findings_benchmark_fit.png` the revenue fit. Both
+are explained in [`figures.md`](figures.md).

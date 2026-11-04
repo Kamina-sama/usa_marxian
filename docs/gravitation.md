@@ -210,5 +210,7 @@ Outputs:
 - `output/gravitation.json`
 - `output/figures/gravitation_deviation.png`
 - `output/figures/gravitation_forecast.png`
+- `output/figures/findings_gravitation.png` — adjustment coefficients with 95% CI
+- `output/figures/findings_forecast.png` — error by horizon, current and long-run
 - `data/processed/industry_capital.csv`
 - `output/tables/industry_capital_coverage.csv`

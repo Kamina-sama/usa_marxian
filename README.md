@@ -6,6 +6,9 @@
 >
 > For two terms that are easy to mix up — **closing the demand side** and **the
 > unit-price slope** — see [how to read the model](docs/reading_the_model.md).
+>
+> Want pictures instead of tables? [Reading the figures](docs/figures.md) walks
+> through the six findings plots in the same plain language.
 
 An empirical framework for testing Fred Moseley's **macro-monetary
 interpretation** of Marx's theory (*Money and Totality*, Brill 2016, ch. 2) on
@@ -22,13 +25,56 @@ and asks whether that story fits.
 What we find, in one breath: the accounting is consistent; Moseley's benchmark
 tracks industry revenues and unit prices best, especially once taxes are treated
 separately and working capital is included. Sraffa and Shaikh capture relative
-prices moderately; direct labour values perform poorly. Gravitation is weak,
-and forecasting is no better than a random walk. Prices of production have
-empirical content, but the strong claim that they are centres of gravitation is
-not supported by this data.
+prices moderately; direct labour values track prices poorly — which is what
+Marx predicted, since he denied that commodities sell at their values. Gravitation
+is weak, and forecasting is no better than a random walk. Prices of production
+have empirical content, but the strong claim that they are centres of gravitation
+is not supported by this data.
 
 For the full non-technical walkthrough, see
 [`docs/plain_language.md`](docs/plain_language.md).
+
+## Does Moseley's interpretation hold up?
+
+This project exists to test Fred Moseley's macro-monetary reading, so his own
+claims are reported first. Six are testable; four pass.
+
+**Passes.**
+
+- **Total profit equals total surplus-value, measured independently.** `S` is a
+  residual, so comparing it with itself would be circular. Compared with NIPA
+  property income plus taxes on production: mean ratio **1.011**, mean gap
+  **+58.2 bn** (+2.5% of `S`), correlation **0.997**. This is the strongest
+  non-circular result in the project.
+- **The price equation `PP_i = K_i + R·M_i`.** On the same 60 market industries:
+  Moseley **12.4%** MAE and corr 0.983, against Sraffa 18.7%, Shaikh 19.3% and
+  labour values 36.5%. His own price equation is the best-performing benchmark
+  in the data.
+- **Capital advanced is a stock, not a flow.** The stock-based benchmark beats
+  the flow-based one by 6.3 percentage points of MAE — the empirical content of
+  the disagreement with Sraffa.
+- **The MELT is a monetary aggregate.** `m ≡ P·q` holds to machine precision, so
+  no transformation of values into prices passes through it. That is what the
+  single-system reading asserts. (An earlier version of this README described
+  the same identity as a failed test. That was a design error on the project's
+  side, not a result about the theory.)
+
+**Fails.**
+
+- **`R` does not regulate industry rates.** `usa-marxian regulation`: industry
+  rates appear to converge on the aggregate (β = **−0.292**, p=0.0001, half-life
+  2.0 years), but that coefficient is *identical* to the one obtained against
+  each industry's own mean — two-way fixed effects cannot separate them.
+  Dispersion is flat or rising (CV **+0.46%/yr**, IQR +0.01 pp/yr), and capital
+  does not flow toward above-average profit rates (β = **+0.033**, p=0.125).
+  The good fit of the price equation is therefore consistent with a common
+  markup rather than with capital mobility equalising rates.
+- **Profit rates are far from equalised**: weighted CV **0.609**, p90/p10
+  **6.10** in 2023.
+
+The defensible summary: Moseley's accounting identities and his price equation
+are supported by this data; the regulating mechanism that is supposed to make
+them more than a common markup is not.
 
 The project downloads public US data without requiring an API key, constructs
 the Marxian aggregates at the macro and industry levels, checks the accounting
@@ -87,6 +133,13 @@ values, and about 46% of industry inventory value still uses broad-group
 allocation. All 71 industries now use actual fixed assets, including government
 and housing. Treat the output as measurement and evidence, not proof.
 
+One claim that *looks* testable is not: the MELT's independence from
+distribution. With `m := N/L`, `P := N/N_real` and `q := N_real/L`, the identity
+`m ≡ P·q` is exact, so regressing MELT growth on price, productivity and the
+wage share returns `(1, 1, 0)` with R² = 1 by construction — the wage-share
+coefficient cannot differ from zero. `usa-marxian value-tests` audits this and
+reports what remains of the question. See [`docs/value_theory.md`](docs/value_theory.md).
+
 ## Quickstart
 
 Requirements: Python 3.10+ and network access for the first run.
@@ -109,7 +162,11 @@ Run:
 .venv/bin/usa-marxian fetch         # download raw series (cached)
 .venv/bin/usa-marxian analyze       # macro accounts + robustness + diagnostics
 .venv/bin/usa-marxian industries    # BEA IO industry accounts + gravitation tests
-.venv/bin/usa-marxian all           # both
+.venv/bin/usa-marxian figures       # rebuild the findings figures from artifacts
+.venv/bin/usa-marxian value-tests   # MELT identity audit + distribution test
+.venv/bin/usa-marxian labour-power  # value of labour power and its identification
+.venv/bin/usa-marxian regulation    # does the aggregate profit rate regulate?
+.venv/bin/usa-marxian all           # everything above
 .venv/bin/pytest                    # offline tests
 ```
 
@@ -117,7 +174,11 @@ Or with `make`:
 
 ```bash
 make install
-make all          # data + analysis + industries
+make all          # data + analysis + industries + figures + value tests
+make figures      # just the figures (fast, no downloads)
+make value-tests  # just the MELT identity audit
+make labour-power # just the value of labour power
+make regulation   # just the profit-rate regulation test
 make test
 ```
 
@@ -221,7 +282,9 @@ The `analyze` command also writes `output/tables/diagnostics.csv`:
 Baseline results:
 
 - Real MELT behaves like a unit-root series (ADF p=0.998, KPSS p=0.010,
-  Zivot-Andrews p=0.904). Its level is not stationary.
+  Zivot-Andrews p=0.904). Its level is not stationary. Note that real MELT is
+  *identically* real new value per hour, i.e. labour productivity, so this is a
+  statement about productivity (see [`docs/value_theory.md`](docs/value_theory.md)).
 - The profit rate also fails to reject a unit root (ADF p=0.163, KPSS p=0.100,
   Zivot-Andrews p=0.373). The evidence for mean reversion is weaker than in
   earlier versions of the sample.
@@ -615,6 +678,13 @@ even after a reliability correction the slopes remain well below one.
 
 See `docs/unit_prices.md`.
 
+A caution on interpretation. This comparison is between prices and labour
+*values*, so it tests proportionality — the Ricardian hypothesis. Marx denied
+that commodities sell at their values and argued that prices of production
+deviate from them systematically, so a poor fit here is not a rejection of his
+theory. What would test him is whether the deviation follows the composition of
+capital; that is a separate exercise.
+
 ### Reading the slopes
 
 The price-fit slope is the regression coefficient from
@@ -760,6 +830,35 @@ After `industries`:
 - `output/figures/industry_dispersion.png`, `pp_vs_go.png`,
   `gravitation_deviation.png`, `gravitation_forecast.png`
 
+After `figures` (also run at the end of `all`):
+
+- `output/figures/findings_benchmark_fit.png` — revenue fit per benchmark
+- `output/figures/findings_unit_prices.png` — relative unit prices, model vs data
+- `output/figures/findings_gravitation.png` — adjustment coefficients with 95% CI
+- `output/figures/findings_forecast.png` — forecast error by horizon
+- `output/figures/findings_dispersion.png` — profit-rate dispersion, nominal vs real
+- `output/figures/findings_capital.png` — capital composition and inventory quality
+
+Plain-language guide to those six: [`docs/figures.md`](docs/figures.md).
+
+After `value-tests` (also at the end of `all`):
+
+- `output/value_theory.json` — identity audit, distribution test, concept spread
+- `output/tables/melt_concept_spread.csv` — MELT level and growth by concept
+
+After `labour-power`:
+
+- `output/value_of_labour_power.json` — basket panel summary and identification test
+- `output/tables/volp_panel.csv` — the year-by-year panel behind it
+
+After `regulation`:
+
+- `output/regulation.json` — convergence, capital mobility, dispersion
+- `output/tables/profit_rate_regulation.csv` — dispersion by year
+
+The value-theory material is written up in [`docs/value_theory.md`](docs/value_theory.md);
+the regulation test in [`docs/model.md`](docs/model.md).
+
 ## Project layout
 
 ```
@@ -773,7 +872,7 @@ src/usa_marxian/
   pipeline.py      macro and industry pipelines
   cli.py           `usa-marxian` command
 tests/             offline unit tests
-docs/              plain-language guide, model derivation, data sources, industry notes, Sraffa, Shaikh, state space, stock flow, unit prices
+docs/              plain-language guide, model derivation, data sources, industry notes, Sraffa, Shaikh, state space, stock flow, unit prices, value theory, figure guide
 notebooks/         exploratory notebooks
 data/raw           cached downloads (gitignored)
 data/processed     panels, accounts, quality reports (gitignored)
@@ -802,26 +901,36 @@ output/            tables, figures, JSON reports (gitignored)
 - **State space** — `p, q, k, I, u, w, l, A_t`, with FTE/BLS industry hours and
   industry wage rates, feeding a first stock-flow cross-dual model.
 - **Regulating capitals** — a sub-industry cost-dispersion `PP_reg` proxy (Census, key-gated).
+- **MELT audit** — identity check showing `m ≡ P·q` and `melt_real ≡ q`, so the
+  MELT cannot be tested against distribution; the measurable question is its
+  growth rate, not its level.
 
 ### Remaining, in rough priority order
 
-1. **Residual inventory detail** — mining/utilities/construction and “other”
+1. **Value theory beyond the identity** — the MELT route is closed and the value
+   of labour power is not separately identified (see
+   [`docs/value_theory.md`](docs/value_theory.md)). What remains testable is
+   value as a regulator of price *changes*, the predictive content of labour
+   values, and temporal versus simultaneist valuation. The one positive result
+   so far is the price-value gradient across uses: consumption sells 13% below
+   its labour value and investment 13% above, in every year of the sample.
+2. **Residual inventory detail** — mining/utilities/construction and “other”
    industries (about 46% of inventory value) still use broad-group allocation.
-2. **Commodity-level intermediate-input deflator for the keyless path** — the
+3. **Commodity-level intermediate-input deflator for the keyless path** — the
    keyed build already uses BEA TableID 23; without `BEA_API_KEY` the input
    deflator is still a supplier-weighted broad-sector proxy.
-3. **Plant-level cost heterogeneity** — the regulating-capital benchmark is a
+4. **Plant-level cost heterogeneity** — the regulating-capital benchmark is a
    concentration proxy; true regulating capitals need Census microdata or ASM
    size-class cost distributions.
-4. **Demand closure** — the cross-dual/stock-flow model uses exogenous final
+5. **Demand closure** — the cross-dual/stock-flow model uses exogenous final
    demand; add consumption, investment demand, government and net exports.
-5. **Estimation and inference** — the stock-flow parameters are point-calibrated;
+6. **Estimation and inference** — the stock-flow parameters are point-calibrated;
    add bootstrap uncertainty, out-of-sample validation and identifiability checks.
-6. **Industry-specific hours** — manufacturing now uses BLS CES totals; extend
+7. **Industry-specific hours** — manufacturing now uses BLS CES totals; extend
    BLS CES detail to the remaining industries where series exist.
-7. **Structural-break econometrics** — Bai-Perron multiple breaks, rolling
+8. **Structural-break econometrics** — Bai-Perron multiple breaks, rolling
    regressions, and regime-dependent profit-rate trends.
-8. **Cross-country comparison** — the World Bank endpoint is documented; the same
+9. **Cross-country comparison** — the World Bank endpoint is documented; the same
    accounting can be applied to other economies.
 
 ## Reference
