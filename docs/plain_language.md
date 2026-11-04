@@ -3,6 +3,9 @@
 This page explains the project without assuming economics or statistics. The
 technical details are in `README.md` and the other documents in `docs/`.
 
+For two terms that are easy to mix up — **closing the demand side** and **the
+unit-price slope** — see [`reading_the_model.md`](reading_the_model.md).
+
 ## The question
 
 Marx argued that the value of goods comes from the labour used to produce them.
@@ -151,6 +154,16 @@ Gravitation is weak, and for Sraffa and Shaikh the estimated direction is wrong.
 The honest conclusion is that prices of production have empirical content, but
 the strong claim that they are centres of gravitation is not supported by this
 data.
+
+## Demand closure and slopes
+
+The stock-flow model now builds demand from consumption, investment, government,
+exports and imports instead of being handed a residual. That is what “closing
+the demand side” means. It also reports a **slope** for each price benchmark:
+how much of the observed relative-price spread the model reproduces.
+
+Both ideas are explained in plain language in
+[`reading_the_model.md`](reading_the_model.md).
 
 ## Glossary
 

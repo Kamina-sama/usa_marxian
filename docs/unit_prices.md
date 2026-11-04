@@ -26,7 +26,7 @@ Every series is normalised per year to a quantity-weighted geometric mean of
 one. The observed deflator is now the 71-industry BEA gross-output price index
 (TableID 18), not a broad-sector GOPI series.
 
-## Fit, 1998-2023
+## Fit, 2005-2023
 
 | Benchmark | log MAE | log RMSE | corr | slope | within 10% | within 25% |
 |---|---:|---:|---:|---:|---:|---:|

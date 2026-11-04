@@ -3,6 +3,9 @@
 > **New here?** Read the [plain-language guide](docs/plain_language.md) first.
 > It explains the ideas, the tests and the results without assuming economics
 > or statistics.
+>
+> For two terms that are easy to mix up — **closing the demand side** and **the
+> unit-price slope** — see [how to read the model](docs/reading_the_model.md).
 
 An empirical framework for testing Fred Moseley's **macro-monetary
 interpretation** of Marx's theory (*Money and Totality*, Brill 2016, ch. 2) on
@@ -583,22 +586,14 @@ log(observed price_i) = a + b · log(model price_i) + error_i
 ```
 
 Both series are normalised to a geometric mean of one, so `a ≈ 0` and `b` is the
-slope reported in the tables:
+slope reported in the tables. In brief: `b = 1` is proportional; `b = 0.5` means
+the model moves in the right direction but only half as far; `b = 0` is no
+relationship. Correlation and slope answer different questions: correlation asks
+whether the two series move together, the slope asks by how much.
 
-- `b = 1` — proportional relative prices; a 10% higher model price corresponds
-  to a 10% higher observed price.
-- `b = 0.5` — the model moves in the right direction but only half as far; its
-  relative prices are too compressed.
-- `b = 0` — no relationship.
-- `b < 0` — inverted.
-
-Correlation and slope answer different questions. Correlation asks whether the
-two series move in the same direction; the slope asks by how much. A high
-correlation with a low slope means the model ranks industries correctly but
-understates the price differences. Moseley's unit-price correlation is 0.786 and
-its slope is 0.468: good ranking, compressed amplitude. Sraffa and Shaikh have
-correlations around 0.63-0.65 and slopes around 0.30. Direct labour values have
-correlation 0.208 and slope 0.068.
+For the full plain-language explanation, see
+[`docs/reading_the_model.md`](docs/reading_the_model.md). Current unit-price
+slopes are 0.47 (Moseley), 0.30 (Sraffa), 0.31 (Shaikh) and 0.07 (direct prices).
 
 There are three different slopes in the project:
 
@@ -666,6 +661,8 @@ D_i = sum_j A_ij q_j + C_i + I_i + G_i + X_i - M_i + residual_i
 where `I_i` is simulated investment and `residual_i` is an explicit
 statistical/other term (about 8% of output) that closes the observed base year.
 `C`, `G`, `X` and `M` are exogenous real components; investment is endogenous.
+For a plain explanation of what “closing demand” means and why the fit changed,
+see [`docs/reading_the_model.md`](docs/reading_the_model.md).
 
 Fit, 2005-2023:
 
