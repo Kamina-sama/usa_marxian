@@ -19,7 +19,7 @@ indexes start then. The annual matrices themselves cover 1998-2023.
 
 | Variable | Definition | Source |
 |---|---|---|
-| `price` | gross-output price index, 2017 = 1 | BEA GDP-by-Industry `GOPI*` |
+| `price` | gross-output price index, 2017 = 1 | BEA GDP-by-Industry TableID 18 (71 industries) |
 | `quantity` | real gross output, millions of 2017 dollars | `GO / price` |
 | `capital` | real net fixed capital stock, millions of 2017 dollars | BEA `detailnonres_stk2` |
 | `investment` | real gross investment, millions of 2017 dollars | BEA `detailnonres_inv1` deflated by the implicit capital deflator |

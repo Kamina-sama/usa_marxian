@@ -36,37 +36,39 @@ fixed point once is Sraffa.
 
 | Benchmark | MAE | RMSE | corr | slope | within 25% | mean gap |
 |---|---:|---:|---:|---:|---:|---:|
-| Moseley `PP` | 13.7% | 23.0% | 0.983 | 1.046 | 88.5% | -7.4% |
-| Sraffa `PP_Sraffa` | 16.8% | 20.5% | 0.971 | 0.982 | 77.2% | -2.4% |
-| Shaikh iterated `PP_Shaikh` | 17.2% | 21.3% | 0.973 | 0.985 | 76.9% | -3.1% |
-| Direct prices (labour values) | 37.2% | 48.8% | 0.887 | 0.893 | 42.1% | -8.0% |
+| Moseley `PP` | 12.4% | 19.4% | 0.983 | 1.043 | 89.5% | -5.7% |
+| Sraffa `PP_Sraffa` | 18.6% | 27.7% | 0.960 | 0.945 | 76.5% | -3.2% |
+| Shaikh iterated `PP_Shaikh` | 19.3% | 29.2% | 0.956 | 0.945 | 74.1% | -3.5% |
+| Direct prices (labour values) | 37.2% | 48.9% | 0.888 | 0.871 | 42.9% | -9.3% |
 
 Sraffa's benchmark has lower RMSE, smaller mean bias and a slope closer to one
 than Moseley's. It does worse on typical absolute error and rank correlation.
 
-## Gravitation, 2005-2023
+## Gravitation, 1998-2023
 
 | Benchmark | mean abs gap | half-life | GO beta | PP beta | 1y forecast RMSE |
 |---|---:|---:|---:|---:|---:|
-| Moseley `PP` | 12.4% | 1.7y | -0.240 (p=0.008) | +0.098 (p=0.164) | 0.213 |
-| Sraffa `PP_Sraffa` | 17.1% | 2.2y | +0.068 (p=0.195) | +0.341 (p<0.001) | 0.253 |
-| Shaikh iterated `PP_Shaikh` | 17.3% | 2.4y | +0.078 (p=0.083) | +0.333 (p<0.001) | 0.254 |
-| Direct prices (labour values) | 35.7% | 2.7y | +0.032 (p=0.456) | +0.256 (p<0.001) | 0.460 |
+| Moseley `PP` | 12.4% | 2.2y | -0.163 (p=0.015) | +0.105 (p=0.035) | 0.213 |
+| Sraffa `PP_Sraffa` | 18.2% | 3.9y | +0.103 (p=0.008) | +0.265 (p<0.001) | 0.250 |
+| Shaikh iterated `PP_Shaikh` | 18.6% | 3.7y | +0.100 (p=0.006) | +0.272 (p<0.001) | 0.252 |
+| Direct prices (labour values) | 35.8% | 4.5y | +0.083 (p=0.015) | +0.225 (p<0.001) | 0.454 |
 
 Naive forecast RMSE is 0.120.
 
-With annual `A_t` in constant prices, Sraffa's benchmark does **not** attract
-market output: output does not adjust toward it, while it adjusts strongly
-toward output. The center moves toward the data. Neither benchmark beats a naive
-random-walk forecast.
+With annual `A_t` in constant prices and 71-industry prices, Sraffa's benchmark
+does **not** attract market output. The output coefficient is positive and
+significant (`+0.103`, p=0.008): high relative output predicts higher future
+output, which is divergence, not gravitation. The model price adjusts toward the
+observed price (`+0.265`).
 
 ## Verdict
 
-- **Moseley** fits typical industry errors and forecasts better.
-- **Sraffa** calibrates the aggregate level better (lower RMSE, smaller bias,
-  slope closer to one) but shows no clean gravitation.
+- **Moseley** fits typical industry errors and forecasts better, and is the only
+  benchmark with the gravitation-predicted negative output coefficient.
+- **Sraffa** has lower aggregate bias but worse typical error; with the improved
+  price data its output adjustment is positive, not negative.
 - **Shaikh's iteration** converges to essentially the same center as Sraffa, so
-  it does not change the fit conclusion; it adds a model-implied profit rate.
+  it does not change the fit conclusion.
 - **Direct labour values** fit worst by a wide margin. Once labour hours are
   measured (FTE) rather than allocated by compensation, labour values are a
   poor empirical price predictor.

@@ -146,6 +146,21 @@ changes and are not used. The mapping from IO industry codes to sectors lives in
 The price series start in 2005, so real industry accounts cover 2005-2023 while
 the nominal and CFC-adjusted accounts cover 1998-2023.
 
+## BEA GDP-by-Industry price indexes
+
+The BEA API dataset `GDPbyIndustry` (requires `BEA_API_KEY`) provides the
+71-industry chain-type price indexes used for unit-price tests and real
+accounts:
+
+- **TableID 18** — gross output price index
+- **TableID 11** — value added price index
+- **TableID 23** — intermediate inputs price index
+
+The `Industry` parameter uses the same 71 IO codes as the Use tables, so no
+mapping is needed. Values are indexes with 2017 = 100. These replace the
+broad-sector FRED `GOPI*`/`VAPI*` series for industry-level work; the FRED series
+remain as fallbacks.
+
 ## BEA fixed assets (industry capital stocks)
 
 Keyless detail workbook:

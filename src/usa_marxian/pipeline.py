@@ -37,6 +37,7 @@ from .data.bea_employment import (
     employment_coverage,
     load_industry_employment,
 )
+from .data.bea_industry_prices import attach_industry_prices, load_industry_prices
 from .data.bea_inventory_detail import load_industry_inventories_detail
 from .data.bea_io import build_industry_panel, load_use_matrices
 from .data.bls_industry import fetch_manufacturing_hours
@@ -338,6 +339,27 @@ def run_industries(
             stacklevel=2,
         )
 
+    industry_prices = None
+    price_coverage = None
+    if config.api.bea_api_key:
+        try:
+            industry_prices = load_industry_prices(
+                config.settings.raw_dir,
+                config.api.bea_api_key,
+                force=refresh,
+            )
+            panel = attach_industry_prices(panel, industry_prices)
+            price_coverage = {
+                "source": "bea_gdpbyindustry",
+                "rows": int(industry_prices.shape[0]),
+                "coverage": panel["price_source"].value_counts().to_dict(),
+            }
+        except Exception as exc:
+            warnings.warn(
+                f"Industry-level BEA prices unavailable, using sector proxies: {exc}",
+                stacklevel=2,
+            )
+
     capital = load_industry_capital(
         config.settings.raw_dir,
         max_age_days=max(365, config.settings.cache_max_age_days),
@@ -446,6 +468,8 @@ def run_industries(
     summary = year_summary(panel, capital_proxy="fixed_assets")
     latest_table = latest_dispersion(panel, capital_proxy="fixed_assets")
     report = industry_report(panel, capital_proxy="fixed_assets")
+    if price_coverage is not None:
+        report["prices"] = price_coverage
     if employment_table is not None:
         report["employment"] = employment_summary
         report["employment_coverage"] = employment_coverage_records
@@ -644,6 +668,8 @@ def run_industries(
         tables = config.settings.output_dir / "tables"
         tables.mkdir(parents=True, exist_ok=True)
         capital_table.to_csv(processed / "industry_capital.csv", index=False)
+        if industry_prices is not None:
+            industry_prices.to_csv(processed / "industry_prices.csv", index=False)
         if employment_table is not None:
             employment_table.to_csv(
                 processed / "industry_employment.csv", index=False
