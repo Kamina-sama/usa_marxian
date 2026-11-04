@@ -552,6 +552,43 @@ even after a reliability correction the slopes remain well below one.
 
 See `docs/unit_prices.md`.
 
+### Reading the slopes
+
+The price-fit slope is the regression coefficient from
+
+```
+log(observed price_i) = a + b · log(model price_i) + error_i
+```
+
+Both series are normalised to a geometric mean of one, so `a ≈ 0` and `b` is the
+slope reported in the tables:
+
+- `b = 1` — proportional relative prices; a 10% higher model price corresponds
+  to a 10% higher observed price.
+- `b = 0.5` — the model moves in the right direction but only half as far; its
+  relative prices are too compressed.
+- `b = 0` — no relationship.
+- `b < 0` — inverted.
+
+Correlation and slope answer different questions. Correlation asks whether the
+two series move in the same direction; the slope asks by how much. A high
+correlation with a low slope means the model ranks industries correctly but
+understates the price differences. Moseley's unit-price correlation is 0.786 and
+its slope is 0.468: good ranking, compressed amplitude. Sraffa and Shaikh have
+correlations around 0.63-0.65 and slopes around 0.30. Direct labour values have
+correlation 0.208 and slope 0.068.
+
+There are three different slopes in the project:
+
+1. **Price-fit slope** — `log observed price` on `log model price`; target 1.
+   This is the unit-price table.
+2. **Revenue-fit slope** — `log GO` on `log PP`; target approximately 1 because
+   both are revenues. Moseley is 1.043, Sraffa 0.945.
+3. **Error-correction beta** — the coefficient on the lagged price gap. This is
+   not a price elasticity. Negative means the gap closes; positive means it
+   widens. These are the `β_GO = -0.163` or `+0.103` values in the gravitation
+   tables.
+
 ## State space for real competition
 
 The project now writes the measurement layer for a stock-flow cross-dual model:
