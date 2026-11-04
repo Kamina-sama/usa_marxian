@@ -1,8 +1,30 @@
 # usa_marxian
 
+> **New here?** Read the [plain-language guide](docs/plain_language.md) first.
+> It explains the ideas, the tests and the results without assuming economics
+> or statistics.
+
 An empirical framework for testing Fred Moseley's **macro-monetary
 interpretation** of Marx's theory (*Money and Totality*, Brill 2016, ch. 2) on
 US macroeconomic data.
+
+## In plain English
+
+Marx argued that value comes from labour. Moseley argues that the aggregate
+money accounts already express that value, and that competition spreads the
+surplus across industries so that "prices of production" are centres around
+which market prices gravitate. This project builds those accounts from US data
+and asks whether that story fits.
+
+What we find, in one breath: the accounting is consistent; Moseley's benchmark
+tracks industry revenues and relative prices better than the Sraffian and
+Shaikh alternatives; direct labour values perform poorly; and neither
+gravitation nor forecasting is strong. Prices of production have empirical
+content, but the strong claim that they are centres of gravitation is not
+supported by this data.
+
+For the full non-technical walkthrough, see
+[`docs/plain_language.md`](docs/plain_language.md).
 
 The project downloads public US data without requiring an API key, constructs
 the Marxian aggregates at the macro and industry levels, checks the accounting
@@ -707,7 +729,7 @@ src/usa_marxian/
   pipeline.py      macro and industry pipelines
   cli.py           `usa-marxian` command
 tests/             offline unit tests
-docs/              model derivation, data sources, industry notes, Sraffa, Shaikh, state space, stock flow, unit prices
+docs/              plain-language guide, model derivation, data sources, industry notes, Sraffa, Shaikh, state space, stock flow, unit prices
 notebooks/         exploratory notebooks
 data/raw           cached downloads (gitignored)
 data/processed     panels, accounts, quality reports (gitignored)
