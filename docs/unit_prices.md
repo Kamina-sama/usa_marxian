@@ -32,6 +32,8 @@ one. The observed deflator is now the 71-industry BEA gross-output price index
 |---|---:|---:|---:|---:|---:|---:|
 | Moseley unit price (`PP/Q`) | 0.118 | 0.167 | 0.786 | 0.468 | 56.0% | 83.1% |
 | **Moseley relative price (`PP/GO`)** | 0.160 | 0.224 | **0.050** | **0.047** | 43.7% | 75.6% |
+| Moseley profit-rate relative price | 0.147 | 0.210 | 0.054 | 0.059 | 48.1% | 78.1% |
+| Moseley working-capital relative price | 0.134 | 0.193 | 0.044 | 0.050 | 52.2% | 82.8% |
 | Sraffa | 0.165 | 0.224 | 0.613 | 0.280 | 39.6% | 75.2% |
 | Shaikh iterated | 0.168 | 0.216 | 0.652 | 0.305 | 34.5% | 75.3% |
 | Regulating capital | 0.170 | 0.228 | 0.617 | 0.276 | 37.8% | 74.6% |

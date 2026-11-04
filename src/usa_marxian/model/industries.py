@@ -148,15 +148,55 @@ def add_industry_ratios(
     out["R_benchmark"] = totals[value_column] / totals["M_proxy"]
     out["PP"] = out[cost_column] + out["R_benchmark"] * out["M_proxy"]
 
+    # Profit-rate variant: taxes are a deduction from surplus-value, not part
+    # of the uniform profit rate. Taxes are added back to the price separately.
+    out["R_profit_benchmark"] = (
+        out[value_column] - out["T"]
+    ) / out["M_proxy"]
+    out["PP_profit"] = (
+        out[cost_column]
+        + out["T"]
+        + out["R_profit_benchmark"] * out["M_proxy"]
+    )
+
+    # Working-capital variant: if Moseley's M includes circulating capital
+    # advanced, one year of K is a transparent sensitivity proxy.
+    out["M_working"] = out["M_proxy"] + out[cost_column]
+    out["R_working_benchmark"] = out[value_column] / out["M_working"]
+    out["PP_working"] = (
+        out[cost_column] + out["R_working_benchmark"] * out["M_working"]
+    )
+
     # Market-only benchmark: the full sample includes government and housing,
     # whose capital stocks fall back to K. Using the full-sample R for the
     # market comparison would contaminate it with those proxies.
     market = out.loc[out["is_market"]]
-    market_totals = market.groupby("year")[[value_column, "M_proxy"]].sum()
+    market_totals = market.groupby("year")[
+        [value_column, "M_proxy", "M_working", "T"]
+    ].sum()
     market_rate = market_totals[value_column] / market_totals["M_proxy"]
     out["R_benchmark_market"] = out["year"].map(market_rate)
     out["PP_market"] = (
         out[cost_column] + out["R_benchmark_market"] * out["M_proxy"]
+    )
+
+    market_profit_rate = (
+        market_totals[value_column] - market_totals["T"]
+    ) / market_totals["M_proxy"]
+    out["R_profit_market"] = out["year"].map(market_profit_rate)
+    out["PP_profit_market"] = (
+        out[cost_column]
+        + out["T"]
+        + out["R_profit_market"] * out["M_proxy"]
+    )
+
+    market_working_rate = (
+        market_totals[value_column] / market_totals["M_working"]
+    )
+    out["R_working_market"] = out["year"].map(market_working_rate)
+    out["PP_working_market"] = (
+        out[cost_column]
+        + out["R_working_market"] * out["M_working"]
     )
 
     out["PP_V"] = out["V"] * (1.0 + totals[value_column] / totals["V"])

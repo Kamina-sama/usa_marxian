@@ -503,12 +503,16 @@ Fit on the same 60 market industries, 1998-2023:
 
 - **Moseley `PP`**: MAE **12.4%**, RMSE **19.4%**, corr **0.983**, slope
   **1.043**, within 25% **89.5%**, mean gap **-5.7%**.
-- **Sraffa `PP_Sraffa`**: MAE **18.6%**, RMSE **27.7%**, corr **0.960**, slope
-  **0.945**, within 25% **76.5%**, mean gap **-3.2%**.
+- **Moseley profit-rate `PP`** (taxes separate): MAE **11.2%**, RMSE **17.2%**,
+  corr **0.987**, slope **1.036**, within 25% **91.0%**, mean gap **-4.9%**.
+- **Moseley working-capital `PP`**: MAE **10.4%**, RMSE **13.2%**, corr
+  **0.991**, slope **1.035**, within 25% **94.2%**, mean gap **-4.4%**.
+- **Sraffa `PP_Sraffa`**: MAE **18.7%**, RMSE **27.9%**, corr **0.959**, slope
+  **0.942**, within 25% **74.9%**, mean gap **-3.1%**.
 - **Shaikh iterated `PP_Shaikh`**: MAE **19.3%**, RMSE **29.2%**, corr
   **0.956**, slope **0.945**, within 25% **74.1%**, mean gap **-3.5%**.
-- **Regulating capital `PP_reg`**: MAE **18.3%**, RMSE **27.3%**, corr
-  **0.957**, slope **0.946**, within 25% **77.3%**, mean gap **+0.0%**.
+- **Regulating capital `PP_reg`**: MAE **18.5%**, RMSE **27.5%**, corr
+  **0.956**, slope **0.944**, within 25% **76.0%**, mean gap **+0.1%**.
 - **Direct prices (labour values)**: MAE **37.2%**, RMSE **48.9%**, corr
   **0.888**, slope **0.871**, within 25% **42.9%**, mean gap **-9.3%**.
 
@@ -516,8 +520,13 @@ Gravitation comparison:
 
 - **Moseley**: mean gap 12.4%, half-life 2.2y, output adjustment `-0.163`
   (p=0.015), PP adjustment `+0.105` (p=0.035), 1y forecast RMSE 0.213.
-- **Sraffa `PP_Sraffa`**: mean gap 18.2%, half-life 3.9y, output adjustment
-  `+0.103` (p=0.008), PP adjustment `+0.265` (p<0.001), 1y forecast RMSE 0.250.
+- **Moseley profit-rate**: mean gap 11.0%, half-life 2.2y, output adjustment
+  `-0.153` (p=0.040), PP adjustment `+0.122` (p=0.027), 1y forecast RMSE 0.196.
+- **Moseley working-capital**: mean gap 10.4%, half-life 2.0y, output
+  adjustment `-0.091` (p=0.239), PP adjustment `+0.201` (p=0.004), 1y forecast
+  RMSE 0.176.
+- **Sraffa `PP_Sraffa`**: mean gap 18.5%, half-life 4.0y, output adjustment
+  `+0.101` (p=0.009), PP adjustment `+0.259` (p<0.001), 1y forecast RMSE 0.253.
 - **Shaikh iterated `PP_Shaikh`**: mean gap 18.6%, half-life 3.7y, output
   adjustment `+0.100` (p=0.006), PP adjustment `+0.272` (p<0.001), 1y forecast
   RMSE 0.252.
@@ -557,12 +566,13 @@ The revenue comparison can be dominated by industry size. A separate test
 compares **relative unit prices** after normalising every series to a
 quantity-weighted geometric mean of one.
 
-- Moseley unit price (`PP/Q`): log MAE 0.118, corr 0.786, slope 0.468.
-- **Moseley relative price (`PP/GO`): 0.160, corr 0.050, slope 0.047.**
-- Sraffa: 0.165, 0.613, 0.280.
-- Shaikh: 0.168, 0.652, 0.305.
-- Regulating: 0.170, 0.617, 0.276.
-- Direct prices: 0.346, 0.208, 0.068.
+- Moseley relative price (`PP/GO`): log MAE 0.160, corr **0.050**, slope 0.047.
+- Moseley profit-rate relative price: 0.147, corr **0.054**, slope 0.059.
+- Moseley working-capital relative price: 0.134, corr **0.044**, slope 0.050.
+- Sraffa: 0.165, corr **0.613**, slope 0.280.
+- Shaikh: 0.168, corr **0.652**, slope 0.305.
+- Regulating: 0.170, corr **0.617**, slope 0.276.
+- Direct prices: 0.346, corr 0.208, slope 0.068.
 
 With the 71-industry BEA price indexes, the Sraffa/Shaikh fit improves sharply;
 the earlier 0.1-0.2 correlations were largely a broad-sector deflator artifact.

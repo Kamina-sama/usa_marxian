@@ -12,6 +12,8 @@ from .gravitation import deviation_summary, error_correction, forecast_evaluatio
 
 BENCHMARK_LABELS = {
     "PP": "Moseley PP (stock capital)",
+    "PP_profit": "Moseley PP (profit rate, taxes separate)",
+    "PP_working": "Moseley PP (M + working capital)",
     "PP_Sraffa": "Sraffa prices of production (flow capital)",
     "PP_Shaikh": "Shaikh iterated prices (endogenous r)",
     "PP_reg": "Regulating capital (low-cost firms)",
@@ -62,16 +64,28 @@ def compare_benchmarks(panel: pd.DataFrame) -> pd.DataFrame:
     frame = panel.loc[panel["is_market"]].copy() if "is_market" in panel.columns else panel
     common = [
         column
-        for column in ("PP_market", "PP_Sraffa", "PP_Shaikh", "PP_reg", "P_V", "GO")
+        for column in (
+            "PP_market",
+            "PP_profit_market",
+            "PP_working_market",
+            "PP_Sraffa",
+            "PP_Shaikh",
+            "PP_reg",
+            "P_V",
+            "GO",
+        )
         if column in frame.columns
     ]
     if common:
         frame = frame.dropna(subset=common)
     rows = []
+    market_columns = {
+        "PP": "PP_market",
+        "PP_profit": "PP_profit_market",
+        "PP_working": "PP_working_market",
+    }
     for column, label in BENCHMARK_LABELS.items():
-        use_column = column
-        if column == "PP" and "PP_market" in frame.columns:
-            use_column = "PP_market"
+        use_column = market_columns.get(column, column)
         if use_column not in frame.columns:
             continue
         rows.append(_metrics(frame, use_column, label=f"{label} | market"))
@@ -151,7 +165,16 @@ def run_shaikh_comparison(
     comparison = compare_benchmarks(shaikh.panel)
     common_columns = [
         column
-        for column in ("PP_market", "PP_Sraffa", "PP_Shaikh", "PP_reg", "P_V", "GO")
+        for column in (
+            "PP_market",
+            "PP_profit_market",
+            "PP_working_market",
+            "PP_Sraffa",
+            "PP_Shaikh",
+            "PP_reg",
+            "P_V",
+            "GO",
+        )
         if column in shaikh.panel.columns
     ]
     valid = shaikh.panel.dropna(subset=common_columns)
@@ -161,6 +184,18 @@ def run_shaikh_comparison(
             shaikh.panel,
             "PP_market",
             "Moseley PP (stock capital)",
+            years=common_years,
+        ),
+        _benchmark_gravitation(
+            shaikh.panel,
+            "PP_profit_market",
+            "Moseley PP (profit rate, taxes separate)",
+            years=common_years,
+        ),
+        _benchmark_gravitation(
+            shaikh.panel,
+            "PP_working_market",
+            "Moseley PP (M + working capital)",
             years=common_years,
         ),
         _benchmark_gravitation(
@@ -200,10 +235,13 @@ def run_shaikh_comparison(
         (shaikh.panel["year"] == latest_year) & (shaikh.panel["is_market"])
     ]
     latest_rows = []
+    latest_market_columns = {
+        "PP": "PP_market",
+        "PP_profit": "PP_profit_market",
+        "PP_working": "PP_working_market",
+    }
     for column, label in BENCHMARK_LABELS.items():
-        use_column = column
-        if column == "PP" and "PP_market" in latest_frame.columns:
-            use_column = "PP_market"
+        use_column = latest_market_columns.get(column, column)
         if use_column in latest_frame.columns:
             latest_rows.append(
                 {**_metrics(latest_frame, use_column, label=label), "year": latest_year}
