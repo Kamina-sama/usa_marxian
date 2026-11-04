@@ -38,6 +38,7 @@ but it is not a unit-price test.
 | Sraffa | 0.166 | 0.224 | 0.630 | 0.285 | 38.3% | 74.8% |
 | Sraffa + fixed capital | 0.131 | 0.174 | 0.831 | 0.443 | 46.4% | 83.3% |
 | Shaikh iterated | 0.167 | 0.216 | 0.669 | 0.311 | 35.8% | 75.6% |
+| Shaikh + fixed capital | 0.152 | 0.204 | 0.806 | 0.370 | 39.5% | 79.1% |
 | Regulating capital | 0.170 | 0.228 | 0.634 | 0.280 | 36.7% | 74.0% |
 | Direct prices | 0.348 | 0.440 | 0.189 | 0.055 | 17.5% | 39.9% |
 

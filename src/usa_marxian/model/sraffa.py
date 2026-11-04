@@ -230,6 +230,8 @@ class IterationResult:
     converged: bool
     residual: float
     history: list[float]
+    capital_advanced: float | None = None
+    depreciation_value: float | None = None
 
 
 def iterative_prices(

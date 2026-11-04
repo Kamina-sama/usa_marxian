@@ -46,6 +46,29 @@ slightly better than Sraffa's 18.6% MAE and essentially unbiased in aggregate.
 Gravitation remains wrong-signed: `β_GO = +0.113` (p=0.008), `β_PP = +0.282`,
 one-year forecast RMSE 0.263.
 
+## Fixed-capital iteration
+
+The fixed-capital version uses the same `B` and `Delta` matrices as Sraffa, but
+keeps `r` endogenous:
+
+```
+p = (1+r)(pA + w l) + p (B o (r + Delta))
+r = [p q - pAq - wL - p Delta B q] / [pAq + wL + pBq]
+```
+
+It converges to a model-implied rate of about **7.4%** and improves unit-price
+fit substantially:
+
+```
+unit-price corr   0.669 -> 0.806
+unit-price slope  0.311 -> 0.370
+unit MAE          0.167 -> 0.152
+```
+
+Revenue MAE is roughly unchanged (19.3% to 19.6%), but RMSE worsens sharply
+(29.2% to 44.5%), so the improvement is in typical relative prices, not in the
+tails. Gravitation remains wrong-signed (`beta_GO = +0.036`, p=0.034).
+
 ## Cross-dual gravitation
 
 A minimal price/output adjustment:

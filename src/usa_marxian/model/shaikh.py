@@ -67,6 +67,107 @@ class ShaikhResult:
     summary: dict
 
 
+def iterative_prices_fixed_capital(
+    matrix: pd.DataFrame,
+    capital_matrix: pd.DataFrame,
+    depreciation: pd.DataFrame,
+    labour: pd.Series,
+    output: pd.Series,
+    *,
+    max_iter: int = 1000,
+    tol: float = 1e-10,
+    damping: float = 1.0,
+    initial: pd.Series | None = None,
+) -> IterationResult:
+    """Shaikh cost-plus iteration with fixed capital and endogenous ``r``.
+
+    The price equation is
+
+        p = (1+r)(pA + w l) + p (B o (r + Delta))
+
+    and ``r`` is the aggregate surplus divided by capital advanced.
+    """
+    index = matrix.index
+    coefficients = matrix.reindex(index=index, columns=index).fillna(0.0).to_numpy(
+        dtype=float
+    )
+    capital = capital_matrix.reindex(index=index, columns=index).fillna(0.0).to_numpy(
+        dtype=float
+    )
+    delta = depreciation.reindex(index=index, columns=index).fillna(0.0).to_numpy(
+        dtype=float
+    )
+    direct = labour.reindex(index).to_numpy(dtype=float)
+    quantities = output.reindex(index).to_numpy(dtype=float)
+    if (quantities <= 0).any() or not np.isfinite(quantities).all():
+        raise ValueError("Output quantities must be positive and finite")
+
+    start = (initial if initial is not None else labour).reindex(index)
+    p = start.to_numpy(dtype=float)
+    if not np.isfinite(p).all() or (p <= 0).any():
+        p = direct.copy()
+    p = p * (quantities.sum() / (p @ quantities))
+
+    history: list[float] = []
+    profit_rate = float("nan")
+    capital_advanced = float("nan")
+    depreciation_value = float("nan")
+    for iteration in range(1, max_iter + 1):
+        intermediate = coefficients @ quantities
+        fixed_capital = capital @ quantities
+        depreciation_flow = (capital * delta) @ quantities
+        intermediate_value = float(p @ intermediate)
+        fixed_value = float(p @ fixed_capital)
+        depreciation_value = float(p @ depreciation_flow)
+        labour_value = float(direct @ quantities)
+        surplus = float(
+            p @ quantities
+            - intermediate_value
+            - labour_value
+            - depreciation_value
+        )
+        capital_advanced = intermediate_value + labour_value + fixed_value
+        if capital_advanced <= 0 or not np.isfinite(capital_advanced):
+            break
+        profit_rate = surplus / capital_advanced
+        if not np.isfinite(profit_rate) or profit_rate <= -1.0:
+            break
+
+        base = coefficients.T @ p + direct
+        capital_charge = (capital * (profit_rate + delta)).T @ p
+        new = (1.0 + profit_rate) * base + capital_charge
+        if not np.isfinite(new).all() or (new <= 0).any():
+            break
+        new = new * (quantities.sum() / (new @ quantities))
+        if damping < 1.0:
+            new = damping * new + (1.0 - damping) * p
+            new = new * (quantities.sum() / (new @ quantities))
+        residual = float(np.max(np.abs(new - p)))
+        history.append(residual)
+        p = new
+        if residual < tol:
+            return IterationResult(
+                prices=pd.Series(p, index=index, name="price"),
+                profit_rate=profit_rate,
+                iterations=iteration,
+                converged=True,
+                residual=residual,
+                history=history,
+                capital_advanced=capital_advanced,
+                depreciation_value=depreciation_value,
+            )
+    return IterationResult(
+        prices=pd.Series(p, index=index, name="price"),
+        profit_rate=profit_rate,
+        iterations=len(history),
+        converged=False,
+        residual=float(history[-1]) if history else float("inf"),
+        history=history,
+        capital_advanced=capital_advanced,
+        depreciation_value=depreciation_value,
+    )
+
+
 def iterative_prices_endogenous(
     matrix: pd.DataFrame,
     labour: pd.Series,
@@ -356,6 +457,7 @@ def build_shaikh_benchmarks(
 
         fixed_price = None
         fixed_rate = None
+        fixed_shaikh = None
         if capital_matrices is not None and int(year) in capital_matrices:
             capital_matrix, depreciation = capital_matrices[int(year)]
             fixed_rate = float(
@@ -371,6 +473,16 @@ def build_shaikh_benchmarks(
                 )
                 if (fixed_prices > 0).all():
                     fixed_price = _normalise(fixed_prices, output_real)
+                fixed_shaikh = iterative_prices_fixed_capital(
+                    matrix,
+                    capital_matrix,
+                    depreciation,
+                    labour_cost,
+                    output_real,
+                    initial=value_price,
+                )
+                if not (fixed_shaikh.prices > 0).all():
+                    fixed_shaikh = None
             except ValueError as exc:
                 warnings.warn(
                     f"Fixed-capital Sraffa skipped for {year}: {exc}",
@@ -401,6 +513,21 @@ def build_shaikh_benchmarks(
                     if fixed_price is not None
                     else float("nan"),
                     "r_fixed": float(fixed_rate) if fixed_rate is not None else float("nan"),
+                    "PP_Shaikh_fixed": float(
+                        _normalise(fixed_shaikh.prices, output_real).loc[code]
+                        * output_real.loc[code]
+                        * price.loc[code]
+                    )
+                    if fixed_shaikh is not None
+                    else float("nan"),
+                    "p_shaikh_fixed": float(
+                        _normalise(fixed_shaikh.prices, output_real).loc[code]
+                    )
+                    if fixed_shaikh is not None
+                    else float("nan"),
+                    "r_shaikh_fixed": float(fixed_shaikh.profit_rate)
+                    if fixed_shaikh is not None
+                    else float("nan"),
                     "r_observed": float(profit_rate),
                     "r_model": float(endogenous_iteration.profit_rate),
                     "iterations": int(endogenous_iteration.iterations),

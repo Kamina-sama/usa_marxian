@@ -17,6 +17,7 @@ BENCHMARK_LABELS = {
     "PP_Sraffa": "Sraffa prices of production (flow capital)",
     "PP_Sraffa_fixed": "Sraffa prices with fixed capital",
     "PP_Shaikh": "Shaikh iterated prices (endogenous r)",
+    "PP_Shaikh_fixed": "Shaikh fixed-capital iterated prices",
     "PP_reg": "Regulating capital (low-cost firms)",
     "P_V": "Direct prices (labour values)",
 }
@@ -72,6 +73,7 @@ def compare_benchmarks(panel: pd.DataFrame) -> pd.DataFrame:
             "PP_Sraffa",
             "PP_Sraffa_fixed",
             "PP_Shaikh",
+            "PP_Shaikh_fixed",
             "PP_reg",
             "P_V",
             "GO",
@@ -179,6 +181,7 @@ def run_shaikh_comparison(
             "PP_Sraffa",
             "PP_Sraffa_fixed",
             "PP_Shaikh",
+            "PP_Shaikh_fixed",
             "PP_reg",
             "P_V",
             "GO",
@@ -222,6 +225,12 @@ def run_shaikh_comparison(
             shaikh.panel,
             "PP_Shaikh",
             "Shaikh iterated prices (endogenous r)",
+            years=common_years,
+        ),
+        _benchmark_gravitation(
+            shaikh.panel,
+            "PP_Shaikh_fixed",
+            "Shaikh fixed-capital iterated prices",
             years=common_years,
         ),
     ]

@@ -31,6 +31,7 @@ UNIT_PRICE_MODELS = {
     "Sraffa prices of production": "p_sraffa",
     "Sraffa prices with fixed capital": "p_sraffa_fixed",
     "Shaikh iterated prices": "p_shaikh",
+    "Shaikh fixed-capital iterated prices": "p_shaikh_fixed",
     "Regulating capital": "p_reg",
     "Direct prices (labour values)": "p_v",
 }

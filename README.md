@@ -514,6 +514,9 @@ Fit on the same 60 market industries, 1998-2023:
   capital improves typical errors and unit prices but worsens the RMSE tails.
 - **Shaikh iterated `PP_Shaikh`**: MAE **19.3%**, RMSE **29.2%**, corr
   **0.956**, slope **0.945**, within 25% **74.1%**, mean gap **-3.5%**.
+- **Shaikh with fixed capital**: MAE **19.6%**, RMSE **44.5%**, corr
+  **0.888**, slope **0.966**, within 25% **80.6%**, mean gap **-7.1%**. Unit
+  prices improve; revenue tails worsen.
 - **Regulating capital `PP_reg`**: MAE **18.5%**, RMSE **27.5%**, corr
   **0.956**, slope **0.944**, within 25% **76.0%**, mean gap **+0.1%**.
 - **Direct prices (labour values)**: MAE **37.2%**, RMSE **48.9%**, corr
@@ -536,6 +539,10 @@ Gravitation comparison:
 - **Shaikh iterated `PP_Shaikh`**: mean gap 18.6%, half-life 3.7y, output
   adjustment `+0.100` (p=0.006), PP adjustment `+0.272` (p<0.001), 1y forecast
   RMSE 0.252.
+- **Shaikh with fixed capital**: mean gap 17.2%, half-life 5.3y, output
+  adjustment `+0.036` (p=0.034), PP adjustment `+0.158` (p<0.001), 1y forecast
+  RMSE 0.246. The wrong-signed output coefficient is smaller but remains
+  positive.
 - **Regulating capital `PP_reg`**: mean gap 18.7%, half-life 3.7y, output
   adjustment `+0.113` (p=0.008), PP adjustment `+0.282` (p<0.001), 1y forecast
   RMSE 0.263.
@@ -578,6 +585,7 @@ quantity-weighted geometric mean of one.
 - Sraffa: 0.166, corr **0.630**, slope 0.285.
 - Sraffa with fixed capital: 0.131, corr **0.831**, slope 0.443.
 - Shaikh: 0.167, corr **0.669**, slope 0.311.
+- Shaikh with fixed capital: 0.152, corr **0.806**, slope 0.370.
 - Regulating: 0.170, corr **0.634**, slope 0.280.
 - Direct prices: 0.348, corr 0.189, slope 0.055.
 

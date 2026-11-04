@@ -181,6 +181,7 @@ Moseley working-capital    0.60
 Sraffa                     0.28
 Sraffa fixed capital       0.44
 Shaikh                     0.31
+Shaikh fixed capital       0.37
 Regulating                 0.28
 Direct prices              0.06
 ```
