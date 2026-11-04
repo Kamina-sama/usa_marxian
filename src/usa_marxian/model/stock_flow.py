@@ -45,13 +45,13 @@ PARAMETER_BOUNDS = {
 
 @dataclass
 class StockFlowParams:
-    # Calibrated on 2005-2023 with exogenous final demand. The price block
-    # remains weak; output and capital are the well-fitting dimensions.
-    alpha: float = 0.0185
-    beta: float = 0.80
-    gamma0: float = 0.125
+    # Sensible starting values for the demand-closed model. The price block
+    # remains weak; output and capital are the better-fitting dimensions.
+    alpha: float = 0.02
+    beta: float = 0.20
+    gamma0: float = 0.06
     gamma1: float = 0.04
-    gamma2: float = 0.50
+    gamma2: float = 0.20
     phi: float = 0.0
     kappa: float = 0.0
 
@@ -143,8 +143,14 @@ def simulate(
     *,
     start_year: int | None = None,
     end_year: int | None = None,
+    demand_shock: pd.Series | None = None,
+    shock_year: int | None = None,
 ) -> pd.DataFrame:
-    """Simulate the cross-dual system from the first available year."""
+    """Simulate the cross-dual system from the first available year.
+
+    ``demand_shock`` is an additive real-demand vector by industry, applied in
+    ``shock_year`` (or every year when ``shock_year`` is None).
+    """
     matrices = _matrix_dict(matrices_real)
     years = sorted(set(state["year"].astype(int)) & set(matrices))
     if start_year is not None:
@@ -167,6 +173,26 @@ def simulate(
     w_series = state.groupby("year")["wage_rate"].first()
     dep_wide = _wide(state, "depreciation").reindex(columns=codes)
     investment_wide = _wide(state, "investment").reindex(columns=codes)
+    consumption_wide = (
+        _wide(state, "consumption_demand").reindex(columns=codes).fillna(0.0)
+        if "consumption_demand" in state.columns
+        else None
+    )
+    government_wide = (
+        _wide(state, "government_demand").reindex(columns=codes).fillna(0.0)
+        if "government_demand" in state.columns
+        else None
+    )
+    exports_wide = (
+        _wide(state, "exports_demand").reindex(columns=codes).fillna(0.0)
+        if "exports_demand" in state.columns
+        else None
+    )
+    imports_wide = (
+        _wide(state, "imports_demand").reindex(columns=codes).fillna(0.0)
+        if "imports_demand" in state.columns
+        else None
+    )
 
     p = p_wide.loc[years[0]].to_numpy(dtype=float)
     q = q_wide.loc[years[0]].to_numpy(dtype=float)
@@ -191,10 +217,56 @@ def simulate(
         denominator = float(cost @ q)
         average = float((p @ q - denominator) / denominator) if denominator > 0 else 0.0
 
+        utilization_current = (q / k) / np.clip(base, 1e-12, None)
+        depreciation = dep_wide.loc[year].reindex(codes).to_numpy(dtype=float)
+        depreciation = np.clip(depreciation, 0.0, None)
+        investment = depreciation + k * (
+            params.gamma0
+            + params.gamma1 * (rates - average)
+            + params.gamma2 * (utilization_current - 1.0)
+        )
+        investment = np.clip(investment, 0.0, None)
+
         intermediate = matrix @ q
+        if consumption_wide is not None:
+            observed_q = q_wide.loc[year].reindex(codes).to_numpy(dtype=float)
+            observed_intermediate = matrix @ observed_q
+            observed_investment = (
+                investment_wide.loc[year].reindex(codes).to_numpy(dtype=float)
+            )
+            residual = (
+                observed_q
+                - observed_intermediate
+                - consumption_wide.loc[year].reindex(codes).to_numpy(dtype=float)
+                - government_wide.loc[year].reindex(codes).to_numpy(dtype=float)
+                - exports_wide.loc[year].reindex(codes).to_numpy(dtype=float)
+                + imports_wide.loc[year].reindex(codes).to_numpy(dtype=float)
+                - observed_investment
+            )
+            final_demand = (
+                consumption_wide.loc[year].reindex(codes).to_numpy(dtype=float)
+                + investment
+                + government_wide.loc[year].reindex(codes).to_numpy(dtype=float)
+                + exports_wide.loc[year].reindex(codes).to_numpy(dtype=float)
+                - imports_wide.loc[year].reindex(codes).to_numpy(dtype=float)
+                + residual
+            )
+        else:
+            final_demand = _final_demand(
+                q_wide.loc[year].reindex(codes),
+                matrices[year].reindex(index=codes, columns=codes),
+            ).to_numpy(dtype=float)
+        if demand_shock is not None and (
+            shock_year is None or year == shock_year
+        ):
+            final_demand = final_demand + (
+                demand_shock.reindex(codes).fillna(0.0).to_numpy(dtype=float)
+            )
         demand = intermediate + final_demand
         q_new = q + params.beta * (demand - q)
-        q_new = np.clip(q_new, 1e-6, None)
+        # One-year output adjustment is bounded: no industry collapses or
+        # doubles in a single year, even if a demand component is noisy.
+        q_new = np.clip(q_new, 0.5 * q, 2.0 * q)
 
         cost_ratio = np.clip(cost / np.clip(p, 1e-12, None), 0.0, 3.0)
         p_new = p * (1.0 + params.kappa * (cost_ratio - 1.0))
@@ -212,15 +284,6 @@ def simulate(
         )
         w_new = w * (1.0 + params.phi * (aggregate_utilization - 1.0))
         w_new = max(w_new, 1e-6)
-
-        investment = k * (
-            params.gamma0
-            + params.gamma1 * (rates - average)
-            + params.gamma2 * (utilization - 1.0)
-        )
-        investment = np.clip(investment, 0.0, None)
-        depreciation = dep_wide.loc[year].reindex(codes).to_numpy(dtype=float)
-        depreciation = np.clip(depreciation, 0.0, None)
         k_new = k - depreciation + investment
         k_new = np.clip(k_new, 1e-6, None)
 
@@ -293,6 +356,7 @@ def fit_stock_flow(
 ) -> StockFlowResult:
     """Calibrate the adjustment parameters and return simulated trajectories."""
     params = StockFlowParams()
+    best_score = _objective(params.to_array(), state, matrices_real)
     if calibrate:
         bounds = [PARAMETER_BOUNDS[name] for name in (
             "alpha",
@@ -312,7 +376,8 @@ def fit_stock_flow(
             polish=True,
             workers=1,
         )
-        params = StockFlowParams.from_array(result.x)
+        if float(result.fun) < best_score:
+            params = StockFlowParams.from_array(result.x)
 
     trajectories = simulate(state, matrices_real, params)
     metrics = metrics_table(trajectories)

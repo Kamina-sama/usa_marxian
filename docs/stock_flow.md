@@ -1,94 +1,113 @@
-# Stock-flow cross-dual simulation
+# Stock-flow model
 
-This is the first behavioural layer built on the state space. It is a small
-stock-flow model, not a full real-competition model.
-
-## State and data
-
-For each market industry-year:
+The state-space dataset provides, for 65 market industries and 2005-2023:
 
 ```
-p_i, q_i, k_i, I_i, u_i, w, l_i, A_t
+p_i  price index
+q_i  real output (2017 dollars)
+k_i  real capital stock
+I_i  real investment
+u_i  utilization
+w_i  wage rate
+l_i  labour coefficient
+A_t  annual real input-output matrix
 ```
 
-Final demand is reconstructed from observed output and the real input matrix:
+The stock-flow model is a small cross-dual system. It is a structural
+exploration, not a full macroeconomic model.
+
+## Demand closure
+
+Final demand is parsed from the BEA Use table's final-use columns:
 
 ```
-F_t = q_t - A_t q_t
+C_i  personal consumption
+I_i  private fixed investment and inventory change
+G_i  federal, state and local government
+X_i  exports
+M_i  imports
 ```
 
-and treated as exogenous. This means the simulation is a **dynamic accounting
-and adjustment model**, not a complete demand system.
+All components are deflated to 2017 dollars with the 71-industry gross-output
+price index. Demand for industry `i` is:
+
+```
+D_i = sum_j A_ij q_j + C_i + I_i + G_i + X_i - M_i + residual_i
+```
+
+`I_i` is the **simulated** investment from the capital block, not the observed
+Use-table investment. The residual is an explicit statistical/other term:
+
+```
+residual_i = q_i - sum_j A_ij q_j - C_i - G_i - X_i + M_i - I_i(observed)
+```
+
+It closes the observed base year. It is not a behavioural component and is
+reported as a limitation.
 
 ## Behavioural block
 
 ```
-cost_i = (p A)_i + w l_i
-r_i    = (p_i - cost_i) / cost_i
-r_bar  = (p q - cost q) / (cost q)
+cost_i   = (p A)_i + w l_i
+r_i      = (p_i - cost_i) / cost_i
+r_bar    = (p q - cost q) / (cost q)
 
-p_i' = p_i [1 + kappa (cost_i/p_i - 1)] exp(-alpha (r_i - r_bar))
-q_i' = q_i + beta (D_i - q_i),        D_i = (A q)_i + F_i
-I_i  = k_i [gamma0 + gamma1 (r_i - r_bar) + gamma2 (u_i - 1)]
+p_i' = p_i exp(-alpha (r_i - r_bar))
+q_i' = q_i + beta (D_i - q_i)
+I_i  = depreciation_i + k_i [gamma0 + gamma1 (r_i - r_bar) + gamma2 (u_i - 1)]
 k_i' = k_i - depreciation_i + I_i
 w'   = w [1 + phi (U - 1)]
 ```
 
-where `U` is the output-weighted average utilization. Investment is clipped at
-zero; prices, quantities and capital are clipped positive.
-
-## Calibration
-
-The parameters are calibrated by matching simulated and observed price, output
-and capital paths over 2005-2023, using differential evolution. The objective is:
-
-```
-log RMSE(price) + log RMSE(quantity) + 0.5 log RMSE(capital)
-```
-
-Current parameters:
-
-- `alpha = 0.0185` — price response to profit differentials
-- `beta = 0.80` — output response to demand gaps
-- `gamma0 = 0.125` — baseline investment rate
-- `gamma1 = 0.04` — investment response to profit differentials
-- `gamma2 = 0.50` — investment response to utilization
-- `phi = 0.0` — wage response to utilization
-- `kappa = 0.0` — cost pass-through
-
-`beta` and `gamma2` are at their upper bounds. That is a warning: the model wants
-faster output and investment adjustment than the bounds allow.
+One-year output adjustment is bounded to `[0.5 q, 2.0 q]` so a noisy demand
+component cannot drive an industry to extinction.
 
 ## Fit, 2005-2023
 
-- **Price**: log RMSE **0.134**, MAE 0.105, correlation **0.284**
-- **Quantity**: log RMSE **0.108**, MAE 0.076, correlation **0.995**
-- **Capital**: log RMSE **0.237**, MAE 0.159, correlation **0.976**
-- **Investment**: log RMSE **0.582**, MAE 0.372, correlation **0.729**
+```
+price       log RMSE 0.305   corr 0.297
+quantity    log RMSE 0.197   corr 0.983
+capital     log RMSE 0.356   corr 0.915
+investment  log RMSE 0.505   corr 0.796
+```
 
-Output and capital are fitted well. Relative prices are not: the price block
-captures only a small part of observed relative-price movement. That is the main
-failure of the current model.
+For comparison, the earlier exogenous-final-demand version fitted quantity at
+0.108 and capital at 0.237, but it assumed away the demand side. Closing demand
+makes the model structural and worsens the fit. That is the trade-off.
 
-## What is still missing
+The weak dimension is still the price block. Output and capital track the data;
+relative prices do not.
 
-- **Endogenous demand.** Final demand is exogenous. A complete model needs
-  consumption, investment demand, government and net exports.
-- **Price formation.** The cross-dual price rule is too weak. A full model needs
-  cost-plus pricing with firm heterogeneity, regulating capitals and entry.
-- **Wage dynamics.** `phi = 0`; wages are effectively exogenous. A wage Phillips
-  curve or bargaining block is missing.
-- **Firm heterogeneity.** The model uses one representative firm per industry.
-- **Regulating capitals.** Prices are not set by low-cost producers.
-- **Financial constraints.** Investment is not finance-constrained.
-- **Estimation uncertainty.** Parameters are calibrated, not estimated with
-  standard errors; `beta` and `gamma2` hit their bounds.
+## Demand shocks
+
+`simulate(..., demand_shock=..., shock_year=...)` adds a real-demand vector by
+industry. This allows counterfactuals such as:
+
+- a demand shock to one industry;
+- a uniform demand boost;
+- a negative import shock;
+- comparing a demand shock with a price/cost shock.
+
+The current model is suitable for direction-of-effect experiments, not for
+quantitative policy analysis.
+
+## Limitations
+
+- The residual demand term is about 8% of output at the base year.
+- Final demand is deflated with the industry gross-output price index, not
+  component-specific consumption/investment deflators.
+- Consumption, government, exports and imports are exogenous; only investment is
+  simulated.
+- Inventories are inside `k` but not modelled separately as a flow.
+- Parameters are calibrated by a simple RMSE objective, not estimated with
+  standard errors.
+- The price block remains weak; cost pass-through alone does not fix it.
 
 ## Files
 
+- `src/usa_marxian/model/stock_flow.py`
+- `data/processed/state_space.csv`
+- `data/processed/final_demand.csv`
 - `output/tables/stock_flow_metrics.csv`
 - `output/tables/stock_flow_trajectories.csv`
 - `output/stock_flow.json`
-
-The simulation is deliberately reported as a first structural layer, not as a
-finished model of Shaikh's real competition.

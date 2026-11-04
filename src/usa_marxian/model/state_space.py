@@ -26,6 +26,7 @@ from dataclasses import dataclass
 
 import pandas as pd
 
+from ..data.bea_final_demand import attach_final_demand
 from .shaikh import build_real_technical_matrices, build_technical_matrices
 
 STATE_COLUMNS = [
@@ -45,6 +46,10 @@ STATE_COLUMNS = [
     "labour_coefficient",
     "labour_coefficient_real",
     "hours_source",
+    "consumption_demand",
+    "government_demand",
+    "exports_demand",
+    "imports_demand",
     "GO",
     "V",
     "capital_current",
@@ -86,6 +91,7 @@ def build_state_space(
     *,
     base_year: int = 2017,
     market_only: bool = True,
+    final_demand: pd.DataFrame | None = None,
 ) -> StateSpaceResult:
     """Build the industry-year state table and annual matrices."""
     data = panel.copy()
@@ -157,6 +163,8 @@ def build_state_space(
     data["labour_coefficient_real"] = data["labour_hours"] / (
         data["quantity"] * 1e6
     )
+    if final_demand is not None:
+        data = attach_final_demand(data, final_demand)
 
     state = data.loc[
         :, [column for column in STATE_COLUMNS if column in data.columns]

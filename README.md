@@ -657,20 +657,27 @@ k_i' = k_i - depreciation_i + I_i
 w'   = w [1 + phi (U - 1)]
 ```
 
-Final demand is reconstructed from observed output and the real input matrix,
-`F_t = q_t - A_t q_t`, and treated as exogenous. This is a dynamic adjustment
-model, not a complete demand system.
+Final demand is now parsed from the BEA Use table:
 
-Calibrated fit, 2005-2023:
+```
+D_i = sum_j A_ij q_j + C_i + I_i + G_i + X_i - M_i + residual_i
+```
 
-- price: log RMSE **0.134**, correlation **0.284**
-- quantity: log RMSE **0.108**, correlation **0.995**
-- capital: log RMSE **0.237**, correlation **0.976**
-- investment: log RMSE **0.582**, correlation **0.729**
+where `I_i` is simulated investment and `residual_i` is an explicit
+statistical/other term (about 8% of output) that closes the observed base year.
+`C`, `G`, `X` and `M` are exogenous real components; investment is endogenous.
 
-Output and capital fit well. Relative prices do not. The price block is the weak
-part, and `beta` and `gamma2` hit their calibration bounds. The model is a first
-structural layer, not a finished real-competition model.
+Fit, 2005-2023:
+
+- price: log RMSE **0.305**, correlation **0.297**
+- quantity: log RMSE **0.197**, correlation **0.983**
+- capital: log RMSE **0.356**, correlation **0.915**
+- investment: log RMSE **0.505**, correlation **0.796**
+
+Closing demand makes the model structural but worsens the fit relative to the
+exogenous-demand version (quantity 0.108, capital 0.237). Output and capital
+still track the data; relative prices do not. `simulate(..., demand_shock=...)`
+supports demand-shock counterfactuals.
 
 See `docs/stock_flow.md`.
 
@@ -708,6 +715,7 @@ After `industries`:
   `gravitation_long_run_ecm.csv`, `gravitation_long_run_forecast_metrics.csv`,
   `gravitation_long_run_forecast_comparisons.csv`
 - `output/tables/stock_flow_metrics.csv`, `stock_flow_trajectories.csv`
+- `data/processed/final_demand.csv`, `data/processed/industry_prices.csv`
 - `output/tables/unit_price_comparison.csv`, `unit_price_by_year.csv`,
   `unit_price_gravitation.csv`, `price_revenue_ratio.csv`,
   `price_revenue_ratio_by_year.csv`, `price_within_sector.csv`

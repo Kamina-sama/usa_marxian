@@ -37,6 +37,7 @@ from .data.bea_employment import (
     employment_coverage,
     load_industry_employment,
 )
+from .data.bea_final_demand import categorise_final_demand, load_final_demand
 from .data.bea_industry_prices import attach_industry_prices, load_industry_prices
 from .data.bea_inventory_detail import load_industry_inventories_detail
 from .data.bea_io import build_industry_panel, load_use_matrices
@@ -339,6 +340,31 @@ def run_industries(
             stacklevel=2,
         )
 
+    final_demand = None
+    final_demand_summary = None
+    if use_matrices is not None:
+        try:
+            final_demand = categorise_final_demand(
+                load_final_demand(
+                    config.settings.raw_dir,
+                    force=refresh,
+                )
+            )
+            final_demand_summary = {
+                "rows": int(final_demand.shape[0]),
+                "years": int(final_demand["year"].nunique()),
+                "categories": sorted(
+                    column
+                    for column in ("C", "I", "G", "X", "M")
+                    if column in final_demand.columns
+                ),
+            }
+        except Exception as exc:
+            warnings.warn(
+                f"Final-demand columns unavailable: {exc}",
+                stacklevel=2,
+            )
+
     industry_prices = None
     price_coverage = None
     if config.api.bea_api_key:
@@ -470,6 +496,8 @@ def run_industries(
     report = industry_report(panel, capital_proxy="fixed_assets")
     if price_coverage is not None:
         report["prices"] = price_coverage
+    if final_demand_summary is not None:
+        report["final_demand"] = final_demand_summary
     if employment_table is not None:
         report["employment"] = employment_summary
         report["employment_coverage"] = employment_coverage_records
@@ -549,6 +577,7 @@ def run_industries(
                 macro_accounts,
                 capital_detail,
                 base_year=2017,
+                final_demand=final_demand,
             )
             report["state_space"] = state_space.summary
         except Exception as exc:
@@ -670,6 +699,8 @@ def run_industries(
         capital_table.to_csv(processed / "industry_capital.csv", index=False)
         if industry_prices is not None:
             industry_prices.to_csv(processed / "industry_prices.csv", index=False)
+        if final_demand is not None:
+            final_demand.to_csv(processed / "final_demand.csv", index=False)
         if employment_table is not None:
             employment_table.to_csv(
                 processed / "industry_employment.csv", index=False
