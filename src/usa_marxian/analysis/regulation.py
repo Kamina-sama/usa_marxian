@@ -31,19 +31,27 @@ from linearmodels.panel import PanelOLS
 
 def build_regulation_panel(panel: pd.DataFrame) -> pd.DataFrame:
     """Profit on capital advanced, the aggregate rate, and the gap."""
-    required = {"year", "industry_code", "S_net", "M"}
+    required = {"year", "industry_code", "S_net"}
     missing = sorted(required - set(panel.columns))
     if missing:
         raise KeyError(f"panel is missing columns: {', '.join(missing)}")
+    # Moseley's M includes circulating capital; the working-capital variant is
+    # the project's best-fitting and theoretically closest measure, so it is
+    # used when available.
+    capital = "M_working" if "M_working" in panel.columns else "M"
+    if capital not in panel.columns:
+        raise KeyError("panel is missing columns: M_working or M")
 
-    frame = panel.loc[:, [*sorted(required), *(
-        ["is_market"] if "is_market" in panel.columns else []
-    )]].copy()
+    columns = [*sorted(required), capital]
+    if "is_market" in panel.columns:
+        columns.append("is_market")
+    frame = panel.loc[:, columns].copy()
     if "is_market" in frame.columns:
         frame = frame.loc[frame["is_market"]]
-    frame["r"] = frame["S_net"] / frame["M"]
+    frame["capital_advanced"] = frame[capital]
+    frame["r"] = frame["S_net"] / frame["capital_advanced"]
     aggregate = frame.groupby("year").apply(
-        lambda block: block["S_net"].sum() / block["M"].sum(),
+        lambda block: block["S_net"].sum() / block["capital_advanced"].sum(),
         include_groups=False,
     )
     frame["R"] = frame["year"].map(aggregate)
@@ -58,7 +66,7 @@ def dispersion_by_year(panel: pd.DataFrame) -> pd.DataFrame:
         lambda block: pd.Series(
             {
                 "n": float(len(block)),
-                "R": float(block["S_net"].sum() / block["M"].sum()),
+                "R": float(block["S_net"].sum() / block["capital_advanced"].sum()),
                 "cv": float(block["r"].std() / block["r"].mean()),
                 "iqr": float(block["r"].quantile(0.75) - block["r"].quantile(0.25)),
                 "p90_p10": float(

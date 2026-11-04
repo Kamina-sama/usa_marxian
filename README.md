@@ -46,13 +46,16 @@ claims are reported first. Six are testable; four pass.
   property income plus taxes on production: mean ratio **1.011**, mean gap
   **+58.2 bn** (+2.5% of `S`), correlation **0.997**. This is the strongest
   non-circular result in the project.
-- **The price equation `PP_i = K_i + R·M_i`.** On the same 60 market industries:
-  Moseley **12.4%** MAE and corr 0.983, against Sraffa 18.7%, Shaikh 19.3% and
-  labour values 36.5%. His own price equation is the best-performing benchmark
-  in the data.
+- **The price equation `PP_i = K_i + R·M_i`.** On the same 60 market industries,
+  with `M` including circulating capital: Moseley **10.4%** MAE and corr 0.991,
+  against Sraffa 18.7%, Shaikh 19.3% and labour values 36.5%. His own price
+  equation is the best-performing benchmark in the data.
 - **Capital advanced is a stock, not a flow.** The stock-based benchmark beats
-  the flow-based one by 6.3 percentage points of MAE — the empirical content of
-  the disagreement with Sraffa.
+  the flow-based one by 8.3 percentage points of MAE — the empirical content of
+  the disagreement with Sraffa. One caveat, since it cuts against the framing:
+  the headline variant adds one year of circulating capital to the stock, so it
+  is a hybrid. The pure stock measure is kept as a variant and still beats
+  Sraffa, by 6.3 points.
 - **The MELT is a monetary aggregate.** `m ≡ P·q` holds to machine precision, so
   no transformation of values into prices passes through it. That is what the
   single-system reading asserts. (An earlier version of this README described
@@ -61,12 +64,13 @@ claims are reported first. Six are testable; four pass.
 
 **Fails.**
 
-- **`R` does not regulate industry rates.** `usa-marxian regulation`: industry
-  rates appear to converge on the aggregate (β = **−0.292**, p=0.0001, half-life
-  2.0 years), but that coefficient is *identical* to the one obtained against
-  each industry's own mean — two-way fixed effects cannot separate them.
-  Dispersion is flat or rising (CV **+0.46%/yr**, IQR +0.01 pp/yr), and capital
-  does not flow toward above-average profit rates (β = **+0.033**, p=0.125).
+- **`R` does not regulate industry rates.** `usa-marxian regulation`, with `M`
+  including circulating capital: industry rates appear to converge on the
+  aggregate (β = **−0.281**, p<0.0001, half-life 2.1 years), but that coefficient
+  is *identical* to the one obtained against each industry's own mean — two-way
+  fixed effects cannot separate them. Dispersion is flat (CV **+0.08%/yr**,
+  IQR −0.02 pp/yr), and capital does not flow toward above-average profit rates
+  (β = **+0.082**, p=0.252).
   The good fit of the price equation is therefore consistent with a common
   markup rather than with capital mobility equalising rates.
 - **Profit rates are far from equalised**: weighted CV **0.609**, p90/p10
@@ -388,8 +392,9 @@ value-price test at this level would be vacuous. The informative tests are:
 
 Results, 1998-2023, net basis:
 
-- Market general rate of profit `R = S/M`: **20.2%** in 2023; full sample
-  including government and housing **10.3%**.
+- Market general rate of profit `R = S/M`: **20.2%** in 2023 with fixed assets
+  plus inventories as `M`, or **10.9%** when `M` includes circulating capital
+  (the headline Moseley variant); full sample 10.3% and 7.1% respectively.
 - Market surplus-value rate on cost `S/K`: **23.8%**.
 - Market weighted CV of `r_i`: **0.609** in 2023 (sample mean 0.703);
   p90/p10 **6.10**.
@@ -492,29 +497,37 @@ time. The project tests three separate claims on the 65 market industries:
 3. `PP` predicts future market output better than a naive forecast.
 
 **Deviations are persistent but not permanent.** Mean absolute deviation is
-**12.4%** (gross-output weighted 11.4%; median 8.6%); 89.7% of observations are
-within ±25%. Lag-1 autocorrelation is **0.972**, and the estimated half-life of
-a deviation is **2.2 years**. Panel ADF rejects a unit root in the Fisher sense
-(p<0.001), but only 14% of industries reject individually.
+**10.4%** (gross-output weighted 9.5%; median 8.7%); 93.1% of observations are
+within ±25%. Lag-1 autocorrelation is **0.957**, and the estimated half-life of
+a deviation is **2.0 years**. Panel ADF rejects a unit root in the Fisher sense
+(p<0.001), but only 15% of industries reject individually.
 
-**The adjustment is now two-way, and market output does move toward PP.**
-Panel error-correction with industry and year effects gives:
+**The adjustment runs the other way.** Panel error-correction with industry and
+year effects, on the working-capital benchmark:
 
-- market output adjustment: `β = -0.163` (p=0.015), the sign gravitation
-  predicts; half-life of the output response is about 3.9 years;
-- price-of-production adjustment: `β = +0.105` (p=0.035).
+- market output adjustment: `β = -0.091` (s.e. 0.077, p=0.239) — the sign
+  gravitation predicts, but not distinguishable from zero;
+- price-of-production adjustment: `β = +0.201` (s.e. 0.070, p=0.004) — and this
+  one is significant.
 
-So the gap closes through both channels: market output moves down toward `PP`
-when it is above it, and `PP` also rises toward market output. With actual
-capital stocks, the first channel is statistically significant, which the old
-`M_i = K_i` proxy did not deliver.
+The gap does close (`Δd` on lagged `d` gives `β = -0.291`, p<0.001, half-life
+2.0 years), but it closes because the benchmark moves toward market output, not
+because output moves toward the benchmark. That is one-way adjustment in the
+direction opposite to the theory's claim.
+
+This is the one result that depends heavily on which `M` you use. On the
+stock-capital variant the output coefficient is significant (`-0.163`, p=0.015)
+and the adjustment is genuinely two-way; adding working capital to `M`
+strengthens the revenue fit and weakens the adjustment evidence. Since the
+working-capital variant is the better-fitting benchmark, its result is the one
+reported here.
 
 **PP still does not forecast better than a random walk.** Pooled out-of-sample
 log RMSE, 2008-2023:
 
-- 1 year: naive 0.120, AR(1) 0.120, ECM 0.120, PP **0.213**
-- 3 years: naive 0.202, AR(1) 0.174, ECM 0.172, PP **0.256**
-- 5 years: naive 0.258, AR(1) 0.199, ECM 0.199, PP **0.304**
+- 1 year: naive 0.120, AR(1) 0.120, ECM 0.120, PP **0.176**
+- 3 years: naive 0.202, AR(1) 0.174, ECM 0.172, PP **0.230**
+- 5 years: naive 0.258, AR(1) 0.199, ECM 0.199, PP **0.284**
 
 The PP forecast is worse than naive at every horizon; the bootstrap confidence
 interval for the RMSE difference excludes zero. The ECM is marginally better
@@ -543,10 +556,10 @@ strongly. That is the clearest evidence of gravitation in the project. PP still
 fails the out-of-sample test, so the result is slow adjustment without
 forecast power.
 
-**Verdict:** with actual capital stocks, the error-correction evidence supports
-**slow, two-way gravitation**: market output does adjust toward `PP`, and `PP`
-also adjusts toward market output. But the predictive claim fails: `PP` is much
-worse than a random walk at every horizon. The defensible summary is "weak and
+**Verdict:** the error-correction evidence does not support gravitation. The
+benchmark moves toward market output; market output does not move toward the
+benchmark by a detectable amount. And the predictive claim fails: `PP` is worse
+than a random walk at every horizon. The defensible summary is "weak and
 slow gravitation, no forecast power", not "prices of production are irrelevant"
 and not "the theory is confirmed." The remaining limitations are the
 value-based output measure, the remaining broad inventory allocation for
@@ -573,12 +586,12 @@ manufacturing totals rather than compensation-allocated hours.
 
 Fit on the same 60 market industries, 1998-2023:
 
-- **Moseley `PP`**: MAE **12.4%**, RMSE **19.4%**, corr **0.983**, slope
-  **1.043**, within 25% **89.5%**, mean gap **-5.7%**.
+- **Moseley stock-capital `PP`** (variant): MAE **12.4%**, RMSE **19.4%**, corr
+  **0.983**, slope **1.043**, within 25% **89.5%**, mean gap **-5.7%**.
 - **Moseley profit-rate `PP`** (taxes separate): MAE **11.2%**, RMSE **17.2%**,
   corr **0.987**, slope **1.036**, within 25% **91.0%**, mean gap **-4.9%**.
-- **Moseley working-capital `PP`**: MAE **10.4%**, RMSE **13.2%**, corr
-  **0.991**, slope **1.035**, within 25% **94.2%**, mean gap **-4.4%**.
+- **Moseley working-capital `PP`** (headline): MAE **10.4%**, RMSE **13.2%**,
+  corr **0.991**, slope **1.035**, within 25% **94.2%**, mean gap **-4.4%**.
 - **Sraffa `PP_Sraffa`**: MAE **18.7%**, RMSE **28.2%**, corr **0.957**, slope
   **0.941**, within 25% **76.0%**, mean gap **-2.9%**.
 - **Sraffa with fixed capital**: MAE **17.5%**, RMSE **38.8%**, corr
@@ -596,13 +609,15 @@ Fit on the same 60 market industries, 1998-2023:
 
 Gravitation comparison:
 
-- **Moseley**: mean gap 12.4%, half-life 2.2y, output adjustment `-0.163`
-  (p=0.015), PP adjustment `+0.105` (p=0.035), 1y forecast RMSE 0.213.
-- **Moseley profit-rate**: mean gap 11.0%, half-life 2.2y, output adjustment
-  `-0.153` (p=0.040), PP adjustment `+0.122` (p=0.027), 1y forecast RMSE 0.196.
-- **Moseley working-capital**: mean gap 10.4%, half-life 2.0y, output
-  adjustment `-0.091` (p=0.239), PP adjustment `+0.201` (p=0.004), 1y forecast
-  RMSE 0.176.
+- **Moseley working-capital** (headline): mean gap 10.4%, half-life 2.0y,
+  output adjustment `-0.091` (p=0.239), PP adjustment `+0.201` (p=0.004),
+  1y forecast RMSE 0.176.
+- **Moseley stock-capital** (variant): mean gap 12.4%, half-life 2.2y, output
+  adjustment `-0.163` (p=0.015), PP adjustment `+0.105` (p=0.035), 1y forecast
+  RMSE 0.213.
+- **Moseley profit-rate** (variant): mean gap 11.0%, half-life 2.2y, output
+  adjustment `-0.153` (p=0.040), PP adjustment `+0.122` (p=0.027), 1y forecast
+  RMSE 0.196.
 - **Sraffa `PP_Sraffa`**: mean gap 18.4%, half-life 4.0y, output adjustment
   `+0.097` (p=0.014), PP adjustment `+0.257` (p<0.001), 1y forecast RMSE 0.253.
 - **Sraffa with fixed capital**: mean gap 15.5%, half-life 5.1y, output
@@ -651,9 +666,9 @@ The revenue comparison can be dominated by industry size. A separate test
 compares **relative unit prices** after normalising every series to a
 quantity-weighted geometric mean of one.
 
-- Moseley `PP/Q`: log MAE 0.119, corr **0.794**, slope 0.475.
-- Moseley profit-rate `PP/Q`: 0.107, corr **0.819**, slope 0.524.
-- Moseley working-capital `PP/Q`: 0.090, corr **0.884**, slope 0.603.
+- **Moseley working-capital `PP/Q`** (headline): 0.090, corr **0.884**, slope 0.603.
+- Moseley stock-capital `PP/Q` (variant): log MAE 0.119, corr **0.794**, slope 0.475.
+- Moseley profit-rate `PP/Q` (variant): 0.107, corr **0.819**, slope 0.524.
 - Sraffa: 0.166, corr **0.630**, slope 0.285.
 - Sraffa with fixed capital: 0.131, corr **0.831**, slope 0.443.
 - Shaikh: 0.167, corr **0.669**, slope 0.311.
@@ -701,7 +716,7 @@ whether the two series move together, the slope asks by how much.
 
 For the full plain-language explanation, see
 [`docs/reading_the_model.md`](docs/reading_the_model.md). Current unit-price
-slopes are 0.47 (Moseley), 0.30 (Sraffa), 0.31 (Shaikh) and 0.07 (direct prices).
+slopes are 0.60 (Moseley), 0.29 (Sraffa), 0.31 (Shaikh) and 0.07 (direct prices).
 
 There are three different slopes in the project:
 
@@ -711,7 +726,7 @@ There are three different slopes in the project:
    both are revenues. Moseley is 1.043, Sraffa 0.941.
 3. **Error-correction beta** — the coefficient on the lagged price gap. This is
    not a price elasticity. Negative means the gap closes; positive means it
-   widens. These are the `β_GO = -0.163` or `+0.097` values in the gravitation
+   widens. These are the `β_GO = -0.091` or `+0.097` values in the gravitation
    tables.
 
 ## State space for real competition

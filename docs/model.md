@@ -392,9 +392,10 @@ should be temporary, and market gross output should adjust toward `PP` when
 ```
 
 and with expanding-window out-of-sample forecasts of `GO` at 1, 3 and 5 years.
-The results are in `docs/gravitation.md`. With actual capital stocks the gap
-closes through both channels: `β_GO = -0.163` (p=0.015) and `β_PP = +0.105`
-(p=0.035). A slow-moving long-run centre is also tested:
+The results are in `docs/gravitation.md`. With `M` including circulating
+capital the adjustment runs one way: `β_GO = -0.091` (p=0.239) and
+`β_PP = +0.201` (p=0.004) — the benchmark moves toward market output, not the
+reverse. A slow-moving long-run centre is also tested:
 
 ```
 PP*_it = K_trend_it + R_long_t * M_trend_it
@@ -427,7 +428,7 @@ hours.
 The comparison is on 60 market industries (the regulating-capital benchmark
 covers 60 of 65), 1998-2023:
 
-- Moseley: MAE 12.4%, RMSE 19.4%, corr 0.983, slope 1.043, mean gap -5.7%.
+- Moseley: MAE 10.4%, RMSE 13.2%, corr 0.991, slope 1.035, mean gap -4.4%.
 - Sraffa: MAE 18.7%, RMSE 28.2%, corr 0.957, slope 0.941, mean gap -2.9%.
 - Shaikh iterated: MAE 19.3%, RMSE 29.5%, corr 0.955, mean gap -3.4%.
 - Direct labour values: MAE 36.5%, RMSE 47.9%, corr 0.888, mean gap -8.7%.
@@ -462,24 +463,25 @@ equation can be produced by a common markup.
 `usa-marxian regulation` tests it on 65 market industries, 1998-2023.
 
 **Convergence.** Regressing the change in each industry's rate on its lagged gap
-to `R` gives β = **−0.292** (s.e. 0.073, p=0.0001), half-life 2.0 years. Taken at
-face value that is exactly the adjustment the theory predicts.
+to `R` gives β = **−0.281** (p<0.0001), half-life 2.1 years. Taken at face value
+that is exactly the adjustment the theory predicts.
 
 **Identification.** It is not usable. With industry and year effects, the gap to
 `R` and the deviation from each industry's own mean differ only by a component
 that is additive in entity and time, so the effects absorb the difference. The
 two regressions return coefficients identical to ten decimal places
-(−0.2922 and −0.2922). The estimate therefore cannot distinguish regulation by
+(−0.2809 and −0.2809). The estimate therefore cannot distinguish regulation by
 `R` from ordinary mean reversion, and should not be reported as evidence of the
 former.
 
 **Dispersion.** A regulating rate should narrow the spread of rates over time.
-It does not: the unweighted CV trends **+0.46%/yr** and the interquartile range
-**+0.01 pp/yr**; the weighted CV is 0.609 and p90/p10 6.10 in 2023.
+It does not: the unweighted CV trends **+0.08%/yr** and the interquartile range
+**−0.02 pp/yr**; the rate-of-cost dispersion (weighted CV 0.609, p90/p10 6.10 in
+2023) is equally flat.
 
 **Mechanism.** The channel the theory names is capital mobility. Investment rates
-in the following year regress on the lagged gap to `R` with β = **+0.033**
-(p=0.125): positive, as predicted, but not distinguishable from zero. Capital
+in the following year regress on the lagged gap to `R` with β = **+0.082**
+(p=0.252): positive, as predicted, but not distinguishable from zero. Capital
 does not visibly flow toward above-average profit rates.
 
 **Verdict.** The regulating claim is not supported. Combined with the flat

@@ -36,21 +36,21 @@ fixed point once is Sraffa.
 
 | Benchmark | MAE | RMSE | corr | slope | within 25% | mean gap |
 |---|---:|---:|---:|---:|---:|---:|
-| Moseley `PP` | 12.4% | 19.4% | 0.983 | 1.043 | 89.5% | -5.7% |
+| Moseley `PP` (working capital) | 10.4% | 13.2% | 0.991 | 1.035 | 94.2% | -4.4% |
 | Sraffa `PP_Sraffa` | 18.7% | 28.2% | 0.957 | 0.941 | 76.0% | -2.9% |
 | Sraffa + fixed capital | 17.5% | 38.8% | 0.913 | 0.971 | 84.7% | -6.4% |
 | Shaikh iterated `PP_Shaikh` | 19.3% | 29.5% | 0.955 | 0.944 | 74.0% | -3.4% |
 | Direct prices (labour values) | 36.5% | 47.9% | 0.888 | 0.872 | 43.3% | -8.7% |
 
 Sraffa's benchmark carries the smaller aggregate bias than Moseley's
-(-2.9% vs -5.7%), but Moseley has the lower RMSE, the better typical absolute
+(-2.9% vs -4.4%), but Moseley has the lower RMSE, the better typical absolute
 error, the higher rank correlation and the revenue slope closer to one.
 
 ## Gravitation, 1998-2023
 
 | Benchmark | mean abs gap | half-life | GO beta | PP beta | 1y forecast RMSE |
 |---|---:|---:|---:|---:|---:|
-| Moseley `PP` | 12.4% | 2.2y | -0.163 (p=0.015) | +0.105 (p=0.035) | 0.213 |
+| Moseley `PP` (working capital) | 10.4% | 2.0y | -0.091 (p=0.239) | +0.201 (p=0.004) | 0.176 |
 | Sraffa `PP_Sraffa` | 18.4% | 4.0y | +0.097 (p=0.014) | +0.257 (p<0.001) | 0.253 |
 | Shaikh iterated `PP_Shaikh` | 18.6% | 3.6y | +0.097 (p=0.007) | +0.271 (p<0.001) | 0.253 |
 | Direct prices (labour values) | 35.4% | 4.4y | +0.081 (p=0.020) | +0.226 (p<0.001) | 0.451 |
@@ -66,7 +66,8 @@ observed price (`+0.257`).
 ## Verdict
 
 - **Moseley** fits typical industry errors and forecasts better, and is the only
-  benchmark with the gravitation-predicted negative output coefficient.
+  benchmark whose output coefficient carries the gravitation-predicted negative
+  sign — though on the working-capital variant it is not significant (p=0.239).
 - **Sraffa** has lower aggregate bias but worse typical error; with the improved
   price data its output adjustment is positive, not negative.
 - **Shaikh's iteration** converges to essentially the same center as Sraffa, so

@@ -44,24 +44,23 @@ production.
 
 Sample: 65 market industries, 1998-2023, 1,690 observations.
 
-- Mean absolute deviation: **12.4%** (gross-output weighted: **11.4%**).
-- Median absolute deviation: **8.6%**.
-- 57.5% of observations are within ±10%; **89.7%** are within ±25%.
-- Lag-1 autocorrelation: **0.972**.
-- AR(1) persistence coefficient (industry and year effects): **0.732**;
-  implied half-life of a deviation: **2.2 years**.
-- The mean absolute deviation has a tiny positive trend (+0.06 percentage
-  points per year, p=0.037): statistically detectable but economically
-  negligible.
+- Mean absolute deviation: **10.4%** (gross-output weighted: **9.5%**).
+- Median absolute deviation: **8.7%**.
+- 61.1% of observations are within ±10%; **93.1%** are within ±25%.
+- Lag-1 autocorrelation: **0.957**.
+- AR(1) persistence coefficient (industry and year effects): **0.709**;
+  implied half-life of a deviation: **2.0 years**.
+- The mean absolute deviation has a tiny positive trend (+0.04 percentage
+  points per year, p=0.078): not statistically distinguishable from zero.
 
 Panel ADF results are mixed. The Fisher combination rejects a unit root
-(p<0.001), but only **14%** of industries reject individually and the median
-industry p-value is 0.33. The panel test is helped by having 65 industries; the
+(p<0.001), but only **15%** of industries reject individually and the median
+industry p-value is 0.34. The panel test is helped by having 65 industries; the
 typical industry series is too short (26 annual observations) to be decisive on
 its own.
 
 Engle-Granger cointegration between `log GO` and `log PP` gives the same
-pattern: Fisher p<0.001, but only 14% of industries reject individually.
+pattern: Fisher p<0.001, but only 23% of industries reject individually.
 
 **Reading:** deviations are persistent but not permanent. The half-life is about
 2.2 years, so a shock is mostly gone in five years. That is consistent with slow
@@ -79,18 +78,23 @@ clustered by industry:
 
 Results:
 
-- `β_GO = -0.163` (s.e. 0.066, p=0.015). The sign is the one gravitation
-  predicts: when market output is above PP, future market output grows more
-  slowly. The implied half-life of the output response is **3.9 years**.
-- `β_PP = +0.105` (s.e. 0.050, p=0.035). PP also rises toward market output.
-- The gap itself closes: `Δd` on `d_lag` gives `β = -0.268` (p<0.001),
-  half-life **2.2 years**.
+- `β_GO = -0.091` (s.e. 0.077, p=0.239). The sign is the one gravitation
+  predicts, but the coefficient is not distinguishable from zero. The implied
+  half-life of the output response would be **7.3 years**.
+- `β_PP = +0.201` (s.e. 0.070, p=0.004). PP rises toward market output, and this
+  is the significant channel.
+- The gap itself closes: `Δd` on `d_lag` gives `β = -0.291` (p<0.001),
+  half-life **2.0 years**.
 
-**Reading:** the adjustment is two-way. Market output does move toward PP, which
-the old `M_i = K_i` proxy did not deliver. PP also moves toward market output,
-partly because it is built from current costs and the current general profit
-rate. The evidence is consistent with slow gravitation, not with a strong
-instantaneous pull.
+**Reading:** the gap does close, but not in the direction the theory predicts.
+Market output does not move toward PP by a detectable amount; PP moves toward
+market output, which it must, since it is built from current costs and the
+current general profit rate. That is one-way adjustment in the wrong direction.
+
+On the stock-capital variant of the same benchmark the output coefficient is
+significant (`-0.163`, p=0.015) and the adjustment is genuinely two-way. The
+result is sensitive to whether `M` includes circulating capital, and the
+working-capital variant is used here because it fits revenue better.
 
 ## Long-run centre of gravitation
 
@@ -131,21 +135,21 @@ Pooled log RMSE (lower is better):
 
 | Horizon | naive | pp | ar1 | ecm |
 |---|---|---|---|---|
-| 1 year | 0.120 | 0.213 | 0.120 | 0.120 |
-| 3 years | 0.202 | 0.256 | 0.174 | 0.172 |
-| 5 years | 0.258 | 0.304 | 0.199 | 0.199 |
+| 1 year | 0.120 | 0.176 | 0.120 | 0.120 |
+| 3 years | 0.202 | 0.230 | 0.174 | 0.172 |
+| 5 years | 0.258 | 0.284 | 0.199 | 0.199 |
 
 - PP is **worse than the naive forecast at every horizon**. The RMSE difference
-  is +0.093 at one year, +0.053 at three years and +0.046 at five years; the
-  bootstrap confidence intervals exclude zero.
+  is +0.056 at one year, +0.028 at three years and +0.026 at five years; the
+  bootstrap confidence intervals exclude zero in all three cases.
 - The ECM is marginally better than AR(1) at three years (RMSE difference
   -0.0012, confidence interval excludes zero), but the gain is economically
   negligible. At one year it is indistinguishable from AR(1); at five years the
   difference is also tiny.
 
 **Reading:** PP has no incremental predictive power for future gross output in
-this panel. The contemporaneous fit is moderate (13.7% mean absolute error over
-the market sample, 14.6% in 2023), but that is a different question from
+this panel. The contemporaneous fit is moderate (10.4% mean absolute error over
+the market sample), but that is a different question from
 gravitation.
 
 ## Overall verdict
@@ -154,15 +158,15 @@ In this 65-industry, 1998-2023 annual panel, with actual fixed-asset stocks:
 
 - prices of production are a **moderate contemporaneous benchmark**, not a tight
   fit;
-- deviations are persistent, with a half-life of about 2.2 years;
-- the error-correction evidence supports **slow, two-way gravitation**: market
-  output adjusts toward PP, and PP also adjusts toward market output;
+- deviations are persistent, with a half-life of about 2.0 years;
+- the error-correction evidence does **not** support gravitation: PP adjusts
+  toward market output, but market output does not measurably adjust toward PP;
 - the **long-run centre** shows stronger mean reversion (`β_GO = -0.134`,
   p=0.001) and a shorter half-life of 1.8 years;
 - PP **does not beat a random walk** in out-of-sample forecasts, for either the
   current or long-run benchmark.
 
-The defensible summary is **"slow gravitation, no forecast power"**. The
+The defensible summary is **"no detectable gravitation, no forecast power"**. The
 data do not support a strong claim that prices of production are the immediate
 centers of gravitation of market gross output. They also do not refute the
 theory: the test is limited by the value-based output measure, the remaining
@@ -171,7 +175,7 @@ industries, annual data, and the short sample.
 
 ## What changed when actual capital stocks replaced `M_i = K_i`
 
-The market price fit is **13.7% MAE** for current PP and **15.8%** for long-run
+The market price fit is **10.4% MAE** for current PP and **15.8%** for long-run
 PP; the full-sample figures are not comparable because government and housing
 capital are now actual and very large. That is informative. With `M_i = K_i`, `PP_i` is mechanically close to
 `GO_i`, so the old fit was partly built in. Actual capital stocks expose the

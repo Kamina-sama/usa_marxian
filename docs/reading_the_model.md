@@ -175,7 +175,7 @@ expensive than B” but not by enough.
 Unit-price regressions, 1998-2023:
 
 ```
-Moseley                    0.47
+Moseley stock capital      0.47
 Moseley profit-rate        0.52
 Moseley working-capital    0.60
 Sraffa                     0.28

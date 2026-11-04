@@ -78,7 +78,7 @@ tautology. That is why the project separates accounting from testing.
 
 Comparing industry revenues with the benchmark:
 
-- Moseley: average miss about **12%**.
+- Moseley: average miss about **10%**.
 - Sraffa: about **19%**.
 - Shaikh: about **19%**.
 - Direct labour values: about **36%**.
@@ -91,9 +91,10 @@ not disastrous, but they are worse.
 Revenue is total market size. Unit price is price per item. When we compare
 relative unit prices:
 
-- Moseley `PP/Q`: correlation **0.79**, slope **0.47**.
-- Moseley profit-rate `PP/Q`: correlation **0.82**, slope **0.52**.
-- Moseley working-capital `PP/Q`: correlation **0.88**, slope **0.60**.
+- **Moseley working-capital `PP/Q`** (the headline version): correlation **0.88**,
+  slope **0.60**.
+- Moseley stock-capital `PP/Q` (variant): correlation **0.79**, slope **0.47**.
+- Moseley profit-rate `PP/Q` (variant): correlation **0.82**, slope **0.52**.
 - Sraffa: correlation **0.63**, slope **0.28**.
 - Shaikh: correlation **0.67**, slope **0.31**.
 - Direct labour values: correlation **0.19**, slope **0.06**.
@@ -103,7 +104,7 @@ independent quantities, Moseley's unit-price fit is genuine; working-capital
 Moseley is the best benchmark.
 
 Correlation measures direction: 0.79 means the model ranks industries fairly
-well. Slope measures size: 0.47 means the model's price differences are only
+well. Slope measures size: 0.60 means the model's price differences are only
 about half as large as observed ones. Direct labour values barely track relative
 prices at all.
 
@@ -111,7 +112,8 @@ prices at all.
 
 Does market output move toward the benchmark when it is away from it?
 
-- Moseley: weak movement in the expected direction.
+- Moseley: no detectable movement in the expected direction. The benchmark
+  moves toward market output, not the other way round.
 - Sraffa and Shaikh: the estimated movement is in the **wrong direction** — high
   relative output predicts higher future output, which is divergence.
 - None of the benchmarks beats a simple "next year will be like this year"

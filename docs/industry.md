@@ -165,7 +165,9 @@ market-industry subset, which is the headline sample.
 
 ## Results, 1998-2023, net basis
 
-- Market general rate of profit `R = S/M`: 20.2% in 2023; full sample 10.3%.
+- Market general rate of profit `R = S/M`: 20.2% in 2023 with fixed assets +
+inventories as `M`, or **10.9%** if `M` includes circulating capital (the
+headline Moseley variant); full sample 10.3% and 7.1% respectively.
 - Market surplus-value rate on cost `S/K`: 23.8%.
 - Market weighted CV of `r_i`: 0.609 in 2023 (sample mean 0.703); p90/p10 6.10.
 - Full-sample CV: 2.109 in 2023 (sample mean 2.296), dominated by housing and
@@ -201,9 +203,10 @@ centers of gravitation for market gross output. That analysis has its own
 document: `docs/gravitation.md`.
 
 Short version: on the 65 market industries, deviations have a mean absolute
-value of 12.4% and a half-life of about 2.2 years. The error-correction evidence
-supports slow, two-way gravitation: market output adjusts toward PP (β=-0.163,
-p=0.015) and PP also adjusts toward market output (β=+0.105, p=0.035). A
+value of 10.4% and a half-life of about 2.0 years. The error-correction evidence
+does not support gravitation: PP adjusts toward market output (β=+0.201,
+p=0.004), but market output does not measurably adjust toward PP (β=-0.091,
+p=0.239). A
 five-year trailing long-run centre shows stronger mean reversion (β=-0.134,
 p=0.001) and a 1.8-year half-life. Neither benchmark beats a random walk in
 out-of-sample forecasts.

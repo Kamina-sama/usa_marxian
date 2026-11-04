@@ -107,9 +107,12 @@ benchmark price last year, what happened next?
 **What to look for.** The red dashed line is zero. A bar entirely to the left of
 zero means the gap closes on that side; entirely to the right means it widens.
 
-**What it means.** For the Moseley benchmark, market output does move back
-toward the benchmark (−0.163, p=0.015), and the benchmark also moves toward
-output (+0.105). That is two-way adjustment — slow gravitation. For Sraffa and
+**What it means.** This figure plots the stock-capital Moseley benchmark. For
+it, market output does move back toward the benchmark (−0.163, p=0.015), and the
+benchmark also moves toward output (+0.105). That is two-way adjustment — slow
+gravitation. On the headline working-capital variant the output coefficient
+loses significance (−0.091, p=0.239) and only the benchmark adjusts, so the
+two-way reading is specific to the stock measure. For Sraffa and
 Shaikh the output coefficient is *positive* and significant: industries that
 were already expensive grew faster, which is divergence, not gravitation.
 
@@ -122,7 +125,9 @@ half-life of a deviation is about two years.
 
 ## 4. `findings_forecast.png` — can the benchmark predict the future?
 
-**What you are looking at.** Out-of-sample forecasting error by horizon. The
+**What you are looking at.** Out-of-sample forecasting error by horizon, for the
+stock-capital variant (the working-capital variant gives 0.176 at one year, still
+worse than naive). The
 models are: do nothing (`naive` — next year looks like this year), an
 autoregression (`ar1`), an error-correction model that uses the gap to the
 benchmark (`ecm`), and using the benchmark itself as the forecast (`pp`). Lower

@@ -32,9 +32,9 @@ but it is not a unit-price test.
 
 | Benchmark | log MAE | log RMSE | corr | slope | within 10% | within 25% |
 |---|---:|---:|---:|---:|---:|---:|
-| Moseley `PP/Q` | 0.119 | 0.167 | 0.794 | 0.475 | 56.0% | 83.0% |
-| Moseley profit-rate `PP/Q` | 0.107 | 0.150 | 0.819 | 0.524 | 60.4% | 87.2% |
-| **Moseley working-capital `PP/Q`** | **0.090** | **0.123** | **0.884** | **0.603** | **68.0%** | **92.6%** |
+| Moseley stock-capital `PP/Q` (variant) | 0.119 | 0.167 | 0.794 | 0.475 | 56.0% | 83.0% |
+| Moseley profit-rate `PP/Q` (variant) | 0.107 | 0.150 | 0.819 | 0.524 | 60.4% | 87.2% |
+| **Moseley working-capital `PP/Q`** (headline) | **0.090** | **0.123** | **0.884** | **0.603** | **68.0%** | **92.6%** |
 | Sraffa | 0.166 | 0.224 | 0.630 | 0.285 | 38.3% | 74.8% |
 | Sraffa + fixed capital | 0.131 | 0.174 | 0.831 | 0.443 | 46.4% | 83.3% |
 | Shaikh iterated | 0.167 | 0.216 | 0.669 | 0.311 | 35.8% | 75.6% |
