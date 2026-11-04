@@ -545,6 +545,13 @@ prices are broad-sector GOPI deflators: only about 18 distinct values across 65
 industries, so within-sector relative prices are not identified. The test is
 coarse, but it does not support a strong unit-price LTV.
 
+Diagnostics explain the weak fit: `PP/GO` has mean 1.06 and standard deviation
+0.20, and the revenue ratio accounts for 79% of the variance of Moseley unit
+prices. Within-sector and measurement-error tests are **not identified** because
+the observed deflator is constant within broad sectors. With the current price
+data we can measure the error composition but cannot separate model failure from
+measurement error.
+
 See `docs/unit_prices.md`.
 
 ## State space for real competition
@@ -645,9 +652,10 @@ After `industries`:
   `gravitation_long_run_forecast_comparisons.csv`
 - `output/tables/stock_flow_metrics.csv`, `stock_flow_trajectories.csv`
 - `output/tables/unit_price_comparison.csv`, `unit_price_by_year.csv`,
-  `unit_price_gravitation.csv`
+  `unit_price_gravitation.csv`, `price_revenue_ratio.csv`,
+  `price_revenue_ratio_by_year.csv`, `price_within_sector.csv`
 - `output/gravitation.json`, `output/shaikh.json`, `output/stock_flow.json`,
-  `output/unit_prices.json`
+  `output/unit_prices.json`, `output/price_diagnostics.json`
 - `output/figures/industry_dispersion.png`, `pp_vs_go.png`,
   `gravitation_deviation.png`, `gravitation_forecast.png`
 

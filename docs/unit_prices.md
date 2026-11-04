@@ -56,6 +56,33 @@ Moseley's unit prices show two-way adjustment. Sraffa/Shaikh/regulating prices
 show no output adjustment: the model price moves toward the observed price, not
 the reverse.
 
+## Diagnostics: why the fit is weak
+
+The project now runs three diagnostics on the unit-price result.
+
+**1. Revenue-ratio composition.** `PP/GO` has mean 1.060, standard deviation
+0.196, and a 5th–95th percentile range of 0.83–1.41. Only 59.2% of observations
+are within ±10% and 85.7% within ±20%. The variance of `log(PP/GO)` is 0.0271,
+versus 0.0062 for observed log prices. Decomposing `log p_moseley =
+log(PP/GO) + log price_obs`, the revenue ratio accounts for **78.7%** of the
+variance of Moseley unit prices. Its correlation with observed price is only
+0.119. That is the mechanical reason the unit-price fit is weak: the revenue
+deviations dominate, and they are not price-like.
+
+**2. Within-sector relative prices.** This test is **not identified**. The
+observed deflator is constant within each broad sector, so after removing
+sector-year means the observed log price has zero variance. The within-sector
+correlation and slope are undefined, not zero.
+
+**3. Measurement-error bounds.** This test is also **not identified**. Using the
+value-added and gross-output deflators as two proxies gives zero within-sector
+variance for both, so a reliability ratio cannot be estimated. The data cannot
+tell us how much attenuation is present.
+
+The honest conclusion: with the current price data we can measure the
+composition of the unit-price error, but we cannot separate model failure from
+measurement error. That requires 71-industry price indexes.
+
 ## The main caveat
 
 The observed price is a **broad-sector gross-output deflator**. There are only

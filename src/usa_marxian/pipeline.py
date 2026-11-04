@@ -21,6 +21,7 @@ from .analysis.descriptives import summary_table
 from .analysis.diagnostics import diagnostics_table
 from .analysis.gravitation import run_gravitation
 from .analysis.ltv import LTVResult, estimate_ltv
+from .analysis.price_diagnostics import run_price_diagnostics
 from .analysis.profit_check import property_income_check, property_income_summary
 from .analysis.unit_prices import compare_unit_prices
 from .config import ProjectConfig
@@ -600,10 +601,20 @@ def run_industries(
     if shaikh is not None:
         try:
             unit_prices = compare_unit_prices(shaikh.shaikh.panel)
+            price_diagnostics = run_price_diagnostics(unit_prices["panel"])
             report["unit_prices"] = {
                 "latest_year": unit_prices["latest_year"],
                 "comparison": unit_prices["comparison"].to_dict(orient="records"),
                 "gravitation": unit_prices["gravitation"].to_dict(orient="records"),
+                "diagnostics": {
+                    "revenue_ratio": price_diagnostics["revenue_ratio"]["summary"],
+                    "within_sector_identified": price_diagnostics[
+                        "within_sector_identified"
+                    ],
+                    "measurement_identified": price_diagnostics[
+                        "measurement_identified"
+                    ],
+                },
             }
         except Exception as exc:
             warnings.warn(
@@ -721,6 +732,39 @@ def run_industries(
                 unit_prices["gravitation"].to_csv(
                     tables / "unit_price_gravitation.csv", index=False
                 )
+                pd.DataFrame(
+                    [price_diagnostics["revenue_ratio"]["summary"]]
+                ).to_csv(tables / "price_revenue_ratio.csv", index=False)
+                price_diagnostics["revenue_ratio"]["by_year"].to_csv(
+                    tables / "price_revenue_ratio_by_year.csv", index=False
+                )
+                price_diagnostics["within_sector"].to_csv(
+                    tables / "price_within_sector.csv", index=False
+                )
+                with (config.settings.output_dir / "price_diagnostics.json").open(
+                    "w", encoding="utf-8"
+                ) as handle:
+                    json.dump(
+                        _json_safe(
+                            {
+                                "revenue_ratio": price_diagnostics["revenue_ratio"][
+                                    "summary"
+                                ],
+                                "within_sector": price_diagnostics[
+                                    "within_sector"
+                                ].to_dict(orient="records"),
+                                "measurement": price_diagnostics["measurement"],
+                                "within_sector_identified": price_diagnostics[
+                                    "within_sector_identified"
+                                ],
+                                "measurement_identified": price_diagnostics[
+                                    "measurement_identified"
+                                ],
+                            }
+                        ),
+                        handle,
+                        indent=2,
+                    )
                 with (config.settings.output_dir / "unit_prices.json").open(
                     "w", encoding="utf-8"
                 ) as handle:

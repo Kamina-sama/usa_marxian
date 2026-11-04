@@ -356,6 +356,23 @@ def cmd_industries(args: argparse.Namespace) -> int:
                 f"1y RMSE {row['forecast_pp_1y']:.3f} vs naive "
                 f"{row['forecast_naive_1y']:.3f}"
             )
+    diag = report.get("unit_prices", {}).get("diagnostics", {})
+    if diag:
+        revenue = diag.get("revenue_ratio", {})
+        print(
+            "Revenue ratio PP/GO: mean {m:.3f}, std {s:.3f}, "
+            "p5/p95 {lo:.2f}/{hi:.2f}, within 10% {w:.1%}".format(
+                m=revenue.get("mean_ratio", float("nan")),
+                s=revenue.get("std_ratio", float("nan")),
+                lo=revenue.get("p05_ratio", float("nan")),
+                hi=revenue.get("p95_ratio", float("nan")),
+                w=revenue.get("share_within_10pct", float("nan")),
+            )
+        )
+        if not diag.get("within_sector_identified", True):
+            print("Within-sector test: not identified (no within-sector price variation).")
+        if not diag.get("measurement_identified", True):
+            print("Measurement-error test: not identified (deflators constant within sector).")
     unit = report.get("unit_prices", {}).get("comparison", [])
     if unit:
         print("Unit prices (relative, normalised):")
