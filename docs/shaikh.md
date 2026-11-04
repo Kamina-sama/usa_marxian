@@ -16,7 +16,7 @@ starting from labour values and using the deflated annual `A_t`. It converges in
 **29 rounds on average** (maximum 34, all years converged) with a residual below
 `1e-10`.
 
-- Model-implied real profit rate: **35.9%** average vs **23.2%** observed real.
+- Model-implied real profit rate: **38.7%** average vs **17.6%** observed real.
 - The iterated prices are close to the Sraffian fixed point, but with the
   improved price data they fit worse: MAE **19.3%**, correlation **0.956**.
   Iteration adds convergence diagnostics and an implied rate, not a better

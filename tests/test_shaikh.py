@@ -7,11 +7,13 @@ import pandas as pd
 
 from usa_marxian.analysis.compare import compare_benchmarks
 from usa_marxian.model.shaikh import (
+    cross_dual_gravitation,
+    iterative_prices_endogenous,
+)
+from usa_marxian.model.sraffa import (
     build_technical_matrices,
     build_technical_matrix,
-    cross_dual_gravitation,
     iterative_prices,
-    iterative_prices_endogenous,
     labour_values,
     prices_of_production,
 )

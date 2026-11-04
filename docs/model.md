@@ -420,7 +420,7 @@ r_k = (p_k y - (p_k A + w l)y) / ((p_k A + w l)y)
 ```
 
 starting from labour values. It converges in 29 rounds on average (maximum 34),
-with a model-implied real profit rate averaging 35.9% against an observed 23.2%.
+with a model-implied real profit rate averaging 38.7% against an observed 17.6%.
 The iterated prices are almost identical to the fixed point (MAE 17.2%, corr
 0.973). A toy cross-dual price/output simulation reduces profit-rate dispersion
 from 0.160 to approximately zero. See `docs/sraffa.md` and `docs/shaikh.md`.

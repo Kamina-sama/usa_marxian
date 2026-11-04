@@ -182,9 +182,10 @@ Regulating     0.29
 Direct prices  0.07
 ```
 
-Moseley has the steepest slope and the highest correlation. Sraffa and Shaikh
-rank prices moderately well but compress the differences. Direct labour values
-have almost no relation to observed relative prices.
+Moseley's 0.47 is for `PP/Q`, which is anchored to observed prices. The fair
+`PP/GO` comparison has slope 0.05. Sraffa and Shaikh rank prices moderately well
+but compress the differences. Direct labour values have almost no relation to
+observed relative prices.
 
 ### What would raise the slope
 

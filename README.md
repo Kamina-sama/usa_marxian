@@ -20,11 +20,12 @@ which market prices gravitate. This project builds those accounts from US data
 and asks whether that story fits.
 
 What we find, in one breath: the accounting is consistent; Moseley's benchmark
-tracks industry revenues and relative prices better than the Sraffian and
-Shaikh alternatives; direct labour values perform poorly; and neither
-gravitation nor forecasting is strong. Prices of production have empirical
-content, but the strong claim that they are centres of gravitation is not
-supported by this data.
+tracks industry revenues best, but its unit-price advantage is largely an
+artifact of using observed prices to construct the unit price. On a fair
+relative-price test, Sraffa and Shaikh have the only genuine content. Direct
+labour values perform poorly, and neither gravitation nor forecasting is strong.
+Prices of production have empirical content, but the strong claim that they are
+centres of gravitation is not supported by this data.
 
 For the full non-technical walkthrough, see
 [`docs/plain_language.md`](docs/plain_language.md).
@@ -556,17 +557,21 @@ The revenue comparison can be dominated by industry size. A separate test
 compares **relative unit prices** after normalising every series to a
 quantity-weighted geometric mean of one.
 
-- Moseley: log MAE 0.118, corr 0.786, slope 0.468.
-- Sraffa: 0.162, 0.630, 0.295.
+- Moseley unit price (`PP/Q`): log MAE 0.118, corr 0.786, slope 0.468.
+- **Moseley relative price (`PP/GO`): 0.160, corr 0.050, slope 0.047.**
+- Sraffa: 0.165, 0.613, 0.280.
 - Shaikh: 0.168, 0.652, 0.305.
-- Regulating: 0.167, 0.633, 0.290.
+- Regulating: 0.170, 0.617, 0.276.
 - Direct prices: 0.346, 0.208, 0.068.
 
-With the 71-industry BEA price indexes, the unit-price fit improves sharply. The
-earlier 0.1-0.2 correlations were largely a broad-sector deflator artifact.
-Moseley reaches corr 0.79 and within-sector corr 0.79; Sraffa/Shaikh reach
-0.63-0.65. Slopes are still below 0.5, so relative prices are only partially
-captured, and direct labour values remain poor (corr 0.21).
+With the 71-industry BEA price indexes, the Sraffa/Shaikh fit improves sharply;
+the earlier 0.1-0.2 correlations were largely a broad-sector deflator artifact.
+
+Moseley's `PP/Q` unit price looks better, but it is constructed as
+`(PP/GO) × price_obs`, so it contains the observed price by construction. The
+fair model-relative-price object, `PP/GO`, has correlation **0.05**. Moseley's
+revenue fit therefore does **not** translate into relative prices. Sraffa and
+Shaikh are the only benchmarks with genuine relative-price content.
 
 Diagnostics: `PP/GO` has mean 1.057 and standard deviation 0.185, and the revenue
 ratio accounts for 53% of the variance of Moseley unit prices. The within-sector

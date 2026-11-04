@@ -27,7 +27,7 @@ from dataclasses import dataclass
 import pandas as pd
 
 from ..data.bea_final_demand import attach_final_demand
-from .shaikh import build_real_technical_matrices, build_technical_matrices
+from .sraffa import build_real_technical_matrices, build_technical_matrices
 
 STATE_COLUMNS = [
     "year",

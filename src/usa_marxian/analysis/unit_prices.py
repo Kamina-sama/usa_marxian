@@ -25,7 +25,8 @@ from .gravitation import (
 )
 
 UNIT_PRICE_MODELS = {
-    "Moseley PP (stock capital)": "p_moseley",
+    "Moseley unit price (PP/Q)": "p_moseley",
+    "Moseley relative price (PP/GO)": "p_moseley_rel",
     "Sraffa prices of production": "p_sraffa",
     "Shaikh iterated prices": "p_shaikh",
     "Regulating capital": "p_reg",
@@ -52,6 +53,7 @@ def build_unit_price_panel(panel: pd.DataFrame) -> pd.DataFrame:
 
     moseley_column = "PP_market" if "PP_market" in data.columns else "PP"
     data["p_moseley"] = data[moseley_column] / data["quantity"]
+    data["p_moseley_rel"] = data[moseley_column] / data["GO"]
     if "regulating_factor" in data.columns and "p_sraffa" in data.columns:
         data["p_reg"] = data["p_sraffa"] * data["regulating_factor"]
 
@@ -82,15 +84,21 @@ def _metrics(frame: pd.DataFrame, column: str, label: str) -> dict:
     if len(data) < 3:
         return {"benchmark": label, "n": 0}
     error = np.log(data["price_obs_n"]) - np.log(data[column])
-    slope = float(
-        np.polyfit(np.log(data[column]), np.log(data["price_obs_n"]), 1)[0]
-    )
+    log_model = np.log(data[column])
+    if float(log_model.std(ddof=0)) == 0.0:
+        slope = float("nan")
+        corr = float("nan")
+    else:
+        slope = float(
+            np.polyfit(log_model, np.log(data["price_obs_n"]), 1)[0]
+        )
+        corr = float(data["price_obs_n"].corr(data[column]))
     return {
         "benchmark": label,
         "n": int(len(data)),
         "log_mae": float(np.mean(np.abs(error))),
         "log_rmse": float(np.sqrt(np.mean(error**2))),
-        "corr": float(data["price_obs_n"].corr(data[column])),
+        "corr": corr,
         "slope": slope,
         "within_10pct": float((error.abs() <= np.log(1.10)).mean()),
         "within_25pct": float((error.abs() <= np.log(1.25)).mean()),

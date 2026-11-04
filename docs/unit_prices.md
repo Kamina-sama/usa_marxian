@@ -30,17 +30,27 @@ one. The observed deflator is now the 71-industry BEA gross-output price index
 
 | Benchmark | log MAE | log RMSE | corr | slope | within 10% | within 25% |
 |---|---:|---:|---:|---:|---:|---:|
-| Moseley `PP` | 0.118 | 0.167 | 0.786 | 0.468 | 56.0% | 83.1% |
-| Sraffa | 0.162 | 0.218 | 0.630 | 0.295 | 39.5% | 76.9% |
+| Moseley unit price (`PP/Q`) | 0.118 | 0.167 | 0.786 | 0.468 | 56.0% | 83.1% |
+| **Moseley relative price (`PP/GO`)** | 0.160 | 0.224 | **0.050** | **0.047** | 43.7% | 75.6% |
+| Sraffa | 0.165 | 0.224 | 0.613 | 0.280 | 39.6% | 75.2% |
 | Shaikh iterated | 0.168 | 0.216 | 0.652 | 0.305 | 34.5% | 75.3% |
-| Regulating capital | 0.167 | 0.222 | 0.633 | 0.290 | 38.1% | 75.0% |
+| Regulating capital | 0.170 | 0.228 | 0.617 | 0.276 | 37.8% | 74.6% |
 | Direct prices | 0.346 | 0.439 | 0.208 | 0.068 | 17.4% | 40.1% |
 
 The earlier catastrophic result was largely a **coarse-deflator artifact**.
-With 71-industry prices, Moseley's unit-price correlation rises from 0.50 to
-0.79, and Sraffa/Shaikh from about 0.1 to 0.63-0.65. The slopes are still well
-below one, so relative prices are only partially captured, but this is no longer
-a null result.
+With 71-industry prices, Sraffa/Shaikh rise from about 0.1 to 0.61-0.65.
+
+But the Moseley unit price is not a fair comparison. It is constructed as
+
+```
+p_moseley = PP / Q = (PP / GO) * price_obs
+```
+
+so it contains the observed price by construction. The fair model-relative-price
+object is `PP/GO`, which has a correlation of only **0.05** with observed
+relative prices. Moseley's 0.79 is therefore an anchoring artifact, not evidence
+of superior relative-price content. On the fair comparison, Sraffa and Shaikh
+have the only meaningful relative-price signal.
 
 ## Within-sector test
 
@@ -100,10 +110,12 @@ prices — down from 79% with the broad-sector deflator, but still about half.
 
 - The 71-industry prices materially improve the unit-price fit. The earlier
   result was substantially a measurement artifact.
-- Moseley is clearly the best unit-price benchmark: corr 0.79, within-sector
-  corr 0.79, though the slope is only 0.47.
-- Sraffa/Shaikh/regulating prices reach corr 0.63-0.65 and within-sector corr
-  0.59-0.61. They capture relative prices partially, not strongly.
+- Moseley's revenue fit does **not** translate into relative prices. The
+  `PP/Q` unit price looks good only because it is anchored to observed prices;
+  the fair `PP/GO` series has corr 0.05 and slope 0.05.
+- Sraffa/Shaikh/regulating prices reach corr 0.61-0.65 and within-sector corr
+  0.59-0.61. They capture relative prices partially, not strongly, and are the
+  only benchmarks with genuine relative-price content.
 - Direct labour values remain poor (corr 0.21), so a simple labour-value price
   benchmark is not supported.
 - Gravitation on unit prices is weak for all benchmarks, and forecasts are worse
