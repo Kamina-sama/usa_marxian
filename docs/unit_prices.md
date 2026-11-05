@@ -33,11 +33,11 @@ but it is not a unit-price test.
 | Benchmark | log MAE | log RMSE | corr | slope | within 10% | within 25% |
 |---|---:|---:|---:|---:|---:|---:|
 | Moseley stock-capital `PP/Q` (variant) | 0.119 | 0.167 | 0.794 | 0.475 | 56.0% | 83.0% |
-| Moseley profit-rate `PP/Q` (variant) | 0.107 | 0.150 | 0.819 | 0.524 | 60.4% | 87.2% |
+| Moseley profit-rate `PP/Q` (variant) | 0.080 | 0.113 | 0.896 | 0.646 | 71.7% | 93.1% |
 | **Moseley working-capital `PP/Q`** (headline) | **0.090** | **0.123** | **0.884** | **0.603** | **68.0%** | **92.6%** |
-| Sraffa | 0.166 | 0.224 | 0.630 | 0.285 | 38.3% | 74.8% |
+| Sraffa | 0.132 | 0.163 | 0.731 | 0.463 | 39.0% | 87.6% |
 | Sraffa + fixed capital | 0.131 | 0.174 | 0.831 | 0.443 | 46.4% | 83.3% |
-| Shaikh iterated | 0.167 | 0.216 | 0.669 | 0.311 | 35.8% | 75.6% |
+| Shaikh iterated | 0.143 | 0.178 | 0.713 | 0.413 | 39.0% | 77.6% |
 | Shaikh + fixed capital | 0.152 | 0.204 | 0.806 | 0.370 | 39.5% | 79.1% |
 | Regulating capital | 0.170 | 0.228 | 0.634 | 0.280 | 36.7% | 74.0% |
 | Direct prices | 0.348 | 0.440 | 0.189 | 0.055 | 17.5% | 39.9% |
@@ -53,15 +53,15 @@ values perform poorly.
 
 | Benchmark | corr within | slope within |
 |---|---:|---:|
-| Moseley | 0.774 | 0.608 |
-| Sraffa | 0.588 | 0.387 |
-| Shaikh | 0.606 | 0.420 |
-| Regulating | 0.586 | 0.378 |
+| Moseley | 0.873 | 0.766 |
+| Sraffa | 0.743 | 0.726 |
+| Shaikh | 0.734 | 0.705 |
+| Regulating | 0.737 | 0.702 |
 | Direct prices | 0.311 | 0.134 |
 
 Every benchmark has a steeper slope within sectors than in the pooled sample,
-and the ranking is unchanged: Moseley leads (0.61), Sraffa and Shaikh follow
-(0.39 and 0.42), direct prices barely move (0.13). The fit is therefore not an
+and the ranking is unchanged: Moseley leads (0.77), Sraffa follows (0.73),
+then Shaikh (0.42); direct prices barely move (0.13). The fit is therefore not an
 artefact of between-sector price levels.
 
 ## Measurement error
@@ -83,21 +83,20 @@ d_it = log(price_obs_it / p_model_it)
 ```
 
 Panel error-correction and one-year forecasts are in
-`unit_price_gravitation.csv`. On unit prices **every** benchmark now carries a
-negative output-adjustment coefficient, but only direct prices reach
-significance (`β_GO = -0.058`, p=0.035). The Moseley variants sit between
-`-0.10` and `-0.15` with p-values of 0.10-0.25; Sraffa and Shaikh at the plain
-fixed point are essentially zero (`-0.02` and `-0.00`), while their
-fixed-capital variants are negative and marginal (`-0.16`, p=0.095 and `-0.14`,
-p=0.106). No benchmark beats the naive one-year forecast (log RMSE 0.065); the
-Moseley variants are 0.14-0.18.
+`unit_price_gravitation.csv`. On unit prices **every** benchmark carries a
+negative output-adjustment coefficient, and three reach significance: Sraffa
+(`β_GO = -0.114`, p=0.022), regulating capital (`-0.114`, p=0.022) and direct
+prices (`-0.058`, p=0.035). The Moseley variants sit between `-0.10` and `-0.14`
+with p-values of 0.10-0.25: the predicted sign, not significant. Shaikh's plain fixed point is `-0.082` (p=0.106). No benchmark beats the naive
+one-year forecast (log RMSE 0.065); the best is the profit-rate Moseley variant
+at 0.129.
 
 ## Verdict
 
 - Moseley’s unit-price fit is **real**: corr 0.79 for the base benchmark, 0.82
   with a tax-exclusive profit rate, 0.88 with working capital.
-- Sraffa and Shaikh reach corr 0.63-0.67; they capture relative prices but less
-  strongly.
+- Sraffa reaches corr 0.73 and Shaikh 0.71; they capture relative prices but
+  less strongly than Moseley.
 - Direct labour values remain poor (corr 0.19).
 - The earlier “Moseley has no relative-price content” conclusion was based on
   `PP/GO`, which is a price ratio, not a unit price. With independent BEA

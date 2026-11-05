@@ -175,12 +175,12 @@ expensive than B” but not by enough.
 Unit-price regressions, 1998-2023:
 
 ```
+Moseley (M incl. circ.)    0.60
+Moseley profit-rate        0.65
 Moseley stock capital      0.47
-Moseley profit-rate        0.52
-Moseley working-capital    0.60
-Sraffa                     0.28
+Sraffa                     0.46
 Sraffa fixed capital       0.44
-Shaikh                     0.31
+Shaikh                     0.41
 Shaikh fixed capital       0.37
 Regulating                 0.28
 Direct prices              0.06

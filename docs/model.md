@@ -402,7 +402,7 @@ PP*_it = K_trend_it + R_long_t * M_trend_it
 ```
 
 using five-year trailing averages. It shows stronger mean reversion
-(`β_GO = -0.134`, p=0.001) and a 1.8-year half-life. Neither benchmark beats a
+(`β_GO = -0.117`, p=0.004) and a 1.8-year half-life. Neither benchmark beats a
 naive random-walk forecast, so the evidence is best described as slow gravitation
 without predictive power.
 
@@ -429,15 +429,15 @@ The comparison is on 60 market industries (the regulating-capital benchmark
 covers 60 of 65), 1998-2023:
 
 - Moseley: MAE 10.4%, RMSE 13.2%, corr 0.991, slope 1.035, mean gap -4.4%.
-- Sraffa: MAE 18.7%, RMSE 28.2%, corr 0.957, slope 0.941, mean gap -2.9%.
-- Shaikh iterated: MAE 19.3%, RMSE 29.5%, corr 0.955, mean gap -3.4%.
+- Sraffa: MAE 16.5%, RMSE 24.5%, corr 0.968, slope 0.987, mean gap -5.1%.
+- Shaikh iterated: MAE 17.8%, RMSE 26.6%, corr 0.962, mean gap -5.2%.
 - Direct labour values: MAE 36.5%, RMSE 47.9%, corr 0.888, mean gap -8.7%.
 
-Moseley fits typical industry errors better, has the lower RMSE and the revenue
-slope closest to one; Sraffa carries the smaller aggregate bias. With
-constant-price `A_t`, Sraffa's clean one-way gravitation still disappears:
-`β_GO = +0.097` (p=0.014) and `β_PP = +0.257` (p<0.001). The center adjusts
-toward the data, not the other way. Neither beats a naive forecast.
+Moseley fits typical industry errors better, has the lower RMSE, the revenue
+slope closest to one and the smaller aggregate bias. On constant-price `A_t`,
+Sraffa's gravitation is one-way and wrong-signed: `β_GO = +0.107` (p=0.008) and
+`β_PP = +0.220` (p<0.001), so the center adjusts toward the data, not the other
+way. Neither beats a naive forecast.
 
 The direct solve is the Sraffian fixed point. The project also runs the explicit
 Shaikh cost-plus iteration:
@@ -447,10 +447,12 @@ p_{k+1} = (1 + r_k)(p_k A + w l)
 r_k = (p_k y - (p_k A + w l)y) / ((p_k A + w l)y)
 ```
 
-starting from labour values. It converges in 29 rounds on average (maximum 33),
-with a model-implied real profit rate averaging 38.5% against an observed 17.6%.
-The iterated prices are almost identical to the fixed point (MAE 19.3%, corr
-0.955). A toy cross-dual price/output simulation reduces profit-rate dispersion
+starting from labour values. It converges in 26 rounds on average (maximum 31),
+with a model-implied real profit rate averaging 26.9% against an observed 17.6%.
+The iterated prices land close to the Sraffian fixed point (MAE 17.8% against
+16.5%, corr 0.962 against 0.968), the remaining gap coming from the model rate
+being higher than the observed one. A toy cross-dual simulation reduces
+profit-rate dispersion
 from 0.160 to approximately zero. See `docs/sraffa.md` and `docs/shaikh.md`.
 
 ## 12. Does `R` regulate industry rates?

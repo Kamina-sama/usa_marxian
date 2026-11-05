@@ -491,10 +491,11 @@ def run_industries(
         }
         employment_coverage_records = employment_cov.to_dict(orient="records")
 
-    enriched = add_industry_ratios(panel, capital_proxy="fixed_assets")
-    summary = year_summary(panel, capital_proxy="fixed_assets")
-    latest_table = latest_dispersion(panel, capital_proxy="fixed_assets")
-    report = industry_report(panel, capital_proxy="fixed_assets")
+    proxy = config.settings.capital_proxy
+    enriched = add_industry_ratios(panel, capital_proxy=proxy)
+    summary = year_summary(panel, capital_proxy=proxy)
+    latest_table = latest_dispersion(panel, capital_proxy=proxy)
+    report = industry_report(panel, capital_proxy=proxy)
     if price_coverage is not None:
         report["prices"] = price_coverage
     if final_demand_summary is not None:
@@ -698,7 +699,7 @@ def run_industries(
     gravitation_report = None
     if with_gravitation:
         try:
-            gravitation = run_gravitation(panel, capital_proxy="fixed_assets")
+            gravitation = run_gravitation(panel, capital_proxy=proxy)
             gravitation_report = _gravitation_report(gravitation)
             report["gravitation"] = gravitation_report
         except Exception as exc:

@@ -172,11 +172,11 @@ headline Moseley variant); full sample 10.3% and 7.1% respectively.
 - Market weighted CV of `r_i`: 0.609 in 2023 (sample mean 0.703); p90/p10 6.10.
 - Full-sample CV: 2.109 in 2023 (sample mean 2.296), dominated by housing and
   government.
-- MAE of `PP` vs gross output: 12.6% full, 13.7% market-only.
-- MAE of the long-run `PP*`: 16.8% full, 15.8% market-only.
+- MAE of `PP` vs gross output: 11.8% full, 10.8% market-only.
+- MAE of the long-run `PP*`: 15.4% full, 13.1% market-only.
 - MAE of `PP_V` vs gross output: 53.1%.
-- Correlation of `PP` with gross output: 0.941 full, 0.982 market-only.
-- Share within 25% of `PP`: 86.9% full, 88.8% market-only.
+- Correlation of `PP` with gross output: 0.942 full, 0.990 market-only.
+- Share within 25% of `PP`: 88.1% full, 93.1% market-only.
 - Proxy sensitivity, full-sample MAE: fixed assets + inventories 12.6%, cost
   13.3%, output 11.0%, value-added 9.0%. Market-only MAE: 13.7%, 10.5%, 8.7%,
   7.1%.
@@ -207,8 +207,8 @@ value of 10.4% and a half-life of about 2.0 years. The error-correction evidence
 does not support gravitation: PP adjusts toward market output (β=+0.201,
 p=0.004), but market output does not measurably adjust toward PP (β=-0.091,
 p=0.239). A
-five-year trailing long-run centre shows stronger mean reversion (β=-0.134,
-p=0.001) and a 1.8-year half-life. Neither benchmark beats a random walk in
+five-year trailing long-run centre shows stronger mean reversion (β=-0.117,
+p=0.004) and a 1.8-year half-life. Neither benchmark beats a random walk in
 out-of-sample forecasts.
 
 ## Next steps

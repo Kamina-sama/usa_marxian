@@ -93,7 +93,7 @@ def plot_benchmark_fit(comparison: pd.DataFrame, path: Path) -> Path:
 def plot_unit_price_fit(panel: pd.DataFrame, path: Path) -> Path:
     """Relative unit prices: model against data for three benchmarks."""
     columns = [
-        ("p_moseley_working_n", "Moseley, working capital"),
+        ("p_moseley_n", "Moseley (M incl. circulating capital)"),
         ("p_sraffa_n", "Sraffa prices of production"),
         ("p_v_n", "Direct prices (labour values)"),
     ]

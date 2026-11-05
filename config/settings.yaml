@@ -15,6 +15,13 @@ hours_method: indexed
 # Include private inventories in the advanced capital stock M.
 include_inventories: true
 
+# How the advanced capital M is measured for the price benchmark:
+#   working_capital - fixed assets + inventories + one year of circulating
+#                     capital (C + V), i.e. Moseley's M including circulating
+#                     capital (the default, and the best-fitting variant)
+#   fixed_assets    - fixed assets + inventories only
+capital_proxy: working_capital
+
 # Re-download a cached raw series after this many days.
 cache_max_age_days: 30
 

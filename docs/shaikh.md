@@ -13,12 +13,12 @@ p_{k+1} = (1 + r_k) c_k
 ```
 
 starting from labour values and using the deflated annual `A_t`. It converges in
-**29 rounds on average** (maximum 33, all years converged) with a residual below
+**26.5 rounds on average** (maximum 31, all years converged) with a residual below
 `1e-10`.
 
-- Model-implied real profit rate: **38.5%** average vs **17.6%** observed real.
+- Model-implied real profit rate: **26.9%** average vs **17.6%** observed real.
 - The iterated prices are close to the Sraffian fixed point, but with the
-  improved price data they fit worse: MAE **19.3%**, correlation **0.955**.
+  improved price data they fit worse: MAE **17.8%**, correlation **0.962**.
   Iteration adds convergence diagnostics and an implied rate, not a better
   price center.
 
@@ -41,10 +41,9 @@ with `theta = 0.10`. The dispersion measure is the coefficient of variation of
 firm-level distribution. Coverage is 60 of 65 market industries (1,560
 observations); unmapped industries fall back to the Sraffa price.
 
-Live result: `PP_reg` MAE 18.5%, RMSE 27.9%, corr 0.954, mean gap +0.3% —
-slightly better than Sraffa's 18.7% MAE and essentially unbiased in aggregate.
-Gravitation remains wrong-signed: `β_GO = +0.106` (p=0.014), `β_PP = +0.276`,
-one-year forecast RMSE 0.267.
+Live result: `PP_reg` MAE 16.3%, RMSE 24.1%, corr 0.964, mean gap -1.9% —
+slightly better than Sraffa's 16.5% MAE. Gravitation remains wrong-signed:
+`β_GO = +0.119` (p=0.008), `β_PP = +0.237`, one-year forecast RMSE 0.220.
 
 ## Fixed-capital iteration
 
@@ -60,12 +59,12 @@ It converges to a model-implied rate of about **11.6%** and improves unit-price
 fit substantially:
 
 ```
-unit-price corr   0.669 -> 0.806
-unit-price slope  0.311 -> 0.370
+unit-price corr   0.713 -> 0.806
+unit-price slope  0.413 -> 0.370
 unit MAE          0.167 -> 0.152
 ```
 
-Revenue MAE is roughly unchanged (19.3% to 19.6%), but RMSE worsens sharply
+Revenue MAE is close (17.8% to 19.6%), but RMSE worsens sharply
 (29.5% to 44.5%), so the improvement is in typical relative prices, not in the
 tails. Gravitation remains wrong-signed (`beta_GO = +0.036`, p=0.034).
 
@@ -111,7 +110,3 @@ Not implemented:
 - wage bargaining or a Phillips curve;
 - financial constraints on investment;
 - estimation with standard errors.
-
-The Sraffian fixed point was previously labelled "Shaikh". That was incorrect:
-solving `p = (1+r)(pA+wl)` once is Sraffa. Shaikh is the iteration and the
-cross-dual process.

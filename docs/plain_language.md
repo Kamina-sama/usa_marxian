@@ -3,7 +3,7 @@
 This page explains the project without assuming economics or statistics. The
 technical details are in `README.md` and the other documents in `docs/`.
 
-For two terms that are easy to mix up — **closing the demand side** and **the
+For two terms that may be confusing at first — **closing the demand side** and **the
 unit-price slope** — see [`reading_the_model.md`](reading_the_model.md).
 
 If you would rather look at pictures than tables, [`figures.md`](figures.md)
@@ -79,8 +79,8 @@ tautology. That is why the project separates accounting from testing.
 Comparing industry revenues with the benchmark:
 
 - Moseley: average miss about **10%**.
-- Sraffa: about **19%**.
-- Shaikh: about **19%**.
+- Sraffa: about **17%**.
+- Shaikh: about **18%**.
 - Direct labour values: about **36%**.
 
 Moseley's benchmark is closest to observed revenues. The other benchmarks are
@@ -94,9 +94,9 @@ relative unit prices:
 - **Moseley working-capital `PP/Q`** (the headline version): correlation **0.88**,
   slope **0.60**.
 - Moseley stock-capital `PP/Q` (variant): correlation **0.79**, slope **0.47**.
-- Moseley profit-rate `PP/Q` (variant): correlation **0.82**, slope **0.52**.
-- Sraffa: correlation **0.63**, slope **0.28**.
-- Shaikh: correlation **0.67**, slope **0.31**.
+- Moseley profit-rate `PP/Q` (variant): correlation **0.90**, slope **0.65**.
+- Sraffa: correlation **0.73**, slope **0.46**.
+- Shaikh: correlation **0.71**, slope **0.41**.
 - Direct labour values: correlation **0.19**, slope **0.06**.
 
 Here `Q` is the BEA quantity index, not revenue divided by observed price. With
@@ -113,7 +113,7 @@ prices at all.
 Does market output move toward the benchmark when it is away from it?
 
 - Moseley: no detectable movement in the expected direction. The benchmark
-  moves toward market output, not the other way round.
+  moves toward market output, not the other way round. gravitation at the **slow centre**.
 - Sraffa and Shaikh: the estimated movement is in the **wrong direction** — high
   relative output predicts higher future output, which is divergence.
 - None of the benchmarks beats a simple "next year will be like this year"

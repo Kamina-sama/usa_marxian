@@ -6,19 +6,33 @@ empirical result against the other benchmarks.
 ## What is Sraffian here
 
 Sraffa's prices of production solve a simultaneous system with a uniform profit
-rate on flow capital:
+rate, industry-specific wage costs and depreciation as a cost:
 
 ```
-p = (1 + r)(p A + w l)
+p = (1 + r)(p A + v + d)
 ```
 
-Relative prices are independent of `w`; the scale is fixed by normalising
-`p . GO` to total gross output. In the code:
+so that `p = (1+r)(v + d)[I - (1+r)A]^-1`, where `v_j = V_j/q_j` is wage cost per
+unit of real output and `d_j = CFC_j/q_j` is consumption of fixed capital per
+unit. Relative prices are independent of the wage level; the scale is fixed by
+normalising to total output.
 
-- `sraffa_prices_of_production(...)` — the direct solution of
-  `p = w (1+r) l [I - (1+r) A]^-1`;
-- `iterative_prices(...)` — the fixed-`r` cost-plus iteration, which converges
-  to the same ray and is kept as a numerical check.
+Two choices are worth naming. **Wage rates are industry-specific**, because
+`V_j/q_j` embeds each industry's own wage level; Sraffa's system has a single
+wage. This is an empirical convention, not a theoretical one, and it means part
+of the benchmark's fit comes from reproducing observed wage differentials.
+**Depreciation enters as a marked-up cost**, which is the standard treatment when
+the capital matrix is absent. It is conservative relative to the joint-product
+model below, where profit is charged on the whole stock, `B(r + delta)`.
+
+In the code:
+
+- `sraffa_prices_of_production(...)` — the direct solution, with optional
+  `depreciation_cost`;
+- `iterative_prices(...)` — the fixed-`r` cost-plus iteration on the same cost
+  base, kept as a numerical check that the two agree on one ray;
+- `sraffa_prices_fixed_capital(...)` — Sraffa's joint-production treatment,
+  `p[I - (1+r)A - B(r + Delta)] = (1+r)v`.
 
 `A` is the **deflated** annual Use matrix (2017 dollars), and `l` is direct
 labour per 2017 dollar of output. Industry labour hours are measured from BEA
@@ -37,31 +51,33 @@ fixed point once is Sraffa.
 | Benchmark | MAE | RMSE | corr | slope | within 25% | mean gap |
 |---|---:|---:|---:|---:|---:|---:|
 | Moseley `PP` (working capital) | 10.4% | 13.2% | 0.991 | 1.035 | 94.2% | -4.4% |
-| Sraffa `PP_Sraffa` | 18.7% | 28.2% | 0.957 | 0.941 | 76.0% | -2.9% |
+| Sraffa `PP_Sraffa` | 16.5% | 24.5% | 0.968 | 0.987 | 84.0% | -5.1% |
 | Sraffa + fixed capital | 17.5% | 38.8% | 0.913 | 0.971 | 84.7% | -6.4% |
-| Shaikh iterated `PP_Shaikh` | 19.3% | 29.5% | 0.955 | 0.944 | 74.0% | -3.4% |
+| Shaikh iterated `PP_Shaikh` | 17.8% | 26.6% | 0.962 | 0.980 | 78.8% | -5.2% |
 | Direct prices (labour values) | 36.5% | 47.9% | 0.888 | 0.872 | 43.3% | -8.7% |
 
-Sraffa's benchmark carries the smaller aggregate bias than Moseley's
-(-2.9% vs -4.4%), but Moseley has the lower RMSE, the better typical absolute
-error, the higher rank correlation and the revenue slope closer to one.
+Moseley's benchmark is ahead on every criterion: lower typical error, lower
+RMSE, a mean gap closer to zero, higher rank correlation and a revenue slope
+closer to one. Sraffa's fit improves substantially once depreciation is in its
+cost base — MAE falls from 18.7% to 16.5% and the revenue slope rises from 0.941
+to 0.987 — but the ordering does not change.
 
 ## Gravitation, 1998-2023
 
 | Benchmark | mean abs gap | half-life | GO beta | PP beta | 1y forecast RMSE |
 |---|---:|---:|---:|---:|---:|
 | Moseley `PP` (working capital) | 10.4% | 2.0y | -0.091 (p=0.239) | +0.201 (p=0.004) | 0.176 |
-| Sraffa `PP_Sraffa` | 18.4% | 4.0y | +0.097 (p=0.014) | +0.257 (p<0.001) | 0.253 |
-| Shaikh iterated `PP_Shaikh` | 18.6% | 3.6y | +0.097 (p=0.007) | +0.271 (p<0.001) | 0.253 |
+| Sraffa `PP_Sraffa` | 15.2% | 5.8y | +0.107 (p=0.008) | +0.220 (p<0.001) | 0.206 |
+| Shaikh iterated `PP_Shaikh` | 16.3% | 5.1y | +0.111 (p=0.006) | +0.237 (p<0.001) | 0.214 |
 | Direct prices (labour values) | 35.4% | 4.4y | +0.081 (p=0.020) | +0.226 (p<0.001) | 0.451 |
 
 Naive forecast RMSE is 0.120.
 
 With annual `A_t` in constant prices and 71-industry prices, Sraffa's benchmark
 does **not** attract market output. The output coefficient is positive and
-significant (`+0.097`, p=0.014): high relative output predicts higher future
+significant (`+0.107`, p=0.008): high relative output predicts higher future
 output, which is divergence, not gravitation. The model price adjusts toward the
-observed price (`+0.257`).
+observed price (`+0.220`).
 
 ## Verdict
 

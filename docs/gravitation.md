@@ -109,17 +109,19 @@ PP*_it = K_trend_it + R_long_t * M_trend_it
 `K_trend` and `M_trend` are five-year trailing averages by industry; `R_long` is
 the five-year trailing average general rate of profit. Results:
 
-- Mean absolute deviation: **15.2%** (weighted 16.6%); 81.5% within ±25%.
-- Autocorrelation: **0.901**; half-life **1.8 years**.
-- 52% of industries reject a unit root individually; Fisher p<0.001.
-- Output adjustment: `β = -0.134` (p=0.001).
-- PP adjustment: `β = +0.181` (p<0.001).
-- Forecast log RMSE, 1/3/5 years: PP **0.238 / 0.289 / 0.349** vs naive
+- Mean absolute deviation: **13.1%** (weighted 14.4%); 85.0% within ±25%.
+- Autocorrelation: **0.861**; half-life **1.8 years**.
+- 57% of industries reject a unit root individually; Fisher p<0.001.
+- Output adjustment: `β = -0.117` (s.e. 0.041, p=0.004).
+- PP adjustment: `β = +0.204` (p<0.001).
+- Forecast log RMSE, 1/3/5 years: PP **0.209 / 0.269 / 0.335** vs naive
   **0.120 / 0.202 / 0.258**.
 
-**Reading:** the long-run centre is farther away, so deviations are larger, but
-they are less persistent and market output adjusts toward it more strongly. This
-is the clearest gravitation evidence in the project. PP still fails the
+**Reading:** the long-run centre is farther away than the current benchmark
+(13.1% against 10.4%), but deviations are less persistent and market output
+adjusts toward it with the sign gravitation predicts. This is the clearest
+gravitation evidence in the project, and the only piece of it that the switch to
+a working-capital `M` strengthens rather than weakens. PP still fails the
 out-of-sample test, so the result is slow adjustment without forecast power.
 
 ## Test 3: does PP forecast future market output?
@@ -154,24 +156,29 @@ gravitation.
 
 ## Overall verdict
 
-In this 65-industry, 1998-2023 annual panel, with actual fixed-asset stocks:
+In this 65-industry, 1998-2023 annual panel, with `M` including circulating
+capital:
 
 - prices of production are a **moderate contemporaneous benchmark**, not a tight
-  fit;
+  fit (10.4% mean absolute error);
 - deviations are persistent, with a half-life of about 2.0 years;
-- the error-correction evidence does **not** support gravitation: PP adjusts
-  toward market output, but market output does not measurably adjust toward PP;
-- the **long-run centre** shows stronger mean reversion (`β_GO = -0.134`,
-  p=0.001) and a shorter half-life of 1.8 years;
+- the **current** benchmark shows one-way adjustment in the wrong direction:
+  `PP` moves toward market output (`β_PP = +0.201`, p=0.004), but market output
+  does not measurably move toward `PP` (`β_GO = -0.091`, p=0.239);
+- the **long-run centre** behaves differently and as the theory predicts: market
+  output does adjust toward it (`β_GO = -0.117`, p=0.004) as well as `PP` toward
+  output (`β_PP = +0.204`, p<0.001), with a 1.8-year half-life;
 - PP **does not beat a random walk** in out-of-sample forecasts, for either the
-  current or long-run benchmark.
+  current or the long-run benchmark.
 
-The defensible summary is **"no detectable gravitation, no forecast power"**. The
-data do not support a strong claim that prices of production are the immediate
-centers of gravitation of market gross output. They also do not refute the
-theory: the test is limited by the value-based output measure, the remaining
-broad inventory allocation for mining/utilities/construction and “other”
-industries, annual data, and the short sample.
+The defensible summary is **"gravitation at the slow centre, none at the fast
+one, and no forecast power either way"**. The current benchmark is built from
+current costs, so it tracks output almost mechanically and cannot separate
+"prices adjust to output" from "output adjusts to prices". The slow centre does
+not have that problem, and on it the predicted adjustment appears. That is the
+project's one piece of clean support for the regulating claim — and it depends
+on taking a five-year average as the centre, which is a strong assumption in a
+26-year sample.
 
 ## What changed when actual capital stocks replaced `M_i = K_i`
 

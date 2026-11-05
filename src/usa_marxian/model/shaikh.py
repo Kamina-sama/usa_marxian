@@ -49,6 +49,7 @@ import pandas as pd
 from .sraffa import (
     IterationResult,
     _normalise,
+    aligned_costs,
     build_real_technical_matrices,
     build_technical_matrices,
     iterative_prices,
@@ -173,6 +174,7 @@ def iterative_prices_endogenous(
     labour: pd.Series,
     output: pd.Series,
     *,
+    depreciation_cost: pd.Series | None = None,
     max_iter: int = 1000,
     tol: float = 1e-10,
     initial: pd.Series | None = None,
@@ -180,11 +182,14 @@ def iterative_prices_endogenous(
     """Shaikh-style cost-plus iteration with an endogenous profit rate.
 
     ``labour`` must be the wage cost per unit of output (``w l``), not hours
-    per dollar. Each round computes the aggregate profit rate implied by the
-    current price vector, then reprices with that rate:
+    per dollar. ``depreciation_cost`` is consumption of fixed capital per unit
+    of output; it enters the cost base, so the surplus is net of CFC and the
+    iteration converges to the same centre as the direct solve at its own rate.
+    Each round computes the aggregate profit rate implied by the current price
+    vector, then reprices with that rate:
 
-    ``r_k = (p_k y - w L) / ((p_k A + w l) y)``
-    ``p_{k+1} = (1+r_k)(p_k A + w l)``
+    ``r_k = (p_k y - (p_k A + v + d) y) / ((p_k A + v + d) y)``
+    ``p_{k+1} = (1+r_k)(p_k A + v + d)``
 
     Prices are normalised so that ``p . y`` equals total output. The fixed
     point is a Sraffian price system with the model-implied rate, not the
@@ -192,7 +197,12 @@ def iterative_prices_endogenous(
     """
     index = matrix.index
     coefficients = matrix.to_numpy(dtype=float)
-    direct = labour.reindex(index).to_numpy(dtype=float)
+    direct = aligned_costs(labour, index, "labour cost")
+    primary = direct.copy()
+    if depreciation_cost is not None:
+        primary = primary + aligned_costs(
+            depreciation_cost, index, "depreciation cost"
+        )
     quantities = output.reindex(index).to_numpy(dtype=float)
     if (quantities <= 0).any() or not np.isfinite(quantities).all():
         raise ValueError("Output quantities must be positive and finite")
@@ -205,7 +215,7 @@ def iterative_prices_endogenous(
     history: list[float] = []
     profit_rate = float("nan")
     for iteration in range(1, max_iter + 1):
-        cost = coefficients.T @ p + direct
+        cost = coefficients.T @ p + primary
         denominator = float(cost @ quantities)
         if denominator <= 0 or not np.isfinite(denominator):
             break
@@ -395,7 +405,21 @@ def build_shaikh_benchmarks(
         else:
             labour_hours = wage_bill * 1e6 / wage_rate
         direct_labour = labour_hours / (output_real * 1e6)
+        # Wage cost per unit of real output. Industry-specific wage rates are
+        # used deliberately: V_j / q_j embeds each industry's own wage level,
+        # which is an empirical choice rather than Sraffa's uniform wage.
         labour_cost = wage_bill / output_real
+        # Consumption of fixed capital per unit of real output. Depreciation is
+        # a cost of production and enters the price system; without it
+        # capital-intensive industries are systematically underpriced relative
+        # to observed gross output, which also includes CFC.
+        if "CFC" in group.columns:
+            depreciation_cost = (
+                group["CFC"].astype(float)
+                / (group["go_price"].astype(float) / 100.0)
+            ) / output_real
+        else:
+            depreciation_cost = None
 
         if {"S_real", "K_real"}.issubset(group.columns):
             surplus = group["S_real"].astype(float).sum()
@@ -418,13 +442,24 @@ def build_shaikh_benchmarks(
             values = labour_values(matrix, direct_labour)
             value_price = _normalise(values, output_real)
             prices = sraffa_prices_of_production(
-                matrix, labour_cost, profit_rate
+                matrix,
+                labour_cost,
+                profit_rate,
+                depreciation_cost=depreciation_cost,
             )
             fixed_iteration = iterative_prices(
-                matrix, labour_cost, profit_rate, initial=value_price
+                matrix,
+                labour_cost,
+                profit_rate,
+                depreciation_cost=depreciation_cost,
+                initial=value_price,
             )
             endogenous_iteration = iterative_prices_endogenous(
-                matrix, labour_cost, output_real, initial=value_price
+                matrix,
+                labour_cost,
+                output_real,
+                depreciation_cost=depreciation_cost,
+                initial=value_price,
             )
             cross_dual = cross_dual_gravitation(
                 matrix,

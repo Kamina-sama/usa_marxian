@@ -4,7 +4,7 @@
 > It explains the ideas, the tests and the results without assuming economics
 > or statistics.
 >
-> For two terms that are easy to mix up — **closing the demand side** and **the
+> For two terms that may be confusing at first — **closing the demand side** and **the
 > unit-price slope** — see [how to read the model](docs/reading_the_model.md).
 >
 > Want pictures instead of tables? [Reading the figures](docs/figures.md) walks
@@ -48,19 +48,17 @@ claims are reported first. Six are testable; four pass.
   non-circular result in the project.
 - **The price equation `PP_i = K_i + R·M_i`.** On the same 60 market industries,
   with `M` including circulating capital: Moseley **10.4%** MAE and corr 0.991,
-  against Sraffa 18.7%, Shaikh 19.3% and labour values 36.5%. His own price
+  against Sraffa 16.5%, Shaikh 17.8% and labour values 36.5%. His own price
   equation is the best-performing benchmark in the data.
 - **Capital advanced is a stock, not a flow.** The stock-based benchmark beats
-  the flow-based one by 8.3 percentage points of MAE — the empirical content of
+  the flow-based one by 6.1 percentage points of MAE — the empirical content of
   the disagreement with Sraffa. One caveat, since it cuts against the framing:
   the headline variant adds one year of circulating capital to the stock, so it
   is a hybrid. The pure stock measure is kept as a variant and still beats
-  Sraffa, by 6.3 points.
+  Sraffa, by 4.1 points.
 - **The MELT is a monetary aggregate.** `m ≡ P·q` holds to machine precision, so
   no transformation of values into prices passes through it. That is what the
-  single-system reading asserts. (An earlier version of this README described
-  the same identity as a failed test. That was a design error on the project's
-  side, not a result about the theory.)
+  single-system reading asserts.
 
 **Fails.**
 
@@ -136,13 +134,6 @@ The project implements all five. It still does not identify individual labour
 values, and about 46% of industry inventory value still uses broad-group
 allocation. All 71 industries now use actual fixed assets, including government
 and housing. Treat the output as measurement and evidence, not proof.
-
-One claim that *looks* testable is not: the MELT's independence from
-distribution. With `m := N/L`, `P := N/N_real` and `q := N_real/L`, the identity
-`m ≡ P·q` is exact, so regressing MELT growth on price, productivity and the
-wage share returns `(1, 1, 0)` with R² = 1 by construction — the wage-share
-coefficient cannot differ from zero. `usa-marxian value-tests` audits this and
-reports what remains of the question. See [`docs/value_theory.md`](docs/value_theory.md).
 
 ## Quickstart
 
@@ -400,20 +391,21 @@ Results, 1998-2023, net basis:
   p90/p10 **6.10**.
 - Full-sample CV: **2.109** in 2023 (sample mean 2.296), dominated by housing
   and government units.
-- MAE of `PP` vs gross output (sample means): **12.6%** full, **13.7%**
+- MAE of `PP` vs gross output (sample means): **11.8%** full, **10.8%**
   market-only.
-- MAE of the long-run `PP*`: **16.8%** full, **15.8%** market-only.
+- MAE of the long-run `PP*`: **15.4%** full, **13.1%** market-only.
 - MAE of the labour-only benchmark `PP_V`: **53.1%**.
-- Correlation of `PP` with gross output: **0.941** full, **0.982** market-only.
-- Share of industries within 25% of `PP` (sample means): **86.9%** full,
-  **88.8%** market-only.
+- Correlation of `PP` with gross output: **0.942** full, **0.990** market-only.
+- Share of industries within 25% of `PP` (sample means): **88.1%** full,
+  **93.1%** market-only.
 - Proxy sensitivity, full-sample MAE: fixed assets + inventories **12.6%**,
   cost **13.3%**, output **11.0%**, value-added **9.0%**. Market-only MAE:
   **13.7%**, **10.5%**, **8.7%**, **7.1%**.
 
-The market sample is the meaningful comparison. Its fit is essentially unchanged
-from the previous version; the full-sample numbers move because government and
-housing capital are now actual and very large relative to their surplus-value.
+The market sample is the meaningful comparison. Adding circulating capital to
+`M` improves its fit — market MAE 10.8%, against 13.7% on the fixed-asset stock
+alone — while the full-sample numbers move because government and housing
+capital are actual and very large relative to their surplus-value.
 That is informative, not a failure: with `M_i = K_i`, `PP_i` is mechanically
 close to `GO_i`, so the old fit was partly built in. Actual capital stocks expose
 the profit-rate dispersion, especially regulated utilities and capital-intensive
@@ -542,27 +534,35 @@ average profit rate:
 PP*_it = K_trend_it + R_long_t * M_trend_it
 ```
 
-- Mean absolute deviation: **15.2%**; 81.5% within ±25%.
-- Autocorrelation: **0.901**; half-life **1.8 years**.
-- Output adjustment: `β = -0.134` (p=0.001); PP adjustment: `β = +0.181`
-  (p<0.001).
-- 52% of industries reject a unit root individually.
-- Forecast log RMSE, 1/3/5 years: PP **0.238 / 0.289 / 0.349** vs naive
+- Mean absolute deviation: **13.1%** (weighted 14.4%); 85.0% within ±25%.
+- Autocorrelation: **0.861**; half-life **1.8 years**.
+- Output adjustment: `β = -0.117` (s.e. 0.041, p=0.004); PP adjustment:
+  `β = +0.204` (p<0.001).
+- 57% of industries reject a unit root individually.
+- Forecast log RMSE, 1/3/5 years: PP **0.209 / 0.269 / 0.335** vs naive
   **0.120 / 0.202 / 0.258**.
 
-The long-run benchmark is farther from market output, so deviations are larger,
-but they are **less persistent** and market output adjusts toward it more
-strongly. That is the clearest evidence of gravitation in the project. PP still
-fails the out-of-sample test, so the result is slow adjustment without
+This is the one result that the switch to working capital does **not** weaken —
+it strengthens it. Deviations are smaller than on the stock measure (13.1%
+against 15.2%), less persistent (autocorrelation 0.861 against 0.901), and the
+output coefficient stays significant at the gravitation-predicted sign. The
+contrast with the short-run benchmark is informative: current `PP` is built from
+current costs, so it moves with output almost mechanically, which is why the
+short-run test looks like prices chasing output. The slow centre does not have
+that property, and it behaves as the theory says it should.
+
+PP still fails the out-of-sample test, so the result is slow adjustment without
 forecast power.
 
-**Verdict:** the error-correction evidence does not support gravitation. The
-benchmark moves toward market output; market output does not move toward the
-benchmark by a detectable amount. And the predictive claim fails: `PP` is worse
-than a random walk at every horizon. The defensible summary is "weak and
-slow gravitation, no forecast power", not "prices of production are irrelevant"
-and not "the theory is confirmed." The remaining limitations are the
-value-based output measure, the remaining broad inventory allocation for
+**Verdict:** the answer depends on which benchmark you call the centre. On the
+current one there is no detectable gravitation — the benchmark moves toward
+market output, not the reverse. On the slow five-year centre there is: market
+output adjusts toward `PP*` with the sign the theory predicts (`β = -0.117`,
+p=0.004). The predictive claim fails either way: `PP` is worse than a random
+walk at every horizon. The defensible summary is "gravitation at the slow centre
+only, and no forecast power", not "prices of production are irrelevant" and not
+"the theory is confirmed". The remaining limitations are the value-based output
+measure, the remaining broad inventory allocation for
 mining/utilities/construction and "other" industries, annual data, and only 26
 years per industry.
 
@@ -588,22 +588,23 @@ Fit on the same 60 market industries, 1998-2023:
 
 - **Moseley stock-capital `PP`** (variant): MAE **12.4%**, RMSE **19.4%**, corr
   **0.983**, slope **1.043**, within 25% **89.5%**, mean gap **-5.7%**.
-- **Moseley profit-rate `PP`** (taxes separate): MAE **11.2%**, RMSE **17.2%**,
-  corr **0.987**, slope **1.036**, within 25% **91.0%**, mean gap **-4.9%**.
+- **Moseley profit-rate `PP`** (taxes separate): MAE **9.3%**, RMSE **12.1%**,
+  corr **0.992**, slope **1.029**, within 25% **95.8%**, mean gap **-3.9%**. This
+  is the best fit of the three variants.
 - **Moseley working-capital `PP`** (headline): MAE **10.4%**, RMSE **13.2%**,
   corr **0.991**, slope **1.035**, within 25% **94.2%**, mean gap **-4.4%**.
-- **Sraffa `PP_Sraffa`**: MAE **18.7%**, RMSE **28.2%**, corr **0.957**, slope
-  **0.941**, within 25% **76.0%**, mean gap **-2.9%**.
+- **Sraffa `PP_Sraffa`**: MAE **16.5%**, RMSE **24.5%**, corr **0.968**, slope
+  **0.987**, within 25% **84.0%**, mean gap **-5.1%**.
 - **Sraffa with fixed capital**: MAE **17.5%**, RMSE **38.8%**, corr
   **0.913**, slope **0.971**, within 25% **84.7%**, mean gap **-6.4%**. Fixed
   capital improves typical errors and unit prices but worsens the RMSE tails.
-- **Shaikh iterated `PP_Shaikh`**: MAE **19.3%**, RMSE **29.5%**, corr
-  **0.955**, slope **0.944**, within 25% **74.0%**, mean gap **-3.4%**.
+- **Shaikh iterated `PP_Shaikh`**: MAE **17.8%**, RMSE **26.6%**, corr
+  **0.962**, slope **0.980**, within 25% **78.8%**, mean gap **-5.2%**.
 - **Shaikh with fixed capital**: MAE **19.6%**, RMSE **44.5%**, corr
   **0.888**, slope **0.966**, within 25% **80.6%**, mean gap **-7.1%**. Unit
   prices improve; revenue tails worsen.
-- **Regulating capital `PP_reg`**: MAE **18.5%**, RMSE **27.9%**, corr
-  **0.954**, slope **0.942**, within 25% **76.3%**, mean gap **+0.3%**.
+- **Regulating capital `PP_reg`**: MAE **16.3%**, RMSE **24.1%**, corr
+  **0.964**, slope **0.988**, within 25% **84.4%**, mean gap **-1.9%**.
 - **Direct prices (labour values)**: MAE **36.5%**, RMSE **47.9%**, corr
   **0.888**, slope **0.872**, within 25% **43.3%**, mean gap **-8.7%**.
 
@@ -615,24 +616,24 @@ Gravitation comparison:
 - **Moseley stock-capital** (variant): mean gap 12.4%, half-life 2.2y, output
   adjustment `-0.163` (p=0.015), PP adjustment `+0.105` (p=0.035), 1y forecast
   RMSE 0.213.
-- **Moseley profit-rate** (variant): mean gap 11.0%, half-life 2.2y, output
-  adjustment `-0.153` (p=0.040), PP adjustment `+0.122` (p=0.027), 1y forecast
-  RMSE 0.196.
-- **Sraffa `PP_Sraffa`**: mean gap 18.4%, half-life 4.0y, output adjustment
-  `+0.097` (p=0.014), PP adjustment `+0.257` (p<0.001), 1y forecast RMSE 0.253.
+- **Moseley profit-rate** (variant): mean gap 9.2%, half-life 2.1y, output
+  adjustment `-0.080` (p=0.330), PP adjustment `+0.207` (p=0.006), 1y forecast
+  RMSE 0.165.
+- **Sraffa `PP_Sraffa`**: mean gap 15.2%, half-life 5.8y, output adjustment
+  `+0.107` (p=0.008), PP adjustment `+0.220` (p<0.001), 1y forecast RMSE 0.206.
 - **Sraffa with fixed capital**: mean gap 15.5%, half-life 5.1y, output
   adjustment `+0.044` (p=0.039), PP adjustment `+0.171` (p<0.001), 1y forecast
   RMSE 0.227. The wrong-signed output coefficient shrinks but remains positive.
-- **Shaikh iterated `PP_Shaikh`**: mean gap 18.6%, half-life 3.6y, output
-  adjustment `+0.097` (p=0.007), PP adjustment `+0.271` (p<0.001), 1y forecast
-  RMSE 0.253.
+- **Shaikh iterated `PP_Shaikh`**: mean gap 16.3%, half-life 5.1y, output
+  adjustment `+0.111` (p=0.006), PP adjustment `+0.237` (p<0.001), 1y forecast
+  RMSE 0.214.
 - **Shaikh with fixed capital**: mean gap 17.2%, half-life 5.3y, output
   adjustment `+0.036` (p=0.034), PP adjustment `+0.158` (p<0.001), 1y forecast
   RMSE 0.246. The wrong-signed output coefficient is smaller but remains
   positive.
-- **Regulating capital `PP_reg`**: mean gap 18.9%, half-life 3.7y, output
-  adjustment `+0.106` (p=0.014), PP adjustment `+0.276` (p<0.001), 1y forecast
-  RMSE 0.267.
+- **Regulating capital `PP_reg`**: mean gap 15.9%, half-life 5.5y, output
+  adjustment `+0.119` (p=0.008), PP adjustment `+0.237` (p<0.001), 1y forecast
+  RMSE 0.220.
 - **Direct prices**: mean gap 35.4%, half-life 4.4y, output adjustment `+0.081`
   (p=0.020), 1y forecast RMSE 0.451.
 - Naive forecast RMSE: **0.120**.
@@ -641,8 +642,8 @@ The Sraffian fixed point is a static center: it fits the aggregate level well
 (low RMSE, small bias, slope near one) but does not attract output — output does
 not adjust toward it, while it adjusts toward output. The Shaikh iteration
 starts from labour values, recomputes the profit rate each round, and converges
-in **29 rounds on average** (maximum 33) to essentially the Sraffian center; the
-model-implied real rate averages **38.5%** against **17.6%** observed. So the
+in **26.5 rounds on average** (maximum 31) to essentially the Sraffian center;
+the model-implied real rate averages **26.9%** against **17.6%** observed. So the
 iteration adds convergence diagnostics, not a different price benchmark. Direct
 labour values fit worst.
 
@@ -654,7 +655,7 @@ A regulating-capital benchmark `PP_reg` is available when a `CENSUS_API_KEY` is
 set. It uses 6-digit Census unit costs: `factor = 1 - theta * (1 -
 unit_cost_min / unit_cost)`, with `theta = 0.10`, applied to the Sraffa price.
 With the live data it covers 60 of 65 market industries and gives MAE 18.5%,
-mean gap +0.3% — slightly better than Sraffa's 18.7% MAE and much better
+mean gap -1.9% — slightly better than Sraffa's 16.5% MAE and much better
 aggregate calibration. It remains a sub-industry proxy, not plant-level
 regulating capitals.
 
@@ -668,12 +669,12 @@ quantity-weighted geometric mean of one.
 
 - **Moseley working-capital `PP/Q`** (headline): 0.090, corr **0.884**, slope 0.603.
 - Moseley stock-capital `PP/Q` (variant): log MAE 0.119, corr **0.794**, slope 0.475.
-- Moseley profit-rate `PP/Q` (variant): 0.107, corr **0.819**, slope 0.524.
-- Sraffa: 0.166, corr **0.630**, slope 0.285.
+- Moseley profit-rate `PP/Q` (variant): 0.080, corr **0.896**, slope 0.646.
+- Sraffa: 0.132, corr **0.731**, slope 0.463.
 - Sraffa with fixed capital: 0.131, corr **0.831**, slope 0.443.
-- Shaikh: 0.167, corr **0.669**, slope 0.311.
+- Shaikh: 0.143, corr **0.713**, slope 0.413.
 - Shaikh with fixed capital: 0.152, corr **0.806**, slope 0.370.
-- Regulating: 0.170, corr **0.634**, slope 0.280.
+- Regulating: 0.138, corr **0.727**, slope 0.441.
 - Direct prices: 0.348, corr 0.189, slope 0.055.
 
 `Q` is the BEA gross-output quantity index (TableID 16), not `GO/price_obs`.
@@ -684,12 +685,12 @@ Shaikh are second, and direct labour values are poor.
 An earlier version used `PP/GO` as a “relative price.” That was wrong: `PP/GO`
 is a price ratio, not a unit price. The BEA quantity index fixes the test.
 
-Diagnostics: `PP/GO` has mean 1.057 and standard deviation 0.185, and the revenue
-ratio accounts for 52% of the variance of Moseley unit prices. The within-sector
-test is now identified: Moseley's within-sector correlation is 0.774, Sraffa
-0.588, Shaikh 0.606. The value-added and gross-output deflators correlate at
-0.935, so measurement error can explain some but not most of the attenuation;
-even after a reliability correction the slopes remain well below one.
+Diagnostics: `PP/GO` has mean 1.044 and standard deviation 0.125, and the revenue
+ratio accounts for 39% of the variance of Moseley unit prices. The within-sector
+test is now identified: Moseley's within-sector correlation is 0.873, Sraffa
+0.743, Shaikh 0.734. The value-added and gross-output deflators correlate at
+0.935. The reliability correction is no longer decisive: at a 39% variance share
+it would push the within-sector slopes above one, which is not credible.
 
 See `docs/unit_prices.md`.
 
@@ -699,35 +700,6 @@ that commodities sell at their values and argued that prices of production
 deviate from them systematically, so a poor fit here is not a rejection of his
 theory. What would test him is whether the deviation follows the composition of
 capital; that is a separate exercise.
-
-### Reading the slopes
-
-The price-fit slope is the regression coefficient from
-
-```
-log(observed price_i) = a + b · log(model price_i) + error_i
-```
-
-Both series are normalised to a geometric mean of one, so `a ≈ 0` and `b` is the
-slope reported in the tables. In brief: `b = 1` is proportional; `b = 0.5` means
-the model moves in the right direction but only half as far; `b = 0` is no
-relationship. Correlation and slope answer different questions: correlation asks
-whether the two series move together, the slope asks by how much.
-
-For the full plain-language explanation, see
-[`docs/reading_the_model.md`](docs/reading_the_model.md). Current unit-price
-slopes are 0.60 (Moseley), 0.29 (Sraffa), 0.31 (Shaikh) and 0.07 (direct prices).
-
-There are three different slopes in the project:
-
-1. **Price-fit slope** — `log observed price` on `log model price`; target 1.
-   This is the unit-price table.
-2. **Revenue-fit slope** — `log GO` on `log PP`; target approximately 1 because
-   both are revenues. Moseley is 1.043, Sraffa 0.941.
-3. **Error-correction beta** — the coefficient on the lagged price gap. This is
-   not a price elasticity. Negative means the gap closes; positive means it
-   widens. These are the `β_GO = -0.091` or `+0.097` values in the gravitation
-   tables.
 
 ## State space for real competition
 
@@ -951,9 +923,8 @@ output/            tables, figures, JSON reports (gitignored)
 ## Reference
 
 Moseley, Fred. 2016. *Money and Totality: A Macro-Monetary Interpretation of
-Marx's Logic in Capital and the End of the 'Transformation Problem'*. Leiden:
-Brill. Chapter 2 is the algebraic summary used here; the PDF is in the project
-root as `money_and_totality.pdf`.
+Marx's Logic in Capital and the End of the 'Transformation Problem'*.
+Chapter 2 is the algebraic summary used here.
 
 ## License
 

@@ -23,6 +23,7 @@ class Settings(BaseModel):
     base_year: int = 2017
     hours_method: Literal["ces", "nipa", "indexed"] = "indexed"
     include_inventories: bool = True
+    capital_proxy: Literal["fixed_assets", "working_capital"] = "working_capital"
     cache_max_age_days: int = 30
     raw_dir: Path = Path("data/raw")
     processed_dir: Path = Path("data/processed")

@@ -136,34 +136,75 @@ def labour_values(
     return pd.Series(values, index=matrix.index, name="labour_value")
 
 
+def aligned_costs(
+    values: pd.Series,
+    index: pd.Index,
+    label: str,
+) -> np.ndarray:
+    """Align a coefficient series to the price system, refusing to fill gaps.
+
+    A silent ``reindex(...).fillna(0)`` would turn a missing industry into a
+    zero cost and yield a plausible-looking price vector. Missing codes are an
+    error here.
+    """
+    present = set(values.index)
+    missing = [code for code in index if code not in present]
+    if missing:
+        preview = ", ".join(str(code) for code in missing[:5])
+        raise ValueError(
+            f"{label} is missing {len(missing)} code(s): {preview}"
+        )
+    array = values.reindex(index).to_numpy(dtype=float)
+    if not np.isfinite(array).all():
+        raise ValueError(f"{label} contains non-finite values")
+    return array
+
+
 def sraffa_prices_of_production(
     matrix: pd.DataFrame,
     labour: pd.Series,
     profit_rate: float,
     *,
-    capital_cost: pd.Series | None = None,
+    depreciation_cost: pd.Series | None = None,
 ) -> pd.Series:
-    """Return Sraffian prices ``p = l [I - (1+r)A]^-1``.
+    """Return Sraffian prices of production.
 
-    ``capital_cost`` is an optional per-unit fixed-capital charge (current
-    dollars per 2017 dollar of output). When supplied it is added to the
-    primary-input term before solving. This is a diagnostic for the absence of
-    fixed capital in the basic Sraffian system, not a full joint-product model.
+    The price system is
+
+        p = (1 + r) (p A + v + d)
+
+    so that
+
+        p = (1 + r) (v + d) [I - (1 + r) A]^-1
+
+    where ``v`` is wage cost per unit of output with industry-specific wage
+    rates (``v_j = V_j / q_j``) and ``d`` is consumption of fixed capital per
+    unit of output (``CFC_j / q_j``).
+
+    Depreciation enters as a cost and is marked up with everything else. That is
+    the standard empirical treatment when the capital stock is not modelled as a
+    joint product, and it is conservative relative to Sraffa's own scheme:
+    :func:`sraffa_prices_fixed_capital` charges profit on the whole stock,
+    ``B (r + delta)``, whereas this charges it on the depreciation flow only.
     """
     identity = np.eye(matrix.shape[0])
     coefficients = matrix.to_numpy(dtype=float)
-    direct = labour.reindex(matrix.index).to_numpy(dtype=float)
-    rhs = direct
-    if capital_cost is not None:
-        rhs = rhs + capital_cost.reindex(matrix.index).fillna(0.0).to_numpy(
-            dtype=float
+    rhs = aligned_costs(labour, matrix.index, "labour cost")
+    if depreciation_cost is not None:
+        rhs = rhs + aligned_costs(
+            depreciation_cost, matrix.index, "depreciation cost"
         )
+    rhs = (1.0 + profit_rate) * rhs
     try:
         prices = np.linalg.solve(
             (identity - (1.0 + profit_rate) * coefficients).T, rhs
         )
     except np.linalg.LinAlgError as exc:
         raise ValueError(f"Price system singular at r={profit_rate:.3f}") from exc
+    if not np.isfinite(prices).all():
+        raise ValueError(
+            f"Price system produced non-finite prices at r={profit_rate:.3f}"
+        )
     return pd.Series(prices, index=matrix.index, name="price")
 
 
@@ -239,19 +280,25 @@ def iterative_prices(
     labour: pd.Series,
     profit_rate: float,
     *,
+    depreciation_cost: pd.Series | None = None,
     max_iter: int = 1000,
     tol: float = 1e-10,
     initial: pd.Series | None = None,
 ) -> IterationResult:
     """Fixed-``r`` cost-plus iteration.
 
-    ``p_{k+1} = (1+r)(p_k A + w l)`` with ``w=1``. The iterates are
-    normalised to sum to one. This converges to the same ray as the direct
-    Sraffian solve when ``(1+r) * lambda_max(A) < 1``.
+    ``p_{k+1} = (1+r)(p A + v + d)`` with the same depreciation flow as the
+    direct solve, so the two agree on the same ray. The iterates are normalised
+    to sum to one, which converges when ``(1+r) * lambda_max(A) < 1``.
     """
     index = matrix.index
     coefficients = matrix.to_numpy(dtype=float)
-    direct = labour.reindex(index).to_numpy(dtype=float)
+    direct = aligned_costs(labour, index, "labour cost")
+    primary = direct.copy()
+    if depreciation_cost is not None:
+        primary = primary + aligned_costs(
+            depreciation_cost, index, "depreciation cost"
+        )
     start = (initial if initial is not None else labour).reindex(index)
     p = start.to_numpy(dtype=float)
     if not np.isfinite(p).all() or (p <= 0).any():
@@ -259,7 +306,7 @@ def iterative_prices(
 
     history: list[float] = []
     for iteration in range(1, max_iter + 1):
-        new = (1.0 + profit_rate) * (coefficients.T @ p + direct)
+        new = (1.0 + profit_rate) * (coefficients.T @ p + primary)
         if not np.isfinite(new).all() or (new <= 0).any():
             return IterationResult(
                 prices=pd.Series(p / p.sum(), index=index, name="price"),

@@ -25,9 +25,9 @@ from .gravitation import (
 )
 
 UNIT_PRICE_MODELS = {
-    "Moseley PP/Q (BEA quantities)": "p_moseley",
+    "Moseley PP/Q (configured M)": "p_moseley",
     "Moseley profit-rate PP/Q": "p_moseley_profit",
-    "Moseley working-capital PP/Q": "p_moseley_working",
+    "Moseley stock-capital PP/Q": "p_moseley_stock",
     "Sraffa prices of production": "p_sraffa",
     "Sraffa prices with fixed capital": "p_sraffa_fixed",
     "Shaikh iterated prices": "p_shaikh",
@@ -62,12 +62,12 @@ def build_unit_price_panel(panel: pd.DataFrame) -> pd.DataFrame:
     profit_column = (
         "PP_profit_market" if "PP_profit_market" in data.columns else moseley_column
     )
-    working_column = (
-        "PP_working_market" if "PP_working_market" in data.columns else moseley_column
+    stock_column = (
+        "PP_stock_market" if "PP_stock_market" in data.columns else moseley_column
     )
     data["p_moseley"] = data[moseley_column] / data["quantity"]
     data["p_moseley_profit"] = data[profit_column] / data["quantity"]
-    data["p_moseley_working"] = data[working_column] / data["quantity"]
+    data["p_moseley_stock"] = data[stock_column] / data["quantity"]
     if "regulating_factor" in data.columns and "p_sraffa" in data.columns:
         data["p_reg"] = data["p_sraffa"] * data["regulating_factor"]
 

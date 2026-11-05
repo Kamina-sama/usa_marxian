@@ -140,8 +140,6 @@ and calling the pass evidence.
 And it says where the falsifiable content actually lives. It is not in the
 MELT. It is in:
 
-- **relative prices** — proportionality of prices to labour values, already
-  tested and rejected (unit-price correlation 0.19, slope 0.055);
 - **dynamics** — does output adjust toward prices of production, tested in
   `docs/gravitation.md`;
 - **distribution** — the value of labour power, which is the natural

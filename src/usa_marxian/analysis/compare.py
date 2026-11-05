@@ -11,9 +11,9 @@ from ..model.shaikh import ShaikhResult, build_shaikh_benchmarks
 from .gravitation import deviation_summary, error_correction, forecast_evaluation
 
 BENCHMARK_LABELS = {
-    "PP": "Moseley PP (stock capital)",
+    "PP": "Moseley PP (configured M)",
     "PP_profit": "Moseley PP (profit rate, taxes separate)",
-    "PP_working": "Moseley PP (M + working capital)",
+    "PP_stock": "Moseley PP (stock capital only)",
     "PP_Sraffa": "Sraffa prices of production (flow capital)",
     "PP_Sraffa_fixed": "Sraffa prices with fixed capital",
     "PP_Shaikh": "Shaikh iterated prices (endogenous r)",
@@ -69,7 +69,7 @@ def compare_benchmarks(panel: pd.DataFrame) -> pd.DataFrame:
         for column in (
             "PP_market",
             "PP_profit_market",
-            "PP_working_market",
+            "PP_stock_market",
             "PP_Sraffa",
             "PP_Sraffa_fixed",
             "PP_Shaikh",
@@ -86,7 +86,7 @@ def compare_benchmarks(panel: pd.DataFrame) -> pd.DataFrame:
     market_columns = {
         "PP": "PP_market",
         "PP_profit": "PP_profit_market",
-        "PP_working": "PP_working_market",
+        "PP_stock": "PP_stock_market",
     }
     for column, label in BENCHMARK_LABELS.items():
         use_column = market_columns.get(column, column)
@@ -177,7 +177,7 @@ def run_shaikh_comparison(
         for column in (
             "PP_market",
             "PP_profit_market",
-            "PP_working_market",
+            "PP_stock_market",
             "PP_Sraffa",
             "PP_Sraffa_fixed",
             "PP_Shaikh",
@@ -194,7 +194,7 @@ def run_shaikh_comparison(
         _benchmark_gravitation(
             shaikh.panel,
             "PP_market",
-            "Moseley PP (stock capital)",
+            "Moseley PP (configured M)",
             years=common_years,
         ),
         _benchmark_gravitation(
@@ -205,8 +205,8 @@ def run_shaikh_comparison(
         ),
         _benchmark_gravitation(
             shaikh.panel,
-            "PP_working_market",
-            "Moseley PP (M + working capital)",
+            "PP_stock_market",
+            "Moseley PP (stock capital only)",
             years=common_years,
         ),
         _benchmark_gravitation(
@@ -261,7 +261,7 @@ def run_shaikh_comparison(
     latest_market_columns = {
         "PP": "PP_market",
         "PP_profit": "PP_profit_market",
-        "PP_working": "PP_working_market",
+        "PP_stock": "PP_stock_market",
     }
     for column, label in BENCHMARK_LABELS.items():
         use_column = latest_market_columns.get(column, column)

@@ -80,7 +80,7 @@ relationship; its slope is printed in the corner together with the correlation.
 
 **What to look for.** How tightly the cloud hugs the dashed line, and how close
 the solid line is to it. Moseley's cloud is the tightest (correlation 0.88) and
-its line is steepest (slope 0.60). Sraffa's is looser (0.63, slope 0.29). Direct
+its line is steepest (slope 0.60). Sraffa's is looser (0.73, slope 0.46). Direct
 labour values are almost a horizontal smear (0.19, slope 0.05).
 
 **What it means.** Once you measure prices per unit rather than total revenue,

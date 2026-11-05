@@ -42,7 +42,9 @@ from typing import Literal
 import numpy as np
 import pandas as pd
 
-CapitalProxy = Literal["cost", "output", "value_added", "fixed_assets"]
+CapitalProxy = Literal[
+    "cost", "output", "value_added", "fixed_assets", "working_capital"
+]
 SurplusBasis = Literal["gross", "net", "auto"]
 
 # Housing is mostly imputed rent with almost no measured intermediate cost, and
@@ -90,6 +92,12 @@ def _capital_proxy(
         if "M" not in frame.columns:
             raise KeyError("capital_proxy='fixed_assets' requires an M column")
         return frame["M"]
+    if proxy == "working_capital":
+        # Moseley's M includes circulating capital advanced; one year of the
+        # cost price is the transparent proxy used throughout the project.
+        if "M" not in frame.columns:
+            raise KeyError("capital_proxy='working_capital' requires an M column")
+        return frame["M"] + frame[cost_column]
     raise ValueError(f"Unknown capital proxy: {proxy}")
 
 
@@ -161,7 +169,9 @@ def add_industry_ratios(
 
     # Working-capital variant: if Moseley's M includes circulating capital
     # advanced, one year of K is a transparent sensitivity proxy.
-    out["M_working"] = out["M_proxy"] + out[cost_column]
+    base_stock = out["M"] if "M" in out.columns else out["M_proxy"]
+    out["M_stock"] = base_stock
+    out["M_working"] = base_stock + out[cost_column]
     out["R_working_benchmark"] = out[value_column] / out["M_working"]
     out["PP_working"] = (
         out[cost_column] + out["R_working_benchmark"] * out["M_working"]
@@ -197,6 +207,21 @@ def add_industry_ratios(
     out["PP_working_market"] = (
         out[cost_column]
         + out["R_working_market"] * out["M_working"]
+    )
+
+    # Stock-capital benchmark, kept explicitly so both variants stay comparable
+    # whichever proxy is configured as primary.
+    stock_totals = out.groupby("year")[[value_column, "M_stock"]].transform("sum")
+    out["R_stock_benchmark"] = stock_totals[value_column] / stock_totals["M_stock"]
+    out["PP_stock"] = out[cost_column] + out["R_stock_benchmark"] * out["M_stock"]
+
+    market_stock_rate = (
+        market.groupby("year")[value_column].sum()
+        / market.groupby("year")["M_stock"].sum()
+    )
+    out["R_stock_market"] = out["year"].map(market_stock_rate)
+    out["PP_stock_market"] = (
+        out[cost_column] + out["R_stock_market"] * out["M_stock"]
     )
 
     out["PP_V"] = out["V"] * (1.0 + totals[value_column] / totals["V"])
